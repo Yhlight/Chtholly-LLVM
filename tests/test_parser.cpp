@@ -85,11 +85,26 @@ void test_parser_assignment() {
     assert(result == expected);
 }
 
+void test_parser_precedence() {
+    std::string source = "let x = 1 + 2 * 3;";
+    Chtholly::Lexer lexer(source);
+    std::vector<Chtholly::Token> tokens = lexer.scanTokens();
+    Chtholly::Parser parser(tokens);
+    std::vector<std::shared_ptr<Chtholly::Stmt>> statements = parser.parse();
+    Chtholly::AstPrinter printer;
+
+    std::string result = printer.print(statements);
+    std::string expected = "var x = (+ LITERAL (* LITERAL LITERAL));\n";
+
+    assert(result == expected);
+}
+
 int main() {
     test_lexer_simple_declaration();
     test_lexer_various_tokens();
     test_parser_simple_declaration();
     test_parser_assignment();
+    test_parser_precedence();
     std::cout << "All tests passed!" << std::endl;
     return 0;
 }

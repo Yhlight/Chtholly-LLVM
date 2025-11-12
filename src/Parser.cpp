@@ -45,7 +45,7 @@ std::shared_ptr<Expr> Parser::expression() {
 }
 
 std::shared_ptr<Expr> Parser::assignment() {
-    std::shared_ptr<Expr> expr = primary();
+    std::shared_ptr<Expr> expr = equality();
 
     if (match({TokenType::Equal})) {
         Token equals = previous();
@@ -56,11 +56,59 @@ std::shared_ptr<Expr> Parser::assignment() {
             return std::make_shared<Assign>(name, value);
         }
 
-        // Invalid assignment target.
         throw std::runtime_error("Invalid assignment target.");
     }
 
     return expr;
+}
+
+std::shared_ptr<Expr> Parser::equality() {
+    std::shared_ptr<Expr> expr = comparison();
+    while (match({TokenType::BangEqual, TokenType::EqualEqual})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = comparison();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::comparison() {
+    std::shared_ptr<Expr> expr = term();
+    while (match({TokenType::Greater, TokenType::GreaterEqual, TokenType::Less, TokenType::LessEqual})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = term();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::term() {
+    std::shared_ptr<Expr> expr = factor();
+    while (match({TokenType::Minus, TokenType::Plus})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = factor();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::factor() {
+    std::shared_ptr<Expr> expr = unary();
+    while (match({TokenType::Slash, TokenType::Asterisk, TokenType::Percent})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = unary();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::unary() {
+    if (match({TokenType::Bang, TokenType::Minus})) {
+        Token op = previous();
+        std::shared_ptr<Expr> right = unary();
+        return std::make_shared<Unary>(op, right);
+    }
+    return primary();
 }
 
 std::shared_ptr<Expr> Parser::primary() {
@@ -78,7 +126,6 @@ std::shared_ptr<Expr> Parser::primary() {
         return expr;
     }
 
-    // Unrecognized token.
     throw std::runtime_error("Expect expression.");
 }
 
@@ -94,7 +141,6 @@ bool Parser::match(const std::vector<TokenType>& types) {
 
 Token Parser::consume(TokenType type, const std::string& message) {
     if (check(type)) return advance();
-    // Rudimentary error handling
     throw std::runtime_error(message);
 }
 

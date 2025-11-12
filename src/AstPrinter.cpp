@@ -13,11 +13,19 @@ std::string AstPrinter::print(const std::vector<std::shared_ptr<Stmt>>& statemen
 }
 
 std::any AstPrinter::visitAssignExpr(Assign& expr) {
-    return parenthesize("= " + expr.name.lexeme, {expr.value});
+    return std::string(parenthesize("= " + expr.name.lexeme, {expr.value}));
+}
+
+std::any AstPrinter::visitBinaryExpr(Binary& expr) {
+    return std::string(parenthesize(expr.op.lexeme, {expr.left, expr.right}));
 }
 
 std::any AstPrinter::visitLiteralExpr(Literal& expr) {
     return std::string("LITERAL");
+}
+
+std::any AstPrinter::visitUnaryExpr(Unary& expr) {
+    return std::string(parenthesize(expr.op.lexeme, {expr.right}));
 }
 
 std::any AstPrinter::visitVariableExpr(Variable& expr) {

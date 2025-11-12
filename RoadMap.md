@@ -4,10 +4,11 @@ This document outlines the development roadmap for the Chtholly programming lang
 
 ## Phase 1: Core Language Features
 
-- [ ] Basic project structure (CMake, Python build script)
-- [ ] Lexer implementation
-- [ ] Parser for variable declarations and basic types
-- [ ] AST (Abstract Syntax Tree) definition
+- [x] Basic project structure (CMake, Python build script)
+- [x] Lexer implementation
+- [x] Parser for variable declarations and basic types
+- [x] AST (Abstract Syntax Tree) definition
+- [x] Parser for expressions (unary and binary with precedence)
 - [ ] LLVM IR generation for basic assignments
 - [ ] End-to-end "Hello, World!" compilation
 

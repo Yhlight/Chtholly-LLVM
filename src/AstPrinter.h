@@ -13,7 +13,9 @@ public:
     std::string print(const std::vector<std::shared_ptr<Stmt>>& statements);
 
     std::any visitAssignExpr(Assign& expr) override;
+    std::any visitBinaryExpr(Binary& expr) override;
     std::any visitLiteralExpr(Literal& expr) override;
+    std::any visitUnaryExpr(Unary& expr) override;
     std::any visitVariableExpr(Variable& expr) override;
 
     std::any visitExpressionStmt(Expression& stmt) override;
