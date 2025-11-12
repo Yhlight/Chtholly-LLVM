@@ -1,13 +1,12 @@
+#include "../src/AstPrinter.h"
 #include "../src/Lexer.h"
+#include "../src/Parser.h"
 #include <cassert>
 #include <iostream>
 #include <vector>
 
-void test_addition() {
-    assert(1 + 1 == 2);
-}
-
-void test_simple_declaration() {
+// Lexer tests
+void test_lexer_simple_declaration() {
     std::string source = "let x = 10;";
     Chtholly::Lexer lexer(source);
     std::vector<Chtholly::Token> tokens = lexer.scanTokens();
@@ -22,7 +21,7 @@ void test_simple_declaration() {
     assert(tokens[4].type == Chtholly::TokenType::Semicolon);
 }
 
-void test_various_tokens() {
+void test_lexer_various_tokens() {
     std::string source = R"(
         let a = 10;
         mut b = 20.5;
@@ -57,14 +56,40 @@ void test_various_tokens() {
     assert(std::get<std::string>(tokens[18].literal) == "hello");
 }
 
-void test_all() {
-    test_addition();
-    test_simple_declaration();
-    test_various_tokens();
+// Parser tests
+void test_parser_simple_declaration() {
+    std::string source = "let x = 10;";
+    Chtholly::Lexer lexer(source);
+    std::vector<Chtholly::Token> tokens = lexer.scanTokens();
+    Chtholly::Parser parser(tokens);
+    std::vector<std::shared_ptr<Chtholly::Stmt>> statements = parser.parse();
+    Chtholly::AstPrinter printer;
+
+    std::string result = printer.print(statements);
+    std::string expected = "var x = LITERAL;\n";
+
+    assert(result == expected);
+}
+
+void test_parser_assignment() {
+    std::string source = "x = 10;";
+    Chtholly::Lexer lexer(source);
+    std::vector<Chtholly::Token> tokens = lexer.scanTokens();
+    Chtholly::Parser parser(tokens);
+    std::vector<std::shared_ptr<Chtholly::Stmt>> statements = parser.parse();
+    Chtholly::AstPrinter printer;
+
+    std::string result = printer.print(statements);
+    std::string expected = "(= x LITERAL);\n";
+
+    assert(result == expected);
 }
 
 int main() {
-    test_all();
+    test_lexer_simple_declaration();
+    test_lexer_various_tokens();
+    test_parser_simple_declaration();
+    test_parser_assignment();
     std::cout << "All tests passed!" << std::endl;
     return 0;
 }
