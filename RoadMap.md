@@ -4,8 +4,8 @@ This document outlines the development plan and progress for the Chtholly progra
 
 ## Phase 1: Core Compiler Infrastructure
 
-- [ ] **Project Setup**: Initialize the project structure, build system (CMake), and version control (.gitignore).
-- [ ] **Lexer (Tokenizer)**: Implement the lexical analyzer to convert source code into a stream of tokens.
+- [x] **Project Setup**: Initialize the project structure, build system (CMake), and version control (.gitignore).
+- [ ] **Lexer (Tokenizer)**: Implement the lexical analyzer to convert source code into a stream of tokens. (In Progress)
 - [ ] **Parser (AST)**: Implement the recursive descent parser to build an Abstract Syntax Tree (AST) from the token stream.
 - [ ] **C++ Transpiler**: Implement the basic mechanism to traverse the AST and generate equivalent C++ code.
 - [ ] **Basic Language Features**:

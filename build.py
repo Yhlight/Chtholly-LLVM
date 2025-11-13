@@ -34,10 +34,19 @@ def main():
     print("\n--- Running Executable ---")
     executable_name = "chtholly"  # As defined in src/CMakeLists.txt
     if os.path.exists(executable_name):
-        if run_command(["./" + executable_name]) != 0:
-            print("Executable returned a non-zero exit code.")
+        run_command(["./" + executable_name])
     else:
         print(f"Executable '{executable_name}' not found.")
+
+    # Run tests
+    print("\n--- Running Tests ---")
+    test_executable_name = "chtholly_tests"
+    if os.path.exists(test_executable_name):
+        if run_command(["./" + test_executable_name]) != 0:
+            print("Tests failed.")
+            sys.exit(1)
+    else:
+        print(f"Test executable '{test_executable_name}' not found.")
 
 if __name__ == "__main__":
     main()
