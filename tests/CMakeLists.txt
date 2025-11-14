@@ -5,9 +5,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(googletest)
 
-add_executable(chtholly_tests LexerTest.cpp)
+add_executable(chtholly_tests LexerTest.cpp ParserTest.cpp)
 
 # Link against the chtholly executable's sources
 target_link_libraries(chtholly_tests GTest::gtest_main)
 target_include_directories(chtholly_tests PUBLIC ../src)
-target_sources(chtholly_tests PRIVATE ../src/lexer/Lexer.cpp ../src/lexer/Token.cpp)
+target_sources(chtholly_tests PRIVATE
+    ../src/lexer/Lexer.cpp
+    ../src/lexer/Token.cpp
+    ../src/parser/Parser.cpp
+)
