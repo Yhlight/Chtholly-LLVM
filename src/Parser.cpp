@@ -26,6 +26,9 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse() {
 // Grammar Implementation
 
 std::shared_ptr<Stmt> Parser::declaration() {
+    if (match({TokenType::FUNC})) {
+        return function("function");
+    }
     if (match({TokenType::LET, TokenType::MUT})) {
         return varDeclaration();
     }
@@ -48,6 +51,9 @@ std::shared_ptr<Stmt> Parser::statement() {
     }
     if (match({TokenType::WHILE})) {
         return whileStatement();
+    }
+    if (match({TokenType::RETURN})) {
+        return returnStatement();
     }
     if (match({TokenType::LBRACE})) {
         return std::make_shared<BlockStmt>(block());
@@ -88,6 +94,42 @@ std::shared_ptr<Stmt> Parser::whileStatement() {
     std::shared_ptr<Stmt> body = statement();
 
     return std::make_shared<WhileStmt>(condition, body);
+}
+
+std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
+    Token name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
+    consume(TokenType::LPAREN, "Expect '(' after " + kind + " name.");
+    std::vector<Token> parameters;
+    if (!check(TokenType::RPAREN)) {
+        do {
+            if (parameters.size() >= 255) {
+                throw std::runtime_error("Can't have more than 255 parameters.");
+            }
+            parameters.push_back(consume(TokenType::IDENTIFIER, "Expect parameter name."));
+            consume(TokenType::COLON, "Expect ':' after parameter name for type annotation.");
+            parameters.push_back(consume(TokenType::IDENTIFIER, "Expect parameter type."));
+        } while (match({TokenType::COMMA}));
+    }
+    consume(TokenType::RPAREN, "Expect ')' after parameters.");
+
+    Token returnType(TokenType::IDENTIFIER, "void", -1); // Default return type
+    if (match({TokenType::ARROW})) {
+        returnType = consume(TokenType::IDENTIFIER, "Expect return type after '->'.");
+    }
+
+    consume(TokenType::LBRACE, "Expect '{' before " + kind + " body.");
+    std::vector<std::shared_ptr<Stmt>> body = block();
+    return std::make_shared<FunctionStmt>(name, parameters, body, returnType);
+}
+
+std::shared_ptr<Stmt> Parser::returnStatement() {
+    Token keyword = previous();
+    std::shared_ptr<Expr> value = nullptr;
+    if (!check(TokenType::SEMICOLON)) {
+        value = expression();
+    }
+    consume(TokenType::SEMICOLON, "Expect ';' after return value.");
+    return std::make_shared<ReturnStmt>(keyword, value);
 }
 
 std::shared_ptr<Stmt> Parser::expressionStatement() {

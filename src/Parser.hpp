@@ -13,10 +13,12 @@ public:
 
 private:
     std::shared_ptr<Stmt> declaration();
+    std::shared_ptr<Stmt> function(const std::string& kind);
     std::shared_ptr<Stmt> varDeclaration();
     std::shared_ptr<Stmt> statement();
     std::shared_ptr<Stmt> ifStatement();
     std::shared_ptr<Stmt> whileStatement();
+    std::shared_ptr<Stmt> returnStatement();
     std::shared_ptr<Stmt> expressionStatement();
     std::vector<std::shared_ptr<Stmt>> block();
 

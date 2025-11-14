@@ -26,17 +26,9 @@ void runFile(const std::string& path) {
 
     // 3. Transpiler
     Transpiler transpiler;
-    std::string transpiled_statements = transpiler.transpile(statements);
+    std::string cpp_code = transpiler.transpile(statements);
 
-    std::stringstream cpp_code;
-    cpp_code << "#include <iostream>\n";
-    cpp_code << "#include <string>\n\n";
-    cpp_code << "int main() {\n";
-    cpp_code << transpiled_statements;
-    cpp_code << "    return 0;\n";
-    cpp_code << "}\n";
-
-    std::cout << cpp_code.str() << std::endl;
+    std::cout << cpp_code << std::endl;
 }
 
 int main(int argc, char* argv[]) {

@@ -20,6 +20,8 @@ struct VarStmt;
 struct BlockStmt;
 struct IfStmt;
 struct WhileStmt;
+struct FunctionStmt;
+struct ReturnStmt;
 
 
 // Visitor for Expressions
@@ -128,6 +130,8 @@ struct StmtVisitor {
     virtual std::any visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) = 0;
     virtual std::any visitIfStmt(const std::shared_ptr<IfStmt>& stmt) = 0;
     virtual std::any visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) = 0;
+    virtual std::any visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) = 0;
+    virtual std::any visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -191,6 +195,33 @@ struct WhileStmt : Stmt, public std::enable_shared_from_this<WhileStmt> {
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitWhileStmt(shared_from_this());
+    }
+};
+
+struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
+    const Token name;
+    const std::vector<Token> params;
+    const std::vector<std::shared_ptr<Stmt>> body;
+    // a token for the return type, not yet a proper type node
+    const Token returnType;
+
+    FunctionStmt(Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body, Token returnType)
+        : name(std::move(name)), params(std::move(params)), body(std::move(body)), returnType(std::move(returnType)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visitFunctionStmt(shared_from_this());
+    }
+};
+
+struct ReturnStmt : Stmt, public std::enable_shared_from_this<ReturnStmt> {
+    const Token keyword;
+    const std::shared_ptr<Expr> value;
+
+    ReturnStmt(Token keyword, std::shared_ptr<Expr> value)
+        : keyword(std::move(keyword)), value(std::move(value)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visitReturnStmt(shared_from_this());
     }
 };
 

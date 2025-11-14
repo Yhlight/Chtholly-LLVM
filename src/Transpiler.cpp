@@ -4,9 +4,25 @@
 
 std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& statements) {
     std::stringstream ss;
+    ss << "#include <iostream>\n";
+    ss << "#include <string>\n\n";
     for (const auto& stmt : statements) {
         ss << std::any_cast<std::string>(stmt->accept(*this));
     }
+    return ss.str();
+}
+
+std::any Transpiler::visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) {
+    std::stringstream ss;
+    ss << stmt->returnType.lexeme << " " << stmt->name.lexeme << "(";
+    for (size_t i = 0; i < stmt->params.size(); i += 2) {
+        ss << stmt->params[i + 1].lexeme << " " << stmt->params[i].lexeme;
+        if (i + 2 < stmt->params.size()) {
+            ss << ", ";
+        }
+    }
+    ss << ") ";
+    ss << std::any_cast<std::string>(std::make_shared<BlockStmt>(stmt->body)->accept(*this));
     return ss.str();
 }
 
@@ -90,6 +106,13 @@ std::any Transpiler::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
     }
     ss << "}\n";
     return ss.str();
+}
+
+std::any Transpiler::visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) {
+    if (stmt->value != nullptr) {
+        return "    return " + std::any_cast<std::string>(stmt->value->accept(*this)) + ";\n";
+    }
+    return "    return;\n";
 }
 
 std::any Transpiler::visitIfStmt(const std::shared_ptr<IfStmt>& stmt) {

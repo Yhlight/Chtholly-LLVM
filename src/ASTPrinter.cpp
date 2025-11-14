@@ -66,6 +66,17 @@ std::any ASTPrinter::visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) {
     return parenthesize("while", {stmt->condition});
 }
 
+std::any ASTPrinter::visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) {
+    return parenthesize("func " + stmt->name.lexeme, {});
+}
+
+std::any ASTPrinter::visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) {
+    if (stmt->value != nullptr) {
+        return parenthesize("return", {stmt->value});
+    }
+    return "(return)";
+}
+
 std::any ASTPrinter::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
     return parenthesizeStmt("block", stmt->statements);
 }
