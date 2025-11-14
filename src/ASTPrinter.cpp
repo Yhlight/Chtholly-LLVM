@@ -62,6 +62,10 @@ std::any ASTPrinter::visitIfStmt(const std::shared_ptr<IfStmt>& stmt) {
     }
 }
 
+std::any ASTPrinter::visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) {
+    return parenthesize("while", {stmt->condition});
+}
+
 std::any ASTPrinter::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
     return parenthesizeStmt("block", stmt->statements);
 }

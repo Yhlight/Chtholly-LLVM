@@ -22,6 +22,7 @@ public:
     std::any visitVarStmt(const std::shared_ptr<VarStmt>& stmt) override;
     std::any visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) override;
     std::any visitIfStmt(const std::shared_ptr<IfStmt>& stmt) override;
+    std::any visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) override;
 };
 
 #endif // CHTHOLLY_TRANSPILER_HPP

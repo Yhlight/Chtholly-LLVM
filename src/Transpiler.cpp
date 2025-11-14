@@ -10,6 +10,13 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     return ss.str();
 }
 
+std::any Transpiler::visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) {
+    std::stringstream ss;
+    ss << "    while (" << std::any_cast<std::string>(stmt->condition->accept(*this)) << ") "
+       << std::any_cast<std::string>(stmt->body->accept(*this));
+    return ss.str();
+}
+
 // Expression Visitors
 std::any Transpiler::visitBinaryExpr(const std::shared_ptr<Binary>& expr) {
     std::string left = std::any_cast<std::string>(expr->left->accept(*this));

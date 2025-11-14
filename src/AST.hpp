@@ -19,6 +19,7 @@ struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
 struct IfStmt;
+struct WhileStmt;
 
 
 // Visitor for Expressions
@@ -126,6 +127,7 @@ struct StmtVisitor {
     virtual std::any visitVarStmt(const std::shared_ptr<VarStmt>& stmt) = 0;
     virtual std::any visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) = 0;
     virtual std::any visitIfStmt(const std::shared_ptr<IfStmt>& stmt) = 0;
+    virtual std::any visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -177,6 +179,18 @@ struct IfStmt : Stmt, public std::enable_shared_from_this<IfStmt> {
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitIfStmt(shared_from_this());
+    }
+};
+
+struct WhileStmt : Stmt, public std::enable_shared_from_this<WhileStmt> {
+    const std::shared_ptr<Expr> condition;
+    const std::shared_ptr<Stmt> body;
+
+    WhileStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body)
+        : condition(std::move(condition)), body(std::move(body)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visitWhileStmt(shared_from_this());
     }
 };
 
