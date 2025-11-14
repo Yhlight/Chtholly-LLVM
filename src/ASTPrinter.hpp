@@ -26,6 +26,7 @@ public:
     std::any visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) override;
     std::any visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) override;
     std::any visitForStmt(const std::shared_ptr<ForStmt>& stmt) override;
+    std::any visitStructStmt(const std::shared_ptr<StructStmt>& stmt) override;
 
 private:
     std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs);

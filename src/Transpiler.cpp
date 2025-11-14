@@ -12,34 +12,6 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     return ss.str();
 }
 
-std::any Transpiler::visitForStmt(const std::shared_ptr<ForStmt>& stmt) {
-    std::stringstream ss;
-    ss << "    for (auto " << stmt->variable.lexeme << " : " << std::any_cast<std::string>(stmt->collection->accept(*this)) << ") "
-       << std::any_cast<std::string>(stmt->body->accept(*this));
-    return ss.str();
-}
-
-std::any Transpiler::visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) {
-    std::stringstream ss;
-    ss << stmt->returnType.lexeme << " " << stmt->name.lexeme << "(";
-    for (size_t i = 0; i < stmt->params.size(); ++i) {
-        ss << stmt->params[i].type.lexeme << " " << stmt->params[i].name.lexeme;
-        if (i < stmt->params.size() - 1) {
-            ss << ", ";
-        }
-    }
-    ss << ") ";
-    ss << std::any_cast<std::string>(std::make_shared<BlockStmt>(stmt->body)->accept(*this));
-    return ss.str();
-}
-
-std::any Transpiler::visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) {
-    std::stringstream ss;
-    ss << "    while (" << std::any_cast<std::string>(stmt->condition->accept(*this)) << ") "
-       << std::any_cast<std::string>(stmt->body->accept(*this));
-    return ss.str();
-}
-
 // Expression Visitors
 std::any Transpiler::visitBinaryExpr(const std::shared_ptr<Binary>& expr) {
     std::string left = std::any_cast<std::string>(expr->left->accept(*this));
@@ -116,13 +88,6 @@ std::any Transpiler::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
     return ss.str();
 }
 
-std::any Transpiler::visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) {
-    if (stmt->value != nullptr) {
-        return "    return " + std::any_cast<std::string>(stmt->value->accept(*this)) + ";\n";
-    }
-    return "    return;\n";
-}
-
 std::any Transpiler::visitIfStmt(const std::shared_ptr<IfStmt>& stmt) {
     std::stringstream ss;
     ss << "    if (" << std::any_cast<std::string>(stmt->condition->accept(*this)) << ") "
@@ -130,5 +95,50 @@ std::any Transpiler::visitIfStmt(const std::shared_ptr<IfStmt>& stmt) {
     if (stmt->elseBranch != nullptr) {
         ss << "    else " << std::any_cast<std::string>(stmt->elseBranch->accept(*this));
     }
+    return ss.str();
+}
+
+std::any Transpiler::visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) {
+    std::stringstream ss;
+    ss << "    while (" << std::any_cast<std::string>(stmt->condition->accept(*this)) << ") "
+       << std::any_cast<std::string>(stmt->body->accept(*this));
+    return ss.str();
+}
+
+std::any Transpiler::visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) {
+    std::stringstream ss;
+    ss << stmt->returnType.lexeme << " " << stmt->name.lexeme << "(";
+    for (size_t i = 0; i < stmt->params.size(); ++i) {
+        ss << stmt->params[i].type.lexeme << " " << stmt->params[i].name.lexeme;
+        if (i < stmt->params.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << ") ";
+    ss << std::any_cast<std::string>(std::make_shared<BlockStmt>(stmt->body)->accept(*this));
+    return ss.str();
+}
+
+std::any Transpiler::visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) {
+    if (stmt->value != nullptr) {
+        return "    return " + std::any_cast<std::string>(stmt->value->accept(*this)) + ";\n";
+    }
+    return "    return;\n";
+}
+
+std::any Transpiler::visitForStmt(const std::shared_ptr<ForStmt>& stmt) {
+    std::stringstream ss;
+    ss << "    for (auto " << stmt->variable.lexeme << " : " << std::any_cast<std::string>(stmt->collection->accept(*this)) << ") "
+       << std::any_cast<std::string>(stmt->body->accept(*this));
+    return ss.str();
+}
+
+std::any Transpiler::visitStructStmt(const std::shared_ptr<StructStmt>& stmt) {
+    std::stringstream ss;
+    ss << "struct " << stmt->name.lexeme << " {\n";
+    for (const auto& field : stmt->fields) {
+        ss << "    " << field->type.lexeme << " " << field->name.lexeme << ";\n";
+    }
+    ss << "};\n";
     return ss.str();
 }

@@ -26,6 +26,9 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse() {
 // Grammar Implementation
 
 std::shared_ptr<Stmt> Parser::declaration() {
+    if (match({TokenType::STRUCT})) {
+        return structDeclaration();
+    }
     if (match({TokenType::FUNC})) {
         return function("function");
     }
@@ -39,8 +42,10 @@ std::shared_ptr<Stmt> Parser::varDeclaration() {
     bool isMutable = previous().type == TokenType::MUT;
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
 
-    consume(TokenType::ASSIGN, "Expect '=' after variable name for initializer.");
-    std::shared_ptr<Expr> initializer = expression();
+    std::shared_ptr<Expr> initializer = nullptr;
+    if (match({TokenType::ASSIGN})) {
+        initializer = expression();
+    }
 
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
     return std::make_shared<VarStmt>(name, initializer, isMutable);
@@ -125,6 +130,24 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
     consume(TokenType::LBRACE, "Expect '{' before " + kind + " body.");
     std::vector<std::shared_ptr<Stmt>> body = block();
     return std::make_shared<FunctionStmt>(name, parameters, body, returnType);
+}
+
+std::shared_ptr<Stmt> Parser::structDeclaration() {
+    Token name = consume(TokenType::IDENTIFIER, "Expect struct name.");
+    consume(TokenType::LBRACE, "Expect '{' before struct body.");
+    std::vector<std::shared_ptr<VarStmt>> fields;
+    while (!check(TokenType::RBRACE) && !isAtEnd()) {
+        bool isMutable = match({TokenType::MUT});
+        if (!isMutable) consume(TokenType::LET, "Expect 'let' or 'mut' for field declaration.");
+
+        Token fieldName = consume(TokenType::IDENTIFIER, "Expect field name.");
+        consume(TokenType::COLON, "Expect ':' after field name.");
+        Token fieldType = consume(TokenType::IDENTIFIER, "Expect field type.");
+        consume(TokenType::SEMICOLON, "Expect ';' after field declaration.");
+        fields.push_back(std::make_shared<VarStmt>(fieldName, nullptr, isMutable, fieldType));
+    }
+    consume(TokenType::RBRACE, "Expect '}' after struct body.");
+    return std::make_shared<StructStmt>(name, fields);
 }
 
 std::shared_ptr<Stmt> Parser::forStatement() {

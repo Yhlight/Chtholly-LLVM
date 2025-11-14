@@ -23,6 +23,7 @@ struct WhileStmt;
 struct FunctionStmt;
 struct ForStmt;
 struct ReturnStmt;
+struct StructStmt;
 
 
 // Visitor for Expressions
@@ -134,6 +135,7 @@ struct StmtVisitor {
     virtual std::any visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) = 0;
     virtual std::any visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) = 0;
     virtual std::any visitForStmt(const std::shared_ptr<ForStmt>& stmt) = 0;
+    virtual std::any visitStructStmt(const std::shared_ptr<StructStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -157,9 +159,10 @@ struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
     const Token name;
     const std::shared_ptr<Expr> initializer;
     const bool isMutable;
+    const Token type;
 
-    VarStmt(Token name, std::shared_ptr<Expr> initializer, bool isMutable)
-        : name(std::move(name)), initializer(std::move(initializer)), isMutable(isMutable) {}
+    VarStmt(Token name, std::shared_ptr<Expr> initializer, bool isMutable, Token type = Token(TokenType::UNKNOWN, "", -1))
+        : name(std::move(name)), initializer(std::move(initializer)), isMutable(isMutable), type(std::move(type)) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitVarStmt(shared_from_this());
@@ -242,6 +245,18 @@ struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitForStmt(shared_from_this());
+    }
+};
+
+struct StructStmt : Stmt, public std::enable_shared_from_this<StructStmt> {
+    const Token name;
+    const std::vector<std::shared_ptr<VarStmt>> fields;
+
+    StructStmt(Token name, std::vector<std::shared_ptr<VarStmt>> fields)
+        : name(std::move(name)), fields(std::move(fields)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visitStructStmt(shared_from_this());
     }
 };
 
