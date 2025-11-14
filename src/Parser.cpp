@@ -114,10 +114,25 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
             if (parameters.size() >= 255) {
                 throw std::runtime_error("Can't have more than 255 parameters.");
             }
-            Token paramName = consume(TokenType::IDENTIFIER, "Expect parameter name.");
-            consume(TokenType::COLON, "Expect ':' after parameter name for type annotation.");
-            Token paramType = consume(TokenType::IDENTIFIER, "Expect parameter type.");
-            parameters.push_back({paramName, paramType});
+
+            bool isRef = match({TokenType::BITWISE_AND});
+            bool isMutRef = false;
+            if (isRef) {
+                isMutRef = match({TokenType::MUT});
+            }
+
+            Token paramName = Token(TokenType::UNKNOWN, "", -1);
+            if (match({TokenType::SELF})) {
+                paramName = previous();
+                // 'self' has no explicit type, it's implicitly the struct type.
+                Token selfType = Token(TokenType::IDENTIFIER, "Self", paramName.line);
+                parameters.push_back({paramName, selfType, isRef, isMutRef});
+            } else {
+                paramName = consume(TokenType::IDENTIFIER, "Expect parameter name.");
+                consume(TokenType::COLON, "Expect ':' after parameter name for type annotation.");
+                Token paramType = consume(TokenType::IDENTIFIER, "Expect parameter type.");
+                parameters.push_back({paramName, paramType, isRef, isMutRef});
+            }
         } while (match({TokenType::COMMA}));
     }
     consume(TokenType::RPAREN, "Expect ')' after parameters.");
@@ -135,19 +150,35 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
 std::shared_ptr<Stmt> Parser::structDeclaration() {
     Token name = consume(TokenType::IDENTIFIER, "Expect struct name.");
     consume(TokenType::LBRACE, "Expect '{' before struct body.");
-    std::vector<std::shared_ptr<VarStmt>> fields;
-    while (!check(TokenType::RBRACE) && !isAtEnd()) {
-        bool isMutable = match({TokenType::MUT});
-        if (!isMutable) consume(TokenType::LET, "Expect 'let' or 'mut' for field declaration.");
 
-        Token fieldName = consume(TokenType::IDENTIFIER, "Expect field name.");
-        consume(TokenType::COLON, "Expect ':' after field name.");
-        Token fieldType = consume(TokenType::IDENTIFIER, "Expect field type.");
-        consume(TokenType::SEMICOLON, "Expect ';' after field declaration.");
-        fields.push_back(std::make_shared<VarStmt>(fieldName, nullptr, isMutable, fieldType));
+    std::vector<std::shared_ptr<VarStmt>> fields;
+    std::vector<std::shared_ptr<FunctionStmt>> methods;
+
+    while (!check(TokenType::RBRACE) && !isAtEnd()) {
+        // In Chtholly.md, struct methods don't have the 'func' keyword.
+        // We can check for an identifier which could be a method name.
+        if (peek().type == TokenType::IDENTIFIER && peekNext().type == TokenType::LPAREN) {
+            methods.push_back(std::dynamic_pointer_cast<FunctionStmt>(function("method")));
+        } else if (match({TokenType::LET, TokenType::MUT})) {
+            // This is a field declaration
+            bool isMutable = previous().type == TokenType::MUT;
+            Token fieldName = consume(TokenType::IDENTIFIER, "Expect field name.");
+            consume(TokenType::COLON, "Expect ':' after field name.");
+            Token fieldType = consume(TokenType::IDENTIFIER, "Expect field type.");
+            consume(TokenType::SEMICOLON, "Expect ';' after field declaration.");
+            fields.push_back(std::make_shared<VarStmt>(fieldName, nullptr, isMutable, fieldType));
+        } else {
+             // To provide a better error message, we check for common mistakes.
+            if (match({TokenType::FUNC})) {
+                throw std::runtime_error("Struct methods should not have the 'func' keyword.");
+            }
+            // If it's not a method or a field, it's an error.
+            throw std::runtime_error("Unexpected token in struct body. Expect 'let', 'mut', or a method definition.");
+        }
     }
+
     consume(TokenType::RBRACE, "Expect '}' after struct body.");
-    return std::make_shared<StructStmt>(name, fields);
+    return std::make_shared<StructStmt>(name, fields, methods);
 }
 
 std::shared_ptr<Stmt> Parser::forStatement() {
@@ -273,7 +304,20 @@ std::shared_ptr<Expr> Parser::primary() {
         return std::make_shared<Literal>(previous().lexeme);
     }
 
+    if (match({TokenType::SELF})) {
+        return std::make_shared<Variable>(previous());
+    }
+
     if (match({TokenType::IDENTIFIER})) {
+        // Handle static method access like `MyStruct::my_static_method`
+        if (check(TokenType::COLON_COLON)) {
+            Token klass = previous();
+            consume(TokenType::COLON_COLON, "Expect '::' after class/struct name.");
+            Token name = consume(TokenType::IDENTIFIER, "Expect static member name after '::'.");
+            return std::make_shared<StaticGetExpr>(klass, name);
+        }
+
+        // Handle struct initialization like `MyStruct{...}`
         if (check(TokenType::LBRACE)) {
             Token name = previous();
             consume(TokenType::LBRACE, "Expect '{' after struct name for initialization.");
@@ -289,6 +333,8 @@ std::shared_ptr<Expr> Parser::primary() {
             consume(TokenType::RBRACE, "Expect '}' after struct fields.");
             return std::make_shared<StructInitExpr>(name, fields);
         }
+
+        // Handle a simple variable
         return std::make_shared<Variable>(previous());
     }
 
@@ -368,6 +414,11 @@ bool Parser::isAtEnd() {
 
 Token Parser::peek() {
     return tokens.at(current);
+}
+
+Token Parser::peekNext() {
+    if (current + 1 >= tokens.size()) return Token(TokenType::END_OF_FILE, "", -1);
+    return tokens.at(current + 1);
 }
 
 Token Parser::previous() {

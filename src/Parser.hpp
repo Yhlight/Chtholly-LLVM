@@ -42,6 +42,7 @@ private:
     Token advance();
     bool isAtEnd();
     Token peek();
+    Token peekNext();
     Token previous();
 
     void synchronize();

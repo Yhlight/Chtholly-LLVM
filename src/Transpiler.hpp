@@ -18,6 +18,7 @@ public:
     std::any visitAssignExpr(const std::shared_ptr<Assign>& expr) override;
     std::any visitCallExpr(const std::shared_ptr<Call>& expr) override;
     std::any visitGetExpr(const std::shared_ptr<GetExpr>& expr) override;
+    std::any visitStaticGetExpr(const std::shared_ptr<StaticGetExpr>& expr) override;
     std::any visitStructInitExpr(const std::shared_ptr<StructInitExpr>& expr) override;
 
     std::any visitExpressionStmt(const std::shared_ptr<ExpressionStmt>& stmt) override;

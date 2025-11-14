@@ -68,6 +68,10 @@ std::any Transpiler::visitGetExpr(const std::shared_ptr<GetExpr>& expr) {
     return std::any_cast<std::string>(expr->object->accept(*this)) + "." + expr->name.lexeme;
 }
 
+std::any Transpiler::visitStaticGetExpr(const std::shared_ptr<StaticGetExpr>& expr) {
+    return expr->klass.lexeme + "::" + expr->name.lexeme;
+}
+
 std::any Transpiler::visitStructInitExpr(const std::shared_ptr<StructInitExpr>& expr) {
     std::stringstream ss;
     ss << expr->name.lexeme << "{";
@@ -124,14 +128,52 @@ std::any Transpiler::visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) {
 
 std::any Transpiler::visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) {
     std::stringstream ss;
+    bool isStatic = true;
+    bool isConst = false;
+
+    size_t startParam = 0;
+    if (!stmt->params.empty()) {
+        const auto& firstParam = stmt->params[0];
+        if (firstParam.name.lexeme == "self") {
+            isStatic = false;
+            if (firstParam.isRef && !firstParam.isMutRef) {
+                isConst = true;
+            }
+            startParam = 1; // Skip self parameter in C++ output
+        }
+    }
+
+    // Indent for methods inside a struct.
+    if (!isStatic) {
+        ss << "    ";
+    }
+
+    if (isStatic) {
+        ss << "static ";
+    }
+
     ss << stmt->returnType.lexeme << " " << stmt->name.lexeme << "(";
-    for (size_t i = 0; i < stmt->params.size(); ++i) {
-        ss << stmt->params[i].type.lexeme << " " << stmt->params[i].name.lexeme;
+    for (size_t i = startParam; i < stmt->params.size(); ++i) {
+        const auto& param = stmt->params[i];
+        ss << param.type.lexeme;
+        if (param.isRef) {
+            if (!param.isMutRef) {
+                ss << " const";
+            }
+            ss << "&";
+        }
+        ss << " " << param.name.lexeme;
+
         if (i < stmt->params.size() - 1) {
             ss << ", ";
         }
     }
     ss << ") ";
+
+    if (isConst) {
+        ss << "const ";
+    }
+
     ss << std::any_cast<std::string>(std::make_shared<BlockStmt>(stmt->body)->accept(*this));
     return ss.str();
 }
@@ -153,9 +195,19 @@ std::any Transpiler::visitForStmt(const std::shared_ptr<ForStmt>& stmt) {
 std::any Transpiler::visitStructStmt(const std::shared_ptr<StructStmt>& stmt) {
     std::stringstream ss;
     ss << "struct " << stmt->name.lexeme << " {\n";
+    // Transpile fields
     for (const auto& field : stmt->fields) {
         ss << "    " << field->type.lexeme << " " << field->name.lexeme << ";\n";
     }
+
+    // Transpile methods
+    if (!stmt->methods.empty()) {
+        ss << "\n";
+        for (const auto& method : stmt->methods) {
+            ss << std::any_cast<std::string>(method->accept(*this));
+        }
+    }
+
     ss << "};\n";
     return ss.str();
 }

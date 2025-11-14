@@ -15,6 +15,7 @@ struct Variable;
 struct Assign;
 struct Call;
 struct GetExpr;
+struct StaticGetExpr;
 struct StructInitExpr;
 
 struct ExpressionStmt;
@@ -38,6 +39,7 @@ struct ExprVisitor {
     virtual std::any visitAssignExpr(const std::shared_ptr<Assign>& expr) = 0;
     virtual std::any visitCallExpr(const std::shared_ptr<Call>& expr) = 0;
     virtual std::any visitGetExpr(const std::shared_ptr<GetExpr>& expr) = 0;
+    virtual std::any visitStaticGetExpr(const std::shared_ptr<StaticGetExpr>& expr) = 0;
     virtual std::any visitStructInitExpr(const std::shared_ptr<StructInitExpr>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
@@ -213,6 +215,8 @@ struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
     struct Parameter {
         Token name;
         Token type;
+        bool isRef = false;
+        bool isMutRef = false;
     };
     const std::vector<Parameter> params;
     const std::vector<std::shared_ptr<Stmt>> body;
@@ -255,9 +259,10 @@ struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
 struct StructStmt : Stmt, public std::enable_shared_from_this<StructStmt> {
     const Token name;
     const std::vector<std::shared_ptr<VarStmt>> fields;
+    const std::vector<std::shared_ptr<FunctionStmt>> methods;
 
-    StructStmt(Token name, std::vector<std::shared_ptr<VarStmt>> fields)
-        : name(std::move(name)), fields(std::move(fields)) {}
+    StructStmt(Token name, std::vector<std::shared_ptr<VarStmt>> fields, std::vector<std::shared_ptr<FunctionStmt>> methods)
+        : name(std::move(name)), fields(std::move(fields)), methods(std::move(methods)) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitStructStmt(shared_from_this());
@@ -285,6 +290,18 @@ struct GetExpr : Expr, public std::enable_shared_from_this<GetExpr> {
 
     std::any accept(ExprVisitor& visitor) override {
         return visitor.visitGetExpr(shared_from_this());
+    }
+};
+
+struct StaticGetExpr : Expr, public std::enable_shared_from_this<StaticGetExpr> {
+    const Token klass; // The class/struct name token
+    const Token name;  // The static member/method name token
+
+    StaticGetExpr(Token klass, Token name)
+        : klass(std::move(klass)), name(std::move(name)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visitStaticGetExpr(shared_from_this());
     }
 };
 
