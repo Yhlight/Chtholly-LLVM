@@ -36,13 +36,14 @@ std::shared_ptr<Stmt> Parser::declaration() {
 }
 
 std::shared_ptr<Stmt> Parser::varDeclaration() {
+    bool isMutable = previous().type == TokenType::MUT;
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
 
     consume(TokenType::ASSIGN, "Expect '=' after variable name for initializer.");
     std::shared_ptr<Expr> initializer = expression();
 
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
-    return std::make_shared<VarStmt>(name, initializer);
+    return std::make_shared<VarStmt>(name, initializer, isMutable);
 }
 
 std::shared_ptr<Stmt> Parser::statement() {
@@ -51,6 +52,9 @@ std::shared_ptr<Stmt> Parser::statement() {
     }
     if (match({TokenType::WHILE})) {
         return whileStatement();
+    }
+    if (match({TokenType::FOR})) {
+        return forStatement();
     }
     if (match({TokenType::RETURN})) {
         return returnStatement();
@@ -99,15 +103,16 @@ std::shared_ptr<Stmt> Parser::whileStatement() {
 std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
     Token name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
     consume(TokenType::LPAREN, "Expect '(' after " + kind + " name.");
-    std::vector<Token> parameters;
+    std::vector<FunctionStmt::Parameter> parameters;
     if (!check(TokenType::RPAREN)) {
         do {
             if (parameters.size() >= 255) {
                 throw std::runtime_error("Can't have more than 255 parameters.");
             }
-            parameters.push_back(consume(TokenType::IDENTIFIER, "Expect parameter name."));
+            Token paramName = consume(TokenType::IDENTIFIER, "Expect parameter name.");
             consume(TokenType::COLON, "Expect ':' after parameter name for type annotation.");
-            parameters.push_back(consume(TokenType::IDENTIFIER, "Expect parameter type."));
+            Token paramType = consume(TokenType::IDENTIFIER, "Expect parameter type.");
+            parameters.push_back({paramName, paramType});
         } while (match({TokenType::COMMA}));
     }
     consume(TokenType::RPAREN, "Expect ')' after parameters.");
@@ -120,6 +125,18 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
     consume(TokenType::LBRACE, "Expect '{' before " + kind + " body.");
     std::vector<std::shared_ptr<Stmt>> body = block();
     return std::make_shared<FunctionStmt>(name, parameters, body, returnType);
+}
+
+std::shared_ptr<Stmt> Parser::forStatement() {
+    consume(TokenType::LPAREN, "Expect '(' after 'for'.");
+    consume(TokenType::LET, "Expect 'let' for loop variable declaration.");
+    Token variable = consume(TokenType::IDENTIFIER, "Expect loop variable name.");
+    consume(TokenType::COLON, "Expect ':' after loop variable.");
+    std::shared_ptr<Expr> collection = expression();
+    consume(TokenType::RPAREN, "Expect ')' after for clauses.");
+    std::shared_ptr<Stmt> body = statement();
+
+    return std::make_shared<ForStmt>(variable, collection, body);
 }
 
 std::shared_ptr<Stmt> Parser::returnStatement() {

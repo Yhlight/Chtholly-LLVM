@@ -77,6 +77,10 @@ std::any ASTPrinter::visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) {
     return "(return)";
 }
 
+std::any ASTPrinter::visitForStmt(const std::shared_ptr<ForStmt>& stmt) {
+    return parenthesize("for " + stmt->variable.lexeme, {stmt->collection});
+}
+
 std::any ASTPrinter::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
     return parenthesizeStmt("block", stmt->statements);
 }

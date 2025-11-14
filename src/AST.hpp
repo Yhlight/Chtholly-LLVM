@@ -21,6 +21,7 @@ struct BlockStmt;
 struct IfStmt;
 struct WhileStmt;
 struct FunctionStmt;
+struct ForStmt;
 struct ReturnStmt;
 
 
@@ -132,6 +133,7 @@ struct StmtVisitor {
     virtual std::any visitWhileStmt(const std::shared_ptr<WhileStmt>& stmt) = 0;
     virtual std::any visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) = 0;
     virtual std::any visitReturnStmt(const std::shared_ptr<ReturnStmt>& stmt) = 0;
+    virtual std::any visitForStmt(const std::shared_ptr<ForStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -154,9 +156,10 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
     const Token name;
     const std::shared_ptr<Expr> initializer;
+    const bool isMutable;
 
-    VarStmt(Token name, std::shared_ptr<Expr> initializer)
-        : name(std::move(name)), initializer(std::move(initializer)) {}
+    VarStmt(Token name, std::shared_ptr<Expr> initializer, bool isMutable)
+        : name(std::move(name)), initializer(std::move(initializer)), isMutable(isMutable) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitVarStmt(shared_from_this());
@@ -200,12 +203,16 @@ struct WhileStmt : Stmt, public std::enable_shared_from_this<WhileStmt> {
 
 struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
     const Token name;
-    const std::vector<Token> params;
+    struct Parameter {
+        Token name;
+        Token type;
+    };
+    const std::vector<Parameter> params;
     const std::vector<std::shared_ptr<Stmt>> body;
     // a token for the return type, not yet a proper type node
     const Token returnType;
 
-    FunctionStmt(Token name, std::vector<Token> params, std::vector<std::shared_ptr<Stmt>> body, Token returnType)
+    FunctionStmt(Token name, std::vector<Parameter> params, std::vector<std::shared_ptr<Stmt>> body, Token returnType)
         : name(std::move(name)), params(std::move(params)), body(std::move(body)), returnType(std::move(returnType)) {}
 
     std::any accept(StmtVisitor& visitor) override {
@@ -222,6 +229,19 @@ struct ReturnStmt : Stmt, public std::enable_shared_from_this<ReturnStmt> {
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitReturnStmt(shared_from_this());
+    }
+};
+
+struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
+    const Token variable;
+    const std::shared_ptr<Expr> collection;
+    const std::shared_ptr<Stmt> body;
+
+    ForStmt(Token variable, std::shared_ptr<Expr> collection, std::shared_ptr<Stmt> body)
+        : variable(std::move(variable)), collection(std::move(collection)), body(std::move(body)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visitForStmt(shared_from_this());
     }
 };
 

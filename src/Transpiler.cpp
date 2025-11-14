@@ -12,12 +12,19 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     return ss.str();
 }
 
+std::any Transpiler::visitForStmt(const std::shared_ptr<ForStmt>& stmt) {
+    std::stringstream ss;
+    ss << "    for (auto " << stmt->variable.lexeme << " : " << std::any_cast<std::string>(stmt->collection->accept(*this)) << ") "
+       << std::any_cast<std::string>(stmt->body->accept(*this));
+    return ss.str();
+}
+
 std::any Transpiler::visitFunctionStmt(const std::shared_ptr<FunctionStmt>& stmt) {
     std::stringstream ss;
     ss << stmt->returnType.lexeme << " " << stmt->name.lexeme << "(";
-    for (size_t i = 0; i < stmt->params.size(); i += 2) {
-        ss << stmt->params[i + 1].lexeme << " " << stmt->params[i].lexeme;
-        if (i + 2 < stmt->params.size()) {
+    for (size_t i = 0; i < stmt->params.size(); ++i) {
+        ss << stmt->params[i].type.lexeme << " " << stmt->params[i].name.lexeme;
+        if (i < stmt->params.size() - 1) {
             ss << ", ";
         }
     }
@@ -91,11 +98,12 @@ std::any Transpiler::visitExpressionStmt(const std::shared_ptr<ExpressionStmt>& 
 }
 
 std::any Transpiler::visitVarStmt(const std::shared_ptr<VarStmt>& stmt) {
+    std::string type = stmt->isMutable ? "auto" : "auto const";
     std::string initializer = "";
     if (stmt->initializer != nullptr) {
         initializer = " = " + std::any_cast<std::string>(stmt->initializer->accept(*this));
     }
-    return "    auto " + stmt->name.lexeme + initializer + ";\n";
+    return "    " + type + " " + stmt->name.lexeme + initializer + ";\n";
 }
 
 std::any Transpiler::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
