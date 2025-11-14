@@ -42,6 +42,14 @@ std::any ASTPrinter::visitCallExpr(const std::shared_ptr<Call>& expr) {
     return parenthesize("call", {expr->callee});
 }
 
+std::any ASTPrinter::visitGetExpr(const std::shared_ptr<GetExpr>& expr) {
+    return parenthesize("." + expr->name.lexeme, {expr->object});
+}
+
+std::any ASTPrinter::visitStructInitExpr(const std::shared_ptr<StructInitExpr>& expr) {
+    return parenthesize("new " + expr->name.lexeme, {});
+}
+
 
 std::any ASTPrinter::visitExpressionStmt(const std::shared_ptr<ExpressionStmt>& stmt) {
     return parenthesize(";", {stmt->expression});

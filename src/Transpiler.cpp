@@ -64,6 +64,23 @@ std::any Transpiler::visitCallExpr(const std::shared_ptr<Call>& expr) {
     return callee + "(" + args + ")";
 }
 
+std::any Transpiler::visitGetExpr(const std::shared_ptr<GetExpr>& expr) {
+    return std::any_cast<std::string>(expr->object->accept(*this)) + "." + expr->name.lexeme;
+}
+
+std::any Transpiler::visitStructInitExpr(const std::shared_ptr<StructInitExpr>& expr) {
+    std::stringstream ss;
+    ss << expr->name.lexeme << "{";
+    for (const auto& field : expr->fields) {
+        ss << "." << field.first.lexeme << " = " << std::any_cast<std::string>(field.second->accept(*this)) << ", ";
+    }
+    if (!expr->fields.empty()) {
+        ss.seekp(-2, std::ios_base::end);
+    }
+    ss << "}";
+    return ss.str();
+}
+
 // Statement Visitors
 std::any Transpiler::visitExpressionStmt(const std::shared_ptr<ExpressionStmt>& stmt) {
     return "    " + std::any_cast<std::string>(stmt->expression->accept(*this)) + ";\n";

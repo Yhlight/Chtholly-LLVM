@@ -274,6 +274,21 @@ std::shared_ptr<Expr> Parser::primary() {
     }
 
     if (match({TokenType::IDENTIFIER})) {
+        if (check(TokenType::LBRACE)) {
+            Token name = previous();
+            consume(TokenType::LBRACE, "Expect '{' after struct name for initialization.");
+            std::vector<std::pair<Token, std::shared_ptr<Expr>>> fields;
+            if (!check(TokenType::RBRACE)) {
+                do {
+                    Token fieldName = consume(TokenType::IDENTIFIER, "Expect field name.");
+                    consume(TokenType::COLON, "Expect ':' after field name.");
+                    std::shared_ptr<Expr> value = expression();
+                    fields.push_back({fieldName, value});
+                } while (match({TokenType::COMMA}));
+            }
+            consume(TokenType::RBRACE, "Expect '}' after struct fields.");
+            return std::make_shared<StructInitExpr>(name, fields);
+        }
         return std::make_shared<Variable>(previous());
     }
 
@@ -292,6 +307,9 @@ std::shared_ptr<Expr> Parser::call() {
     while (true) {
         if (match({TokenType::LPAREN})) {
             expr = finishCall(expr);
+        } else if (match({TokenType::DOT})) {
+            Token name = consume(TokenType::IDENTIFIER, "Expect property name after '.'.");
+            expr = std::make_shared<GetExpr>(expr, name);
         } else {
             break;
         }

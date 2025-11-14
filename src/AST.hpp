@@ -14,6 +14,8 @@ struct Grouping;
 struct Variable;
 struct Assign;
 struct Call;
+struct GetExpr;
+struct StructInitExpr;
 
 struct ExpressionStmt;
 struct VarStmt;
@@ -35,6 +37,8 @@ struct ExprVisitor {
     virtual std::any visitVariableExpr(const std::shared_ptr<Variable>& expr) = 0;
     virtual std::any visitAssignExpr(const std::shared_ptr<Assign>& expr) = 0;
     virtual std::any visitCallExpr(const std::shared_ptr<Call>& expr) = 0;
+    virtual std::any visitGetExpr(const std::shared_ptr<GetExpr>& expr) = 0;
+    virtual std::any visitStructInitExpr(const std::shared_ptr<StructInitExpr>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -257,6 +261,30 @@ struct StructStmt : Stmt, public std::enable_shared_from_this<StructStmt> {
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitStructStmt(shared_from_this());
+    }
+};
+
+struct StructInitExpr : Expr, public std::enable_shared_from_this<StructInitExpr> {
+    const Token name;
+    const std::vector<std::pair<Token, std::shared_ptr<Expr>>> fields;
+
+    StructInitExpr(Token name, std::vector<std::pair<Token, std::shared_ptr<Expr>>> fields)
+        : name(std::move(name)), fields(std::move(fields)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visitStructInitExpr(shared_from_this());
+    }
+};
+
+struct GetExpr : Expr, public std::enable_shared_from_this<GetExpr> {
+    const std::shared_ptr<Expr> object;
+    const Token name;
+
+    GetExpr(std::shared_ptr<Expr> object, Token name)
+        : object(std::move(object)), name(std::move(name)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visitGetExpr(shared_from_this());
     }
 };
 
