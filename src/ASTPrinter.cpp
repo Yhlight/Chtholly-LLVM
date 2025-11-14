@@ -54,6 +54,14 @@ std::any ASTPrinter::visitVarStmt(const std::shared_ptr<VarStmt>& stmt) {
     return "(var " + stmt->name.lexeme + ")";
 }
 
+std::any ASTPrinter::visitIfStmt(const std::shared_ptr<IfStmt>& stmt) {
+    if (stmt->elseBranch != nullptr) {
+        return parenthesize("if-else", {stmt->condition});
+    } else {
+        return parenthesize("if", {stmt->condition});
+    }
+}
+
 std::any ASTPrinter::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
     return parenthesizeStmt("block", stmt->statements);
 }

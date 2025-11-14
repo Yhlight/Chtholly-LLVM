@@ -18,6 +18,7 @@ struct Call;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
+struct IfStmt;
 
 
 // Visitor for Expressions
@@ -124,6 +125,7 @@ struct StmtVisitor {
     virtual std::any visitExpressionStmt(const std::shared_ptr<ExpressionStmt>& stmt) = 0;
     virtual std::any visitVarStmt(const std::shared_ptr<VarStmt>& stmt) = 0;
     virtual std::any visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) = 0;
+    virtual std::any visitIfStmt(const std::shared_ptr<IfStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -162,6 +164,19 @@ struct BlockStmt : Stmt, public std::enable_shared_from_this<BlockStmt> {
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitBlockStmt(shared_from_this());
+    }
+};
+
+struct IfStmt : Stmt, public std::enable_shared_from_this<IfStmt> {
+    const std::shared_ptr<Expr> condition;
+    const std::shared_ptr<Stmt> thenBranch;
+    const std::shared_ptr<Stmt> elseBranch;
+
+    IfStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch)
+        : condition(std::move(condition)), thenBranch(std::move(thenBranch)), elseBranch(std::move(elseBranch)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visitIfStmt(shared_from_this());
     }
 };
 

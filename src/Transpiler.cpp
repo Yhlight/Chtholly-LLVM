@@ -84,3 +84,13 @@ std::any Transpiler::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
     ss << "}\n";
     return ss.str();
 }
+
+std::any Transpiler::visitIfStmt(const std::shared_ptr<IfStmt>& stmt) {
+    std::stringstream ss;
+    ss << "    if (" << std::any_cast<std::string>(stmt->condition->accept(*this)) << ") "
+       << std::any_cast<std::string>(stmt->thenBranch->accept(*this));
+    if (stmt->elseBranch != nullptr) {
+        ss << "    else " << std::any_cast<std::string>(stmt->elseBranch->accept(*this));
+    }
+    return ss.str();
+}
