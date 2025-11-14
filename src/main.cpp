@@ -1,15 +1,20 @@
 #include <iostream>
 #include <vector>
+#include <fstream>
+#include <sstream>
 #include "Lexer.hpp"
 #include "Parser.hpp"
-#include "ASTPrinter.hpp"
+#include "Transpiler.hpp"
 
-int main(int argc, char* argv[]) {
-    std::string source = R"(
-        let x = 10;
-        let y = x + 5;
-        print y;
-    )";
+void runFile(const std::string& path) {
+    std::ifstream file(path);
+    if (!file) {
+        std::cerr << "Could not open file: " << path << std::endl;
+        return;
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+    std::string source = buffer.str();
 
     // 1. Lexer
     Lexer lexer(source);
@@ -19,13 +24,20 @@ int main(int argc, char* argv[]) {
     Parser parser(tokens);
     std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
 
-    // 3. AST Printer (for verification)
-    ASTPrinter astPrinter;
-    std::string ast_representation = astPrinter.print(statements);
+    // 3. Transpiler
+    Transpiler transpiler;
+    std::string cpp_code = transpiler.transpile(statements);
 
-    std::cout << "--- AST ---" << std::endl;
-    std::cout << ast_representation << std::endl;
-    std::cout << "-----------" << std::endl;
+    std::cout << cpp_code << std::endl;
+}
+
+int main(int argc, char* argv[]) {
+    if (argc != 2) {
+        std::cout << "Usage: chtholly [script]" << std::endl;
+        return 1;
+    }
+
+    runFile(argv[1]);
 
     return 0;
 }

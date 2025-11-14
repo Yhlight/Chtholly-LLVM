@@ -38,13 +38,13 @@ std::any ASTPrinter::visitAssignExpr(const std::shared_ptr<Assign>& expr) {
     return parenthesize("= " + expr->name.lexeme, {expr->value});
 }
 
+std::any ASTPrinter::visitCallExpr(const std::shared_ptr<Call>& expr) {
+    return parenthesize("call", {expr->callee});
+}
+
 
 std::any ASTPrinter::visitExpressionStmt(const std::shared_ptr<ExpressionStmt>& stmt) {
     return parenthesize(";", {stmt->expression});
-}
-
-std::any ASTPrinter::visitPrintStmt(const std::shared_ptr<PrintStmt>& stmt) {
-    return parenthesize("print", {stmt->expression});
 }
 
 std::any ASTPrinter::visitVarStmt(const std::shared_ptr<VarStmt>& stmt) {

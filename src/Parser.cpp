@@ -35,10 +35,8 @@ std::shared_ptr<Stmt> Parser::declaration() {
 std::shared_ptr<Stmt> Parser::varDeclaration() {
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
 
-    std::shared_ptr<Expr> initializer = nullptr;
-    if (match({TokenType::ASSIGN})) {
-        initializer = expression();
-    }
+    consume(TokenType::ASSIGN, "Expect '=' after variable name for initializer.");
+    std::shared_ptr<Expr> initializer = expression();
 
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
     return std::make_shared<VarStmt>(name, initializer);
@@ -47,11 +45,6 @@ std::shared_ptr<Stmt> Parser::varDeclaration() {
 std::shared_ptr<Stmt> Parser::statement() {
     if (match({TokenType::LBRACE})) {
         return std::make_shared<BlockStmt>(block());
-    }
-    // For now, let's add a temporary print statement for testing.
-    // We will replace this with proper function calls later.
-    if (match({TokenType::IDENTIFIER}) && previous().lexeme == "print") {
-         return printStatement();
     }
 
     return expressionStatement();
@@ -66,13 +59,6 @@ std::vector<std::shared_ptr<Stmt>> Parser::block() {
 
     consume(TokenType::RBRACE, "Expect '}' after block.");
     return statements;
-}
-
-
-std::shared_ptr<Stmt> Parser::printStatement() {
-    std::shared_ptr<Expr> value = expression();
-    consume(TokenType::SEMICOLON, "Expect ';' after value.");
-    return std::make_shared<PrintStmt>(value);
 }
 
 std::shared_ptr<Stmt> Parser::expressionStatement() {
@@ -157,7 +143,7 @@ std::shared_ptr<Expr> Parser::unary() {
         return std::make_shared<Unary>(op, right);
     }
 
-    return primary();
+    return call();
 }
 
 std::shared_ptr<Expr> Parser::primary() {
@@ -187,6 +173,36 @@ std::shared_ptr<Expr> Parser::primary() {
     }
 
     throw std::runtime_error("Expect expression.");
+}
+
+std::shared_ptr<Expr> Parser::call() {
+    std::shared_ptr<Expr> expr = primary();
+
+    while (true) {
+        if (match({TokenType::LPAREN})) {
+            expr = finishCall(expr);
+        } else {
+            break;
+        }
+    }
+
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
+    std::vector<std::shared_ptr<Expr>> arguments;
+    if (!check(TokenType::RPAREN)) {
+        do {
+            if (arguments.size() >= 255) {
+                throw std::runtime_error("Can't have more than 255 arguments.");
+            }
+            arguments.push_back(expression());
+        } while (match({TokenType::COMMA}));
+    }
+
+    Token paren = consume(TokenType::RPAREN, "Expect ')' after arguments.");
+
+    return std::make_shared<Call>(callee, paren, arguments);
 }
 
 

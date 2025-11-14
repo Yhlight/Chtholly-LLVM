@@ -12,7 +12,7 @@ def run_command(command):
         sys.exit(1)
 
 def main():
-    """Builds and runs the Chtholly compiler."""
+    """Builds the Chtholly compiler."""
     # Create build directory if it doesn't exist
     if not os.path.exists("build"):
         os.makedirs("build")
@@ -21,25 +21,15 @@ def main():
     os.chdir("build")
 
     # Run CMake
+    print("--- Configuring CMake ---")
     run_command("cmake ..")
 
     # Build the project
+    print("\n--- Building Project ---")
     run_command("cmake --build .")
 
-    # Run the executable
-    executable_name = "chtholly"  # This should match the target name in CMakeLists.txt
-    if os.name == 'nt':
-        executable_name += ".exe"
-
-    executable_path = os.path.join(os.getcwd(), executable_name)
-
-    if os.path.exists(executable_path):
-        print(f"--- Running {executable_name} ---")
-        run_command(f"./{executable_name}")
-        print(f"--- {executable_name} finished ---")
-    else:
-        print(f"Executable {executable_name} not found.", file=sys.stderr)
-        sys.exit(1)
+    print("\n--- Build Complete ---")
+    print("Executable is at: build/chtholly")
 
     # Change back to the root directory
     os.chdir("..")

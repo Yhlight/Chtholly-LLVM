@@ -1,0 +1,86 @@
+#include "Transpiler.hpp"
+#include <sstream>
+#include <stdexcept>
+
+std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& statements) {
+    std::stringstream ss;
+    for (const auto& stmt : statements) {
+        ss << std::any_cast<std::string>(stmt->accept(*this));
+    }
+    return ss.str();
+}
+
+// Expression Visitors
+std::any Transpiler::visitBinaryExpr(const std::shared_ptr<Binary>& expr) {
+    std::string left = std::any_cast<std::string>(expr->left->accept(*this));
+    std::string right = std::any_cast<std::string>(expr->right->accept(*this));
+    return "(" + left + " " + expr->op.lexeme + " " + right + ")";
+}
+
+std::any Transpiler::visitUnaryExpr(const std::shared_ptr<Unary>& expr) {
+    std::string right = std::any_cast<std::string>(expr->right->accept(*this));
+    return "(" + expr->op.lexeme + right + ")";
+}
+
+std::any Transpiler::visitLiteralExpr(const std::shared_ptr<Literal>& expr) {
+    if (expr->value.type() == typeid(nullptr)) return std::string("nullptr");
+    if (expr->value.type() == typeid(std::string)) return "\"" + std::any_cast<std::string>(expr->value) + "\"";
+    if (expr->value.type() == typeid(int)) return std::to_string(std::any_cast<int>(expr->value));
+    if (expr->value.type() == typeid(double)) return std::to_string(std::any_cast<double>(expr->value));
+    if (expr->value.type() == typeid(bool)) return std::any_cast<bool>(expr->value) ? "true" : "false";
+    throw std::runtime_error("Unknown literal type.");
+}
+
+std::any Transpiler::visitGroupingExpr(const std::shared_ptr<Grouping>& expr) {
+    return "(" + std::any_cast<std::string>(expr->expression->accept(*this)) + ")";
+}
+
+std::any Transpiler::visitVariableExpr(const std::shared_ptr<Variable>& expr) {
+    return expr->name.lexeme;
+}
+
+std::any Transpiler::visitAssignExpr(const std::shared_ptr<Assign>& expr) {
+    std::string value = std::any_cast<std::string>(expr->value->accept(*this));
+    return expr->name.lexeme + " = " + value;
+}
+
+std::any Transpiler::visitCallExpr(const std::shared_ptr<Call>& expr) {
+    std::string callee = std::any_cast<std::string>(expr->callee->accept(*this));
+    std::string args = "";
+    for (const auto& arg : expr->arguments) {
+        args += std::any_cast<std::string>(arg->accept(*this)) + ", ";
+    }
+    if (!args.empty()) {
+        args.pop_back();
+        args.pop_back();
+    }
+    // temporary hack for print
+    if (callee == "print") {
+        return "std::cout << " + args + " << std::endl";
+    }
+
+    return callee + "(" + args + ")";
+}
+
+// Statement Visitors
+std::any Transpiler::visitExpressionStmt(const std::shared_ptr<ExpressionStmt>& stmt) {
+    return "    " + std::any_cast<std::string>(stmt->expression->accept(*this)) + ";\n";
+}
+
+std::any Transpiler::visitVarStmt(const std::shared_ptr<VarStmt>& stmt) {
+    std::string initializer = "";
+    if (stmt->initializer != nullptr) {
+        initializer = " = " + std::any_cast<std::string>(stmt->initializer->accept(*this));
+    }
+    return "    auto " + stmt->name.lexeme + initializer + ";\n";
+}
+
+std::any Transpiler::visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) {
+    std::stringstream ss;
+    ss << "{\n";
+    for (const auto& statement : stmt->statements) {
+        ss << std::any_cast<std::string>(statement->accept(*this));
+    }
+    ss << "}\n";
+    return ss.str();
+}

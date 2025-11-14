@@ -13,9 +13,9 @@ struct Literal;
 struct Grouping;
 struct Variable;
 struct Assign;
+struct Call;
 
 struct ExpressionStmt;
-struct PrintStmt; // Temporary for debugging
 struct VarStmt;
 struct BlockStmt;
 
@@ -28,6 +28,7 @@ struct ExprVisitor {
     virtual std::any visitGroupingExpr(const std::shared_ptr<Grouping>& expr) = 0;
     virtual std::any visitVariableExpr(const std::shared_ptr<Variable>& expr) = 0;
     virtual std::any visitAssignExpr(const std::shared_ptr<Assign>& expr) = 0;
+    virtual std::any visitCallExpr(const std::shared_ptr<Call>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -104,11 +105,23 @@ struct Assign : Expr, public std::enable_shared_from_this<Assign> {
     }
 };
 
+struct Call : Expr, public std::enable_shared_from_this<Call> {
+    const std::shared_ptr<Expr> callee;
+    const Token paren; // for error reporting
+    const std::vector<std::shared_ptr<Expr>> arguments;
+
+    Call(std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> arguments)
+        : callee(std::move(callee)), paren(std::move(paren)), arguments(std::move(arguments)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visitCallExpr(shared_from_this());
+    }
+};
+
 
 // Visitor for Statements
 struct StmtVisitor {
     virtual std::any visitExpressionStmt(const std::shared_ptr<ExpressionStmt>& stmt) = 0;
-    virtual std::any visitPrintStmt(const std::shared_ptr<PrintStmt>& stmt) = 0;
     virtual std::any visitVarStmt(const std::shared_ptr<VarStmt>& stmt) = 0;
     virtual std::any visitBlockStmt(const std::shared_ptr<BlockStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
@@ -127,16 +140,6 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitExpressionStmt(shared_from_this());
-    }
-};
-
-struct PrintStmt : Stmt, public std::enable_shared_from_this<PrintStmt> {
-    const std::shared_ptr<Expr> expression;
-
-    explicit PrintStmt(std::shared_ptr<Expr> expression) : expression(std::move(expression)) {}
-
-    std::any accept(StmtVisitor& visitor) override {
-        return visitor.visitPrintStmt(shared_from_this());
     }
 };
 
