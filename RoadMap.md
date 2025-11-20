@@ -4,7 +4,7 @@
 - [ ] Implement the Lexer
 - [ ] Implement the Parser
 - [ ] Implement the AST
-- [ ] Implement a basic command-line interface
+- [X] Implement a basic command-line interface
 
 ## Phase 2: Transpiler and Basic Language Features
 - [ ] Implement the Transpiler

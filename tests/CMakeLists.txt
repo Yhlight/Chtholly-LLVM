@@ -1,4 +1,7 @@
-add_executable(chtholly_tests test_main.cpp)
+add_executable(chtholly_tests
+    test_main.cpp
+    LexerTests.cpp
+)
 
 # Fetch Google Test
 include(FetchContent)
