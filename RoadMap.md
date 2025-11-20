@@ -8,7 +8,7 @@ This phase focuses on setting up the basic infrastructure for the compiler.
 
 - [x] Project Setup (CMake, Python build script)
 - [x] Lexer (Tokenization)
-- [ ] Parser (AST Generation)
+- [x] Parser (AST Generation)
 - [ ] C++ Transpiler (Code Generation)
 - [ ] Basic CLI (Command Line Interface)
 - [ ] Testing Framework Integration (Google Test)
