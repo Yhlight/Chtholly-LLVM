@@ -1,5 +1,0 @@
-if(EXISTS "/app/build/tests/chtholly_tests[1]_tests.cmake")
-  include("/app/build/tests/chtholly_tests[1]_tests.cmake")
-else()
-  add_test(chtholly_tests_NOT_BUILT chtholly_tests_NOT_BUILT)
-endif()

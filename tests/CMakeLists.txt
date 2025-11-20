@@ -7,6 +7,7 @@ add_executable(chtholly_tests
     test_transpiler.cpp
     test_variables.cpp
     test_errors.cpp
+    test_operators.cpp
 )
 
 target_link_libraries(chtholly_tests

@@ -15,7 +15,7 @@ This document outlines the development plan for the Chtholly programming languag
 ## Phase 2: Language Features
 
 - [x] Variables (let, mut) and basic types (int, double, bool, string)
-- [ ] Arithmetic and logical operators
+- [x] Arithmetic and logical operators
 - [ ] Control flow (if/else, while, for)
 - [ ] Functions
 - [ ] Arrays (static and dynamic)

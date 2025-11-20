@@ -19,7 +19,7 @@ std::shared_ptr<Expr> Parser::expression() {
 }
 
 std::shared_ptr<Expr> Parser::assignment() {
-    auto expr = equality();
+    auto expr = logical_or();
 
     if (match({TokenType::EQUAL})) {
         Token equals = previous();
@@ -31,6 +31,30 @@ std::shared_ptr<Expr> Parser::assignment() {
         }
 
         Chtholly::error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::logical_or() {
+    auto expr = logical_and();
+
+    while (match({TokenType::PIPE_PIPE})) {
+        Token op = previous();
+        auto right = logical_and();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::logical_and() {
+    auto expr = equality();
+
+    while (match({TokenType::AMPERSAND_AMPERSAND})) {
+        Token op = previous();
+        auto right = equality();
+        expr = std::make_shared<Binary>(expr, op, right);
     }
 
     return expr;
@@ -75,7 +99,7 @@ std::shared_ptr<Expr> Parser::term() {
 std::shared_ptr<Expr> Parser::factor() {
     auto expr = unary();
 
-    while (match({TokenType::SLASH, TokenType::STAR})) {
+    while (match({TokenType::SLASH, TokenType::STAR, TokenType::PERCENT})) {
         Token op = previous();
         auto right = unary();
         expr = std::make_shared<Binary>(expr, op, right);
