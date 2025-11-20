@@ -1,4 +1,5 @@
 #include "Lexer.hpp"
+#include "Chtholly.hpp"
 #include <iostream>
 #include <map>
 
@@ -79,7 +80,7 @@ void Lexer::scanToken() {
                     advance(); // Consume the '*'
                     advance(); // Consume the '/'
                 } else {
-                    std::cerr << "Line " << line << ": Unterminated multi-line comment." << std::endl;
+                    Chtholly::error(line, "Unterminated multi-line comment.");
                 }
             } else {
                 addToken(match('=') ? TokenType::SLASH_EQUAL : TokenType::SLASH);
@@ -101,7 +102,7 @@ void Lexer::scanToken() {
             } else if (isalpha(c) || c == '_') {
                 identifier();
             } else {
-                std::cerr << "Line " << line << ": Unexpected character." << std::endl;
+                Chtholly::error(line, "Unexpected character.");
             }
             break;
     }
@@ -144,7 +145,7 @@ void Lexer::string() {
     }
 
     if (current >= source.length()) {
-        std::cerr << "Line " << line << ": Unterminated string." << std::endl;
+        Chtholly::error(line, "Unterminated string.");
         return;
     }
 

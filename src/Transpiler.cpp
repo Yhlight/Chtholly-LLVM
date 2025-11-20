@@ -11,7 +11,8 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     out << "int main() {\n";
 
     for (const auto& stmt : statements) {
-        out << "    " << std::any_cast<std::string>(stmt->accept(*this)) << "\n";
+        if(stmt != nullptr)
+            out << "    " << std::any_cast<std::string>(stmt->accept(*this)) << "\n";
     }
 
     out << "    return 0;\n";
@@ -61,11 +62,12 @@ std::any Transpiler::visitExpressionStmt(std::shared_ptr<ExpressionStmt> stmt) {
 }
 
 std::any Transpiler::visitVarStmt(std::shared_ptr<VarStmt> stmt) {
+    std::string type = (stmt->keyword.type == TokenType::LET) ? "auto const" : "auto";
     std::string initializer = "nullptr";
     if (stmt->initializer) {
         initializer = std::any_cast<std::string>(stmt->initializer->accept(*this));
     }
-    return "auto " + stmt->name.lexeme + " = " + initializer + ";";
+    return type + " " + stmt->name.lexeme + " = " + initializer + ";";
 }
 
 } // namespace chtholly

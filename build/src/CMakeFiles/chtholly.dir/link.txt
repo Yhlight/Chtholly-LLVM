@@ -1,0 +1,2 @@
+/usr/bin/ar qc libchtholly.a CMakeFiles/chtholly.dir/Lexer.cpp.o CMakeFiles/chtholly.dir/Parser.cpp.o CMakeFiles/chtholly.dir/AST.cpp.o CMakeFiles/chtholly.dir/Chtholly.cpp.o CMakeFiles/chtholly.dir/ASTPrinter.cpp.o CMakeFiles/chtholly.dir/Transpiler.cpp.o
+/usr/bin/ranlib libchtholly.a

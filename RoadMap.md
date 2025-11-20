@@ -10,11 +10,11 @@ This document outlines the development plan for the Chtholly programming languag
 - [x] Implement Parser (AST Generation)
 - [x] Implement AST Printer for debugging
 - [x] Implement C++ Transpiler
-- [ ] Implement basic error reporting
+- [x] Implement basic error reporting
 
 ## Phase 2: Language Features
 
-- [ ] Variables (let, mut) and basic types (int, double, bool, string)
+- [x] Variables (let, mut) and basic types (int, double, bool, string)
 - [ ] Arithmetic and logical operators
 - [ ] Control flow (if/else, while, for)
 - [ ] Functions

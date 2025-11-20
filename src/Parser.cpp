@@ -1,4 +1,5 @@
 #include "Parser.hpp"
+#include "Chtholly.hpp"
 #include <iostream>
 
 namespace chtholly {
@@ -29,8 +30,7 @@ std::shared_ptr<Expr> Parser::assignment() {
             return std::make_shared<Assign>(name, value);
         }
 
-        std::cerr << "Invalid assignment target." << std::endl;
-        hadError = true;
+        Chtholly::error(equals, "Invalid assignment target.");
     }
 
     return expr;
@@ -129,13 +129,14 @@ std::shared_ptr<Stmt> Parser::declaration() {
 }
 
 std::shared_ptr<Stmt> Parser::varDeclaration() {
+    Token keyword = previous();
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
     std::shared_ptr<Expr> initializer = nullptr;
     if (match({TokenType::EQUAL})) {
         initializer = expression();
     }
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
-    return std::make_shared<VarStmt>(name, initializer);
+    return std::make_shared<VarStmt>(keyword, name, initializer);
 }
 
 std::shared_ptr<Stmt> Parser::expressionStatement() {
@@ -174,8 +175,7 @@ Token Parser::previous() {
 
 Token Parser::consume(TokenType type, const std::string& message) {
     if (!isAtEnd() && peek().type == type) return advance();
-    std::cerr << message << std::endl;
-    hadError = true;
+    Chtholly::error(peek(), message);
     throw std::runtime_error(message);
 }
 

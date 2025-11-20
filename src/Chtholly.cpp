@@ -9,6 +9,8 @@
 
 namespace chtholly {
 
+bool Chtholly::hadError = false;
+
 void Chtholly::runFile(const std::string& path) {
     std::ifstream file(path);
     if (!file) {
@@ -43,6 +45,18 @@ void Chtholly::run(const std::string& source) {
 
     Transpiler transpiler;
     std::cout << transpiler.transpile(statements) << std::endl;
+}
+
+void Chtholly::error(int line, const std::string& message) {
+    report(line, "", message);
+}
+
+void Chtholly::error(Token token, const std::string& message) {
+    if (token.type == TokenType::END_OF_FILE) {
+        report(token.line, " at end", message);
+    } else {
+        report(token.line, " at '" + token.lexeme + "'", message);
+    }
 }
 
 void Chtholly::report(int line, const std::string& where, const std::string& message) {

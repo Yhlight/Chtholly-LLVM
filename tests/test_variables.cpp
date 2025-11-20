@@ -5,7 +5,7 @@
 
 using namespace chtholly;
 
-TEST(TranspilerTest, VariableDeclaration) {
+TEST(VariableTest, LetDeclaration) {
     std::string source = "let x = 10;";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scanTokens();
@@ -23,8 +23,8 @@ TEST(TranspilerTest, VariableDeclaration) {
     EXPECT_EQ(result, expected);
 }
 
-TEST(TranspilerTest, ExpressionStatement) {
-    std::string source = "1 + 2;";
+TEST(VariableTest, MutDeclaration) {
+    std::string source = "mut y = 20;";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
@@ -35,7 +35,7 @@ TEST(TranspilerTest, ExpressionStatement) {
                            "#include <string>\n"
                            "#include <vector>\n\n"
                            "int main() {\n"
-                           "    (1 + 2);\n"
+                           "    auto y = 20;\n"
                            "    return 0;\n"
                            "}\n";
     EXPECT_EQ(result, expected);

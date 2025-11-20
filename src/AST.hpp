@@ -127,13 +127,14 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 };
 
 struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
-    VarStmt(Token name, std::shared_ptr<Expr> initializer)
-        : name(name), initializer(initializer) {}
+    VarStmt(Token keyword, Token name, std::shared_ptr<Expr> initializer)
+        : keyword(keyword), name(name), initializer(initializer) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visitVarStmt(shared_from_this());
     }
 
+    const Token keyword;
     const Token name;
     const std::shared_ptr<Expr> initializer;
 };
