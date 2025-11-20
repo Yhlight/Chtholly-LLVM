@@ -4,6 +4,7 @@ add_executable(chtholly_tests
     test_main.cpp
     test_lexer.cpp
     test_parser.cpp
+    test_transpiler.cpp
 )
 
 target_link_libraries(chtholly_tests

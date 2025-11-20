@@ -1,7 +1,7 @@
 #include "Chtholly.hpp"
 #include "Lexer.hpp"
 #include "Parser.hpp"
-#include "ASTPrinter.hpp"
+#include "Transpiler.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -41,8 +41,8 @@ void Chtholly::run(const std::string& source) {
 
     if (hadError) return;
 
-    ASTPrinter printer;
-    std::cout << printer.print(statements) << std::endl;
+    Transpiler transpiler;
+    std::cout << transpiler.transpile(statements) << std::endl;
 }
 
 void Chtholly::report(int line, const std::string& where, const std::string& message) {

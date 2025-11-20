@@ -4,6 +4,7 @@ add_library(chtholly
     AST.cpp
     Chtholly.cpp
     ASTPrinter.cpp
+    Transpiler.cpp
 )
 
 add_executable(chtholly_cli main.cpp)

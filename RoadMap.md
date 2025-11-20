@@ -9,7 +9,7 @@ This document outlines the development plan for the Chtholly programming languag
 - [x] Implement Lexer (Tokenization)
 - [x] Implement Parser (AST Generation)
 - [x] Implement AST Printer for debugging
-- [ ] Implement C++ Transpiler
+- [x] Implement C++ Transpiler
 - [ ] Implement basic error reporting
 
 ## Phase 2: Language Features
