@@ -70,6 +70,19 @@ std::any Transpiler::visit(std::shared_ptr<Variable> expr) {
     return expr->name.lexeme;
 }
 
+std::any Transpiler::visit(std::shared_ptr<CallExpr> expr) {
+    std::stringstream ss;
+    ss << evaluate(expr->callee) << "(";
+    for (size_t i = 0; i < expr->arguments.size(); ++i) {
+        ss << evaluate(expr->arguments[i]);
+        if (i < expr->arguments.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << ")";
+    return ss.str();
+}
+
 std::any Transpiler::visit(std::shared_ptr<ExpressionStmt> stmt) {
     return evaluate(stmt->expression) + ";\n";
 }
@@ -121,9 +134,9 @@ std::any Transpiler::visit(std::shared_ptr<ForStmt> stmt) {
     std::stringstream ss;
     ss << "for (";
     if (stmt->initializer) {
-        // We need to strip the trailing newline from the initializer
         std::string init = execute(stmt->initializer);
-        init.pop_back();
+        init.pop_back(); // remove trailing newline
+        init.pop_back(); // remove trailing semicolon
         ss << init;
     }
     ss << ";";
@@ -135,6 +148,24 @@ std::any Transpiler::visit(std::shared_ptr<ForStmt> stmt) {
 
     if (stmt->increment) {
         ss << " " << evaluate(stmt->increment);
+    }
+    ss << ") " << execute(stmt->body);
+    return ss.str();
+}
+
+std::any Transpiler::visit(std::shared_ptr<FunctionStmt> stmt) {
+    std::stringstream ss;
+    if (stmt->return_type) {
+        ss << type_map.at(stmt->return_type->type) << " ";
+    } else {
+        ss << "void ";
+    }
+    ss << stmt->name.lexeme << "(";
+    for (size_t i = 0; i < stmt->params.size(); ++i) {
+        ss << type_map.at(stmt->param_types[i].type) << " " << stmt->params[i].lexeme;
+        if (i < stmt->params.size() - 1) {
+            ss << ", ";
+        }
     }
     ss << ") " << execute(stmt->body);
     return ss.str();

@@ -14,6 +14,7 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse() {
 
 std::shared_ptr<Stmt> Parser::declaration() {
     try {
+        if (match({TokenType::FN})) return function_declaration();
         if (match({TokenType::LET})) return var_declaration(false);
         if (match({TokenType::MUT})) return var_declaration(true);
         return statement();
@@ -22,6 +23,46 @@ std::shared_ptr<Stmt> Parser::declaration() {
         return nullptr;
     }
 }
+
+std::shared_ptr<Stmt> Parser::function_declaration() {
+    Token name = consume(TokenType::IDENTIFIER, "Expect function name.");
+    consume(TokenType::LEFT_PAREN, "Expect '(' after function name.");
+
+    std::vector<Token> params;
+    std::vector<Token> param_types;
+    if (!check(TokenType::RIGHT_PAREN)) {
+        do {
+            params.push_back(consume(TokenType::IDENTIFIER, "Expect parameter name."));
+            consume(TokenType::COLON, "Expect ':' after parameter name.");
+            if (match({TokenType::INT, TokenType::I8, TokenType::I16, TokenType::I32, TokenType::I64,
+                       TokenType::U8, TokenType::U16, TokenType::U32, TokenType::U64,
+                       TokenType::CHAR, TokenType::DOUBLE, TokenType::FLOAT, TokenType::LONG_DOUBLE,
+                       TokenType::VOID, TokenType::BOOL, TokenType::STRING})) {
+                param_types.push_back(previous());
+            } else {
+                throw error(peek(), "Expect type annotation.");
+            }
+        } while (match({TokenType::COMMA}));
+    }
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+
+    std::optional<Token> return_type;
+    if (match({TokenType::COLON})) {
+        if (match({TokenType::INT, TokenType::I8, TokenType::I16, TokenType::I32, TokenType::I64,
+                   TokenType::U8, TokenType::U16, TokenType::U32, TokenType::U64,
+                   TokenType::CHAR, TokenType::DOUBLE, TokenType::FLOAT, TokenType::LONG_DOUBLE,
+                   TokenType::VOID, TokenType::BOOL, TokenType::STRING})) {
+            return_type = previous();
+        } else {
+            throw error(peek(), "Expect return type.");
+        }
+    }
+
+    consume(TokenType::LEFT_BRACE, "Expect '{' before function body.");
+    auto body = std::make_shared<BlockStmt>(block());
+    return std::make_shared<FunctionStmt>(name, params, param_types, return_type, body);
+}
+
 
 std::shared_ptr<Stmt> Parser::var_declaration(bool is_mutable) {
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
@@ -198,7 +239,28 @@ std::shared_ptr<Expr> Parser::unary() {
         return std::make_shared<Unary>(op, right);
     }
 
-    return primary();
+    return call();
+}
+
+std::shared_ptr<Expr> Parser::call() {
+    auto expr = primary();
+
+    while (true) {
+        if (match({TokenType::LEFT_PAREN})) {
+            std::vector<std::shared_ptr<Expr>> arguments;
+            if (!check(TokenType::RIGHT_PAREN)) {
+                do {
+                    arguments.push_back(expression());
+                } while (match({TokenType::COMMA}));
+            }
+            Token paren = consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+            expr = std::make_shared<CallExpr>(expr, paren, arguments);
+        } else {
+            break;
+        }
+    }
+
+    return expr;
 }
 
 std::shared_ptr<Expr> Parser::primary() {

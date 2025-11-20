@@ -160,3 +160,31 @@ TEST(ParserTest, TestForStatement) {
 
     EXPECT_EQ(result, "(for (let i = 0) (< i 10) (= i (+ i 1)) (; 1))");
 }
+
+TEST(ParserTest, TestFunctionDeclaration) {
+    std::string source = "fn add(a: int, b: int): int { 1; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(fn add(a: int, b: int): int (block (; 1)))");
+}
+
+TEST(ParserTest, TestFunctionCall) {
+    std::string source = "add(1, 2);";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(; (call add(1, 2)))");
+}

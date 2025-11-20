@@ -54,6 +54,19 @@ std::any ASTPrinter::visit(std::shared_ptr<Variable> expr) {
     return expr->name.lexeme;
 }
 
+std::any ASTPrinter::visit(std::shared_ptr<CallExpr> expr) {
+    std::stringstream ss;
+    ss << "(call " << print(expr->callee) << "(";
+    for (size_t i = 0; i < expr->arguments.size(); ++i) {
+        ss << print(expr->arguments[i]);
+        if (i < expr->arguments.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "))";
+    return ss.str();
+}
+
 std::any ASTPrinter::visit(std::shared_ptr<ExpressionStmt> stmt) {
     return parenthesize(";", {stmt->expression});
 }
@@ -102,6 +115,24 @@ std::any ASTPrinter::visit(std::shared_ptr<ForStmt> stmt) {
     }
     ss << " " << print(stmt->condition);
     ss << " " << print(stmt->increment);
+    ss << " " << std::any_cast<std::string>(stmt->body->accept(*this));
+    ss << ")";
+    return ss.str();
+}
+
+std::any ASTPrinter::visit(std::shared_ptr<FunctionStmt> stmt) {
+    std::stringstream ss;
+    ss << "(fn " << stmt->name.lexeme << "(";
+    for (size_t i = 0; i < stmt->params.size(); ++i) {
+        ss << stmt->params[i].lexeme << ": " << stmt->param_types[i].lexeme;
+        if (i < stmt->params.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << ")";
+    if (stmt->return_type) {
+        ss << ": " << stmt->return_type->lexeme;
+    }
     ss << " " << std::any_cast<std::string>(stmt->body->accept(*this));
     ss << ")";
     return ss.str();

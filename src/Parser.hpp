@@ -18,6 +18,7 @@ private:
     std::shared_ptr<Stmt> declaration();
     std::shared_ptr<Stmt> statement();
     std::shared_ptr<Stmt> var_declaration(bool is_mutable);
+    std::shared_ptr<Stmt> function_declaration();
     std::shared_ptr<Stmt> if_statement();
     std::shared_ptr<Stmt> while_statement();
     std::shared_ptr<Stmt> for_statement();
@@ -29,6 +30,7 @@ private:
     std::shared_ptr<Expr> term();
     std::shared_ptr<Expr> factor();
     std::shared_ptr<Expr> unary();
+    std::shared_ptr<Expr> call();
     std::shared_ptr<Expr> primary();
 
     bool match(const std::vector<TokenType>& types);

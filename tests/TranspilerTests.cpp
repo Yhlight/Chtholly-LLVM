@@ -130,5 +130,33 @@ TEST(TranspilerTest, TestForStatement) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "for (const auto i = 0;; i < 10; i = i + 1) {\n1;\n}\n");
+    EXPECT_EQ(result, "for (const auto i = 0; i < 10; i = i + 1) {\n1;\n}\n");
+}
+
+TEST(TranspilerTest, TestFunctionDeclaration) {
+    std::string source = "fn add(a: int, b: int): int { 1; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+
+    EXPECT_EQ(result, "int add(int a, int b) {\n1;\n}\n");
+}
+
+TEST(TranspilerTest, TestFunctionCall) {
+    std::string source = "add(1, 2);";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+
+    EXPECT_EQ(result, "add(1, 2);\n");
 }

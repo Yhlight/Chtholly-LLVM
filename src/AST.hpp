@@ -15,12 +15,14 @@ struct Literal;
 struct Unary;
 struct Assign;
 struct Variable;
+struct CallExpr;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
 struct IfStmt;
 struct WhileStmt;
 struct ForStmt;
+struct FunctionStmt;
 
 // Visitor for Expressions
 struct ExprVisitor {
@@ -30,6 +32,7 @@ struct ExprVisitor {
     virtual std::any visit(std::shared_ptr<Unary> expr) = 0;
     virtual std::any visit(std::shared_ptr<Assign> expr) = 0;
     virtual std::any visit(std::shared_ptr<Variable> expr) = 0;
+    virtual std::any visit(std::shared_ptr<CallExpr> expr) = 0;
 };
 
 // Base class for all expressions
@@ -46,6 +49,7 @@ struct StmtVisitor {
     virtual std::any visit(std::shared_ptr<IfStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<WhileStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<ForStmt> stmt) = 0;
+    virtual std::any visit(std::shared_ptr<FunctionStmt> stmt) = 0;
 };
 
 // Base class for all statements
@@ -63,6 +67,19 @@ struct Binary : Expr, public std::enable_shared_from_this<Binary> {
 
     Binary(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right)
         : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct CallExpr : Expr, public std::enable_shared_from_this<CallExpr> {
+    std::shared_ptr<Expr> callee;
+    Token paren; // for error reporting
+    std::vector<std::shared_ptr<Expr>> arguments;
+
+    CallExpr(std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> arguments)
+        : callee(std::move(callee)), paren(std::move(paren)), arguments(std::move(arguments)) {}
 
     std::any accept(ExprVisitor& visitor) override {
         return visitor.visit(shared_from_this());
@@ -131,6 +148,21 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 
     ExpressionStmt(std::shared_ptr<Expr> expression)
         : expression(std::move(expression)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
+    Token name;
+    std::vector<Token> params;
+    std::vector<Token> param_types;
+    std::optional<Token> return_type;
+    std::shared_ptr<BlockStmt> body;
+
+    FunctionStmt(Token name, std::vector<Token> params, std::vector<Token> param_types, std::optional<Token> return_type, std::shared_ptr<BlockStmt> body)
+        : name(std::move(name)), params(std::move(params)), param_types(std::move(param_types)), return_type(std::move(return_type)), body(std::move(body)) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visit(shared_from_this());
