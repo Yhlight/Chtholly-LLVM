@@ -76,12 +76,8 @@ std::shared_ptr<Expr> Parser::unary() {
 }
 
 std::shared_ptr<Expr> Parser::primary() {
-    if (match({TokenType::FALSE})) return std::make_shared<Literal>(false);
-    if (match({TokenType::TRUE})) return std::make_shared<Literal>(true);
-    if (match({TokenType::NIL})) return std::make_shared<Literal>(nullptr);
-
     if (match({TokenType::NUMBER, TokenType::STRING})) {
-        return std::make_shared<Literal>(previous().lexeme);
+        return std::make_shared<Literal>(previous().literal);
     }
 
     if (match({TokenType::LEFT_PAREN})) {
@@ -133,12 +129,11 @@ void Parser::synchronize() {
 
         switch (peek().type) {
             case TokenType::CLASS:
-            case TokenType::FUN:
-            case TokenType::VAR:
+            case TokenType::FN:
+            case TokenType::LET:
             case TokenType::FOR:
             case TokenType::IF:
             case TokenType::WHILE:
-            case TokenType::PRINT:
             case TokenType::RETURN:
                 return;
             default:
