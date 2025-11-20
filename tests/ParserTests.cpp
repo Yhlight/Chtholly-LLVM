@@ -62,3 +62,31 @@ TEST(ParserTest, TestComparisonExpression) {
 
     EXPECT_EQ(result, "(; (== (< 1 2) (> 3 4)))");
 }
+
+TEST(ParserTest, TestLetDeclaration) {
+    std::string source = "let a = 10;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(let a = 10)");
+}
+
+TEST(ParserTest, TestMutDeclaration) {
+    std::string source = "mut b = 20;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(mut b = 20)");
+}

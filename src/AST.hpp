@@ -13,6 +13,7 @@ struct Grouping;
 struct Literal;
 struct Unary;
 struct ExpressionStmt;
+struct VarStmt;
 
 // Visitor for Expressions
 struct ExprVisitor {
@@ -31,6 +32,7 @@ struct Expr {
 // Visitor for Statements
 struct StmtVisitor {
     virtual std::any visit(std::shared_ptr<ExpressionStmt> stmt) = 0;
+    virtual std::any visit(std::shared_ptr<VarStmt> stmt) = 0;
 };
 
 // Base class for all statements
@@ -94,6 +96,19 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 
     ExpressionStmt(std::shared_ptr<Expr> expression)
         : expression(std::move(expression)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
+    Token name;
+    std::shared_ptr<Expr> initializer;
+    bool is_mutable;
+
+    VarStmt(Token name, std::shared_ptr<Expr> initializer, bool is_mutable)
+        : name(std::move(name)), initializer(std::move(initializer)), is_mutable(is_mutable) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visit(shared_from_this());

@@ -15,6 +15,9 @@ public:
     std::vector<std::shared_ptr<Stmt>> parse();
 
 private:
+    std::shared_ptr<Stmt> declaration();
+    std::shared_ptr<Stmt> statement();
+    std::shared_ptr<Stmt> var_declaration(bool is_mutable);
     std::shared_ptr<Expr> expression();
     std::shared_ptr<Expr> equality();
     std::shared_ptr<Expr> comparison();

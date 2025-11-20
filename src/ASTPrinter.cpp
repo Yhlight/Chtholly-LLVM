@@ -48,6 +48,16 @@ std::any ASTPrinter::visit(std::shared_ptr<ExpressionStmt> stmt) {
     return parenthesize(";", {stmt->expression});
 }
 
+std::any ASTPrinter::visit(std::shared_ptr<VarStmt> stmt) {
+    std::stringstream ss;
+    ss << "(" << (stmt->is_mutable ? "mut" : "let") << " " << stmt->name.lexeme;
+    if (stmt->initializer) {
+        ss << " = " << print(stmt->initializer);
+    }
+    ss << ")";
+    return ss.str();
+}
+
 std::string ASTPrinter::parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs) {
     std::stringstream ss;
     ss << "(" << name;

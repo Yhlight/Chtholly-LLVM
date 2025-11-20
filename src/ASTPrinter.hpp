@@ -18,6 +18,7 @@ public:
     std::any visit(std::shared_ptr<Literal> expr) override;
     std::any visit(std::shared_ptr<Unary> expr) override;
     std::any visit(std::shared_ptr<ExpressionStmt> stmt) override;
+    std::any visit(std::shared_ptr<VarStmt> stmt) override;
 
 private:
     std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs);

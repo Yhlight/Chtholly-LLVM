@@ -2,8 +2,8 @@
 
 ## Phase 1: Basic Lexer and Parser
 - [X] Implement the Lexer
-- [ ] Implement the Parser
-- [ ] Implement the AST
+- [X] Implement the Parser
+- [X] Implement the AST
 - [X] Implement a basic command-line interface
 
 ## Phase 2: Transpiler and Basic Language Features

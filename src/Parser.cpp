@@ -7,9 +7,34 @@ Parser::Parser(const std::vector<Token>& tokens) : tokens(tokens) {}
 std::vector<std::shared_ptr<Stmt>> Parser::parse() {
     std::vector<std::shared_ptr<Stmt>> statements;
     while (!is_at_end()) {
-        statements.push_back(std::make_shared<ExpressionStmt>(expression()));
+        statements.push_back(declaration());
     }
     return statements;
+}
+
+std::shared_ptr<Stmt> Parser::declaration() {
+    try {
+        if (match({TokenType::LET})) return var_declaration(false);
+        if (match({TokenType::MUT})) return var_declaration(true);
+        return statement();
+    } catch (ParseError& error) {
+        synchronize();
+        return nullptr;
+    }
+}
+
+std::shared_ptr<Stmt> Parser::var_declaration(bool is_mutable) {
+    Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+    std::shared_ptr<Expr> initializer = nullptr;
+    if (match({TokenType::EQUAL})) {
+        initializer = expression();
+    }
+    consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
+    return std::make_shared<VarStmt>(name, initializer, is_mutable);
+}
+
+std::shared_ptr<Stmt> Parser::statement() {
+    return std::make_shared<ExpressionStmt>(expression());
 }
 
 
