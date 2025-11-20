@@ -57,8 +57,47 @@ std::any Transpiler::visitVariableExpr(std::shared_ptr<Variable> expr) {
     return expr->name.lexeme;
 }
 
+std::any Transpiler::visitBlockStmt(std::shared_ptr<BlockStmt> stmt) {
+    std::stringstream out;
+    out << "{\n";
+    for (const auto& statement : stmt->statements) {
+        out << "    " << std::any_cast<std::string>(statement->accept(*this)) << "\n";
+    }
+    out << "}";
+    return out.str();
+}
+
 std::any Transpiler::visitExpressionStmt(std::shared_ptr<ExpressionStmt> stmt) {
     return std::any_cast<std::string>(stmt->expression->accept(*this)) + ";";
+}
+
+std::any Transpiler::visitForStmt(std::shared_ptr<ForStmt> stmt) {
+    std::stringstream out;
+    out << "for (";
+    if (stmt->initializer) {
+        out << std::any_cast<std::string>(stmt->initializer->accept(*this));
+    } else {
+        out << ";";
+    }
+    if (stmt->condition) {
+        out << " " << std::any_cast<std::string>(stmt->condition->accept(*this));
+    }
+    out << ";";
+    if (stmt->increment) {
+        out << " " << std::any_cast<std::string>(stmt->increment->accept(*this));
+    }
+    out << ") " << std::any_cast<std::string>(stmt->body->accept(*this));
+    return out.str();
+}
+
+std::any Transpiler::visitIfStmt(std::shared_ptr<IfStmt> stmt) {
+    std::stringstream out;
+    out << "if (" << std::any_cast<std::string>(stmt->condition->accept(*this)) << ") "
+        << std::any_cast<std::string>(stmt->thenBranch->accept(*this));
+    if (stmt->elseBranch) {
+        out << " else " << std::any_cast<std::string>(stmt->elseBranch->accept(*this));
+    }
+    return out.str();
 }
 
 std::any Transpiler::visitVarStmt(std::shared_ptr<VarStmt> stmt) {
@@ -68,6 +107,11 @@ std::any Transpiler::visitVarStmt(std::shared_ptr<VarStmt> stmt) {
         initializer = std::any_cast<std::string>(stmt->initializer->accept(*this));
     }
     return type + " " + stmt->name.lexeme + " = " + initializer + ";";
+}
+
+std::any Transpiler::visitWhileStmt(std::shared_ptr<WhileStmt> stmt) {
+    return "while (" + std::any_cast<std::string>(stmt->condition->accept(*this)) + ") " +
+           std::any_cast<std::string>(stmt->body->accept(*this));
 }
 
 } // namespace chtholly

@@ -28,6 +28,10 @@ private:
     std::shared_ptr<Stmt> declaration();
     std::shared_ptr<Stmt> varDeclaration();
     std::shared_ptr<Stmt> expressionStatement();
+    std::shared_ptr<Stmt> ifStatement();
+    std::shared_ptr<Stmt> whileStatement();
+    std::shared_ptr<Stmt> forStatement();
+    std::vector<std::shared_ptr<Stmt>> block();
 
     bool match(const std::vector<TokenType>& types);
     Token advance();

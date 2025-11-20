@@ -18,12 +18,15 @@ public:
     std::any visitUnaryExpr(std::shared_ptr<Unary> expr) override;
     std::any visitVariableExpr(std::shared_ptr<Variable> expr) override;
 
+    std::any visitBlockStmt(std::shared_ptr<BlockStmt> stmt) override;
     std::any visitExpressionStmt(std::shared_ptr<ExpressionStmt> stmt) override;
+    std::any visitForStmt(std::shared_ptr<ForStmt> stmt) override;
+    std::any visitIfStmt(std::shared_ptr<IfStmt> stmt) override;
     std::any visitVarStmt(std::shared_ptr<VarStmt> stmt) override;
+    std::any visitWhileStmt(std::shared_ptr<WhileStmt> stmt) override;
 
 private:
     std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs);
-    std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Stmt>>& stmts);
 };
 
 } // namespace chtholly

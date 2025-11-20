@@ -47,8 +47,38 @@ std::any ASTPrinter::visitVariableExpr(std::shared_ptr<Variable> expr) {
     return expr->name.lexeme;
 }
 
+std::any ASTPrinter::visitBlockStmt(std::shared_ptr<BlockStmt> stmt) {
+    std::stringstream out;
+    out << "(block ";
+    for (const auto& statement : stmt->statements) {
+        out << std::any_cast<std::string>(statement->accept(*this));
+    }
+    out << ")";
+    return out.str();
+}
+
 std::any ASTPrinter::visitExpressionStmt(std::shared_ptr<ExpressionStmt> stmt) {
     return parenthesize(";", {stmt->expression});
+}
+
+std::any ASTPrinter::visitForStmt(std::shared_ptr<ForStmt> stmt) {
+    std::stringstream out;
+    out << "(for " << std::any_cast<std::string>(stmt->initializer->accept(*this))
+        << " " << std::any_cast<std::string>(stmt->condition->accept(*this))
+        << " " << std::any_cast<std::string>(stmt->increment->accept(*this))
+        << " " << std::any_cast<std::string>(stmt->body->accept(*this)) << ")";
+    return out.str();
+}
+
+std::any ASTPrinter::visitIfStmt(std::shared_ptr<IfStmt> stmt) {
+    std::stringstream out;
+    out << "(if " << std::any_cast<std::string>(stmt->condition->accept(*this))
+        << " " << std::any_cast<std::string>(stmt->thenBranch->accept(*this));
+    if (stmt->elseBranch) {
+        out << " " << std::any_cast<std::string>(stmt->elseBranch->accept(*this));
+    }
+    out << ")";
+    return out.str();
 }
 
 std::any ASTPrinter::visitVarStmt(std::shared_ptr<VarStmt> stmt) {
@@ -56,6 +86,10 @@ std::any ASTPrinter::visitVarStmt(std::shared_ptr<VarStmt> stmt) {
         return parenthesize("var " + stmt->name.lexeme, {stmt->initializer});
     }
     return "(var " + stmt->name.lexeme + ")";
+}
+
+std::any ASTPrinter::visitWhileStmt(std::shared_ptr<WhileStmt> stmt) {
+    return parenthesize("while", {stmt->condition});
 }
 
 std::string ASTPrinter::parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs) {
