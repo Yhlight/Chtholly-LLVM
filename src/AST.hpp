@@ -13,11 +13,14 @@ struct Binary;
 struct Grouping;
 struct Literal;
 struct Unary;
+struct Assign;
+struct Variable;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
 struct IfStmt;
 struct WhileStmt;
+struct ForStmt;
 
 // Visitor for Expressions
 struct ExprVisitor {
@@ -25,6 +28,8 @@ struct ExprVisitor {
     virtual std::any visit(std::shared_ptr<Grouping> expr) = 0;
     virtual std::any visit(std::shared_ptr<Literal> expr) = 0;
     virtual std::any visit(std::shared_ptr<Unary> expr) = 0;
+    virtual std::any visit(std::shared_ptr<Assign> expr) = 0;
+    virtual std::any visit(std::shared_ptr<Variable> expr) = 0;
 };
 
 // Base class for all expressions
@@ -40,6 +45,7 @@ struct StmtVisitor {
     virtual std::any visit(std::shared_ptr<BlockStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<IfStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<WhileStmt> stmt) = 0;
+    virtual std::any visit(std::shared_ptr<ForStmt> stmt) = 0;
 };
 
 // Base class for all statements
@@ -57,6 +63,28 @@ struct Binary : Expr, public std::enable_shared_from_this<Binary> {
 
     Binary(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right)
         : left(std::move(left)), op(std::move(op)), right(std::move(right)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct Variable : Expr, public std::enable_shared_from_this<Variable> {
+    Token name;
+
+    Variable(Token name) : name(std::move(name)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct Assign : Expr, public std::enable_shared_from_this<Assign> {
+    Token name;
+    std::shared_ptr<Expr> value;
+
+    Assign(Token name, std::shared_ptr<Expr> value)
+        : name(std::move(name)), value(std::move(value)) {}
 
     std::any accept(ExprVisitor& visitor) override {
         return visitor.visit(shared_from_this());
@@ -103,6 +131,20 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 
     ExpressionStmt(std::shared_ptr<Expr> expression)
         : expression(std::move(expression)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
+    std::shared_ptr<Stmt> initializer;
+    std::shared_ptr<Expr> condition;
+    std::shared_ptr<Expr> increment;
+    std::shared_ptr<Stmt> body;
+
+    ForStmt(std::shared_ptr<Stmt> initializer, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> increment, std::shared_ptr<Stmt> body)
+        : initializer(std::move(initializer)), condition(std::move(condition)), increment(std::move(increment)), body(std::move(body)) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visit(shared_from_this());

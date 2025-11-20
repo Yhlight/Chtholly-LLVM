@@ -62,6 +62,14 @@ std::any Transpiler::visit(std::shared_ptr<Unary> expr) {
     return expr->op.lexeme + evaluate(expr->right);
 }
 
+std::any Transpiler::visit(std::shared_ptr<Assign> expr) {
+    return expr->name.lexeme + " = " + evaluate(expr->value);
+}
+
+std::any Transpiler::visit(std::shared_ptr<Variable> expr) {
+    return expr->name.lexeme;
+}
+
 std::any Transpiler::visit(std::shared_ptr<ExpressionStmt> stmt) {
     return evaluate(stmt->expression) + ";\n";
 }
@@ -109,11 +117,38 @@ std::any Transpiler::visit(std::shared_ptr<WhileStmt> stmt) {
     return ss.str();
 }
 
+std::any Transpiler::visit(std::shared_ptr<ForStmt> stmt) {
+    std::stringstream ss;
+    ss << "for (";
+    if (stmt->initializer) {
+        // We need to strip the trailing newline from the initializer
+        std::string init = execute(stmt->initializer);
+        init.pop_back();
+        ss << init;
+    }
+    ss << ";";
+
+    if (stmt->condition) {
+        ss << " " << evaluate(stmt->condition);
+    }
+    ss << ";";
+
+    if (stmt->increment) {
+        ss << " " << evaluate(stmt->increment);
+    }
+    ss << ") " << execute(stmt->body);
+    return ss.str();
+}
+
 std::string Transpiler::evaluate(std::shared_ptr<Expr> expr) {
     return std::any_cast<std::string>(expr->accept(*this));
 }
 
 std::string Transpiler::execute(std::shared_ptr<Stmt> stmt) {
+    return std::any_cast<std::string>(stmt->accept(*this));
+}
+
+std::string Transpiler::execute_for_initializer(std::shared_ptr<Stmt> stmt) {
     return std::any_cast<std::string>(stmt->accept(*this));
 }
 

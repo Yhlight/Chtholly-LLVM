@@ -118,3 +118,17 @@ TEST(TranspilerTest, TestWhileStatement) {
 
     EXPECT_EQ(result, "while (true) {\n1;\n}\n");
 }
+
+TEST(TranspilerTest, TestForStatement) {
+    std::string source = "for (let i = 0; i < 10; i = i + 1) { 1; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+
+    EXPECT_EQ(result, "for (const auto i = 0;; i < 10; i = i + 1) {\n1;\n}\n");
+}

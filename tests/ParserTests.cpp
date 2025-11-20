@@ -146,3 +146,17 @@ TEST(ParserTest, TestWhileStatement) {
 
     EXPECT_EQ(result, "(while true (; 1))");
 }
+
+TEST(ParserTest, TestForStatement) {
+    std::string source = "for (let i = 0; i < 10; i = i + 1) 1;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(for (let i = 0) (< i 10) (= i (+ i 1)) (; 1))");
+}

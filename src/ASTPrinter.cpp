@@ -46,6 +46,14 @@ std::any ASTPrinter::visit(std::shared_ptr<Unary> expr) {
     return parenthesize(expr->op.lexeme, {expr->right});
 }
 
+std::any ASTPrinter::visit(std::shared_ptr<Assign> expr) {
+    return parenthesize("= " + expr->name.lexeme, {expr->value});
+}
+
+std::any ASTPrinter::visit(std::shared_ptr<Variable> expr) {
+    return expr->name.lexeme;
+}
+
 std::any ASTPrinter::visit(std::shared_ptr<ExpressionStmt> stmt) {
     return parenthesize(";", {stmt->expression});
 }
@@ -81,6 +89,19 @@ std::any ASTPrinter::visit(std::shared_ptr<IfStmt> stmt) {
 std::any ASTPrinter::visit(std::shared_ptr<WhileStmt> stmt) {
     std::stringstream ss;
     ss << "(while " << print(stmt->condition);
+    ss << " " << std::any_cast<std::string>(stmt->body->accept(*this));
+    ss << ")";
+    return ss.str();
+}
+
+std::any ASTPrinter::visit(std::shared_ptr<ForStmt> stmt) {
+    std::stringstream ss;
+    ss << "(for ";
+    if (stmt->initializer) {
+        ss << std::any_cast<std::string>(stmt->initializer->accept(*this));
+    }
+    ss << " " << print(stmt->condition);
+    ss << " " << print(stmt->increment);
     ss << " " << std::any_cast<std::string>(stmt->body->accept(*this));
     ss << ")";
     return ss.str();

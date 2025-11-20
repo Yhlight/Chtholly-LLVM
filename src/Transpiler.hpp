@@ -22,9 +22,13 @@ private:
     std::any visit(std::shared_ptr<BlockStmt> stmt) override;
     std::any visit(std::shared_ptr<IfStmt> stmt) override;
     std::any visit(std::shared_ptr<WhileStmt> stmt) override;
+    std::any visit(std::shared_ptr<ForStmt> stmt) override;
+    std::any visit(std::shared_ptr<Assign> expr) override;
+    std::any visit(std::shared_ptr<Variable> expr) override;
 
     std::string evaluate(std::shared_ptr<Expr> expr);
     std::string execute(std::shared_ptr<Stmt> stmt);
+    std::string execute_for_initializer(std::shared_ptr<Stmt> stmt);
 };
 
 } // namespace chtholly

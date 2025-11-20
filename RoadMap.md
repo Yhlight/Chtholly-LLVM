@@ -15,7 +15,7 @@
 ## Phase 3: Control Flow
 - [X] Implement if/else statements
 - [X] Implement while loops
-- [ ] Implement for loops
+- [X] Implement for loops
 
 ## Phase 4: Functions
 - [ ] Implement function declarations
