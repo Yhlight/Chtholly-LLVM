@@ -15,6 +15,8 @@ struct Literal;
 struct Unary;
 struct ExpressionStmt;
 struct VarStmt;
+struct BlockStmt;
+struct IfStmt;
 
 // Visitor for Expressions
 struct ExprVisitor {
@@ -34,6 +36,8 @@ struct Expr {
 struct StmtVisitor {
     virtual std::any visit(std::shared_ptr<ExpressionStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<VarStmt> stmt) = 0;
+    virtual std::any visit(std::shared_ptr<BlockStmt> stmt) = 0;
+    virtual std::any visit(std::shared_ptr<IfStmt> stmt) = 0;
 };
 
 // Base class for all statements
@@ -97,6 +101,30 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 
     ExpressionStmt(std::shared_ptr<Expr> expression)
         : expression(std::move(expression)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct BlockStmt : Stmt, public std::enable_shared_from_this<BlockStmt> {
+    std::vector<std::shared_ptr<Stmt>> statements;
+
+    BlockStmt(std::vector<std::shared_ptr<Stmt>> statements)
+        : statements(std::move(statements)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct IfStmt : Stmt, public std::enable_shared_from_this<IfStmt> {
+    std::shared_ptr<Expr> condition;
+    std::shared_ptr<Stmt> then_branch;
+    std::shared_ptr<Stmt> else_branch;
+
+    IfStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> then_branch, std::shared_ptr<Stmt> else_branch)
+        : condition(std::move(condition)), then_branch(std::move(then_branch)), else_branch(std::move(else_branch)) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visit(shared_from_this());

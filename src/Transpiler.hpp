@@ -19,6 +19,8 @@ private:
     std::any visit(std::shared_ptr<Unary> expr) override;
     std::any visit(std::shared_ptr<ExpressionStmt> stmt) override;
     std::any visit(std::shared_ptr<VarStmt> stmt) override;
+    std::any visit(std::shared_ptr<BlockStmt> stmt) override;
+    std::any visit(std::shared_ptr<IfStmt> stmt) override;
 
     std::string evaluate(std::shared_ptr<Expr> expr);
     std::string execute(std::shared_ptr<Stmt> stmt);

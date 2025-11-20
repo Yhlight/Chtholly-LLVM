@@ -49,13 +49,13 @@ std::any Transpiler::visit(std::shared_ptr<Literal> expr) {
             return ss.str();
         }
         if (expr->value.type() == typeid(bool)) {
-            return std::any_cast<bool>(expr->value) ? "true" : "false";
+            return std::string(std::any_cast<bool>(expr->value) ? "true" : "false");
         }
         if (expr->value.type() == typeid(std::string)) {
             return "\"" + std::any_cast<std::string>(expr->value) + "\"";
         }
     }
-    return "nullptr";
+    return std::string("nullptr");
 }
 
 std::any Transpiler::visit(std::shared_ptr<Unary> expr) {
@@ -81,6 +81,25 @@ std::any Transpiler::visit(std::shared_ptr<VarStmt> stmt) {
         ss << " = " << evaluate(stmt->initializer);
     }
     ss << ";\n";
+    return ss.str();
+}
+
+std::any Transpiler::visit(std::shared_ptr<BlockStmt> stmt) {
+    std::stringstream ss;
+    ss << "{\n";
+    for (const auto& statement : stmt->statements) {
+        ss << execute(statement);
+    }
+    ss << "}\n";
+    return ss.str();
+}
+
+std::any Transpiler::visit(std::shared_ptr<IfStmt> stmt) {
+    std::stringstream ss;
+    ss << "if (" << evaluate(stmt->condition) << ") " << execute(stmt->then_branch);
+    if (stmt->else_branch) {
+        ss << "else " << execute(stmt->else_branch);
+    }
     return ss.str();
 }
 

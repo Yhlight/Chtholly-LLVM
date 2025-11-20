@@ -6,7 +6,7 @@ namespace chtholly {
 std::string ASTPrinter::print(const std::vector<std::shared_ptr<Stmt>>& statements) {
     std::stringstream ss;
     for (const auto& stmt : statements) {
-        if (stmt) { // Add null check
+        if (stmt) {
             ss << std::any_cast<std::string>(stmt->accept(*this));
         }
     }
@@ -33,13 +33,13 @@ std::any ASTPrinter::visit(std::shared_ptr<Literal> expr) {
             return ss.str();
         }
         if (expr->value.type() == typeid(bool)) {
-            return std::any_cast<bool>(expr->value) ? "true" : "false";
+            return std::string(std::any_cast<bool>(expr->value) ? "true" : "false");
         }
         if (expr->value.type() == typeid(std::string)) {
             return std::any_cast<std::string>(expr->value);
         }
     }
-    return "nil";
+    return std::string("nil");
 }
 
 std::any ASTPrinter::visit(std::shared_ptr<Unary> expr) {
@@ -63,12 +63,38 @@ std::any ASTPrinter::visit(std::shared_ptr<VarStmt> stmt) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(std::shared_ptr<BlockStmt> stmt) {
+    return parenthesize_stmt("block", stmt->statements);
+}
+
+std::any ASTPrinter::visit(std::shared_ptr<IfStmt> stmt) {
+    std::stringstream ss;
+    ss << "(if " << print(stmt->condition);
+    ss << " " << std::any_cast<std::string>(stmt->then_branch->accept(*this));
+    if (stmt->else_branch) {
+        ss << " else " << std::any_cast<std::string>(stmt->else_branch->accept(*this));
+    }
+    ss << ")";
+    return ss.str();
+}
+
 std::string ASTPrinter::parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs) {
     std::stringstream ss;
     ss << "(" << name;
     for (const auto& expr : exprs) {
         ss << " ";
         ss << std::any_cast<std::string>(expr->accept(*this));
+    }
+    ss << ")";
+    return ss.str();
+}
+
+std::string ASTPrinter::parenthesize_stmt(const std::string& name, const std::vector<std::shared_ptr<Stmt>>& stmts) {
+    std::stringstream ss;
+    ss << "(" << name;
+    for (const auto& stmt : stmts) {
+        ss << " ";
+        ss << std::any_cast<std::string>(stmt->accept(*this));
     }
     ss << ")";
     return ss.str();

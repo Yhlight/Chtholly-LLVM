@@ -9,7 +9,7 @@
 ## Phase 2: Transpiler and Basic Language Features
 - [X] Implement the Transpiler
 - [X] Implement basic variable declarations (let, mut)
-- [ ] Implement basic types (int, double, bool, string)
+- [X] Implement basic types (int, double, bool, string)
 - [X] Implement basic operators (+, -, *, /)
 
 ## Phase 3: Control Flow

@@ -76,3 +76,31 @@ TEST(TranspilerTest, TestTypedLetDeclaration) {
 
     EXPECT_EQ(result, "const int a = 10;\n");
 }
+
+TEST(TranspilerTest, TestIfStatement) {
+    std::string source = "if (true) { 1; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+
+    EXPECT_EQ(result, "if (true) {\n1;\n}\n");
+}
+
+TEST(TranspilerTest, TestIfElseStatement) {
+    std::string source = "if (false) 1; else 2;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+
+    EXPECT_EQ(result, "if (false) 1;\nelse 2;\n");
+}

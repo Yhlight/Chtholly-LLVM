@@ -47,9 +47,37 @@ std::shared_ptr<Stmt> Parser::var_declaration(bool is_mutable) {
 }
 
 std::shared_ptr<Stmt> Parser::statement() {
+    if (match({TokenType::IF})) return if_statement();
+    if (match({TokenType::LEFT_BRACE})) return std::make_shared<BlockStmt>(block());
+
     auto expr = expression();
     consume(TokenType::SEMICOLON, "Expect ';' after expression.");
     return std::make_shared<ExpressionStmt>(expr);
+}
+
+std::shared_ptr<Stmt> Parser::if_statement() {
+    consume(TokenType::LEFT_PAREN, "Expect '(' after 'if'.");
+    auto condition = expression();
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after if condition.");
+
+    auto then_branch = statement();
+    std::shared_ptr<Stmt> else_branch = nullptr;
+    if (match({TokenType::ELSE})) {
+        else_branch = statement();
+    }
+
+    return std::make_shared<IfStmt>(condition, then_branch, else_branch);
+}
+
+std::vector<std::shared_ptr<Stmt>> Parser::block() {
+    std::vector<std::shared_ptr<Stmt>> statements;
+
+    while (!check(TokenType::RIGHT_BRACE) && !is_at_end()) {
+        statements.push_back(declaration());
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after block.");
+    return statements;
 }
 
 

@@ -104,3 +104,31 @@ TEST(ParserTest, TestTypedLetDeclaration) {
 
     EXPECT_EQ(result, "(let a: int = 10)");
 }
+
+TEST(ParserTest, TestIfStatement) {
+    std::string source = "if (true) 1;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(if true (; 1))");
+}
+
+TEST(ParserTest, TestIfElseStatement) {
+    std::string source = "if (false) 1; else 2;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(if false (; 1) else (; 2))");
+}
