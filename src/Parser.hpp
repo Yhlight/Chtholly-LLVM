@@ -1,0 +1,47 @@
+#ifndef CHTHOLLY_PARSER_HPP
+#define CHTHOLLY_PARSER_HPP
+
+#include "Token.hpp"
+#include "AST.hpp"
+#include <vector>
+#include <memory>
+#include <stdexcept>
+
+namespace chtholly {
+
+class Parser {
+public:
+    Parser(const std::vector<Token>& tokens);
+    std::vector<std::shared_ptr<Stmt>> parse();
+
+private:
+    std::shared_ptr<Expr> expression();
+    std::shared_ptr<Expr> equality();
+    std::shared_ptr<Expr> comparison();
+    std::shared_ptr<Expr> term();
+    std::shared_ptr<Expr> factor();
+    std::shared_ptr<Expr> unary();
+    std::shared_ptr<Expr> primary();
+
+    bool match(const std::vector<TokenType>& types);
+    Token consume(TokenType type, const std::string& message);
+    bool check(TokenType type) const;
+    Token advance();
+    bool is_at_end() const;
+    Token peek() const;
+    Token previous() const;
+
+    // Error handling
+    struct ParseError : std::runtime_error {
+        using std::runtime_error::runtime_error;
+    };
+    ParseError error(const Token& token, const std::string& message);
+    void synchronize();
+
+    const std::vector<Token>& tokens;
+    int current = 0;
+};
+
+} // namespace chtholly
+
+#endif //CHTHOLLY_PARSER_HPP

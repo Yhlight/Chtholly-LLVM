@@ -1,7 +1,7 @@
 # Chtholly RoadMap
 
 ## Phase 1: Basic Lexer and Parser
-- [ ] Implement the Lexer
+- [X] Implement the Lexer
 - [ ] Implement the Parser
 - [ ] Implement the AST
 - [X] Implement a basic command-line interface
