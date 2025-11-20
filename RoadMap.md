@@ -7,8 +7,8 @@
 - [X] Implement a basic command-line interface
 
 ## Phase 2: Transpiler and Basic Language Features
-- [ ] Implement the Transpiler
-- [ ] Implement basic variable declarations (let, mut)
+- [X] Implement the Transpiler
+- [X] Implement basic variable declarations (let, mut)
 - [ ] Implement basic types (int, double, bool, string)
 - [ ] Implement basic operators (+, -, *, /)
 
