@@ -62,3 +62,17 @@ TEST(TranspilerTest, TestMutDeclaration) {
 
     EXPECT_EQ(result, "auto b = 20;\n");
 }
+
+TEST(TranspilerTest, TestTypedLetDeclaration) {
+    std::string source = "let a: int = 10;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+
+    EXPECT_EQ(result, "const int a = 10;\n");
+}

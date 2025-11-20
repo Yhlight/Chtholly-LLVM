@@ -1,12 +1,32 @@
 #include "Transpiler.hpp"
 #include <sstream>
+#include <unordered_map>
 
 namespace chtholly {
+
+static const std::unordered_map<TokenType, std::string> type_map = {
+    {TokenType::INT, "int"},
+    {TokenType::I8, "int8_t"},
+    {TokenType::I16, "int16_t"},
+    {TokenType::I32, "int32_t"},
+    {TokenType::I64, "int64_t"},
+    {TokenType::U8, "uint8_t"},
+    {TokenType::U16, "uint16_t"},
+    {TokenType::U32, "uint32_t"},
+    {TokenType::U64, "uint64_t"},
+    {TokenType::CHAR, "char"},
+    {TokenType::DOUBLE, "double"},
+    {TokenType::FLOAT, "float"},
+    {TokenType::LONG_DOUBLE, "long double"},
+    {TokenType::VOID, "void"},
+    {TokenType::BOOL, "bool"},
+    {TokenType::STRING, "std::string"}
+};
 
 std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& statements) {
     std::stringstream ss;
     for (const auto& stmt : statements) {
-        if (stmt) { // Add null check
+        if (stmt) {
             ss << execute(stmt);
         }
     }
@@ -49,8 +69,14 @@ std::any Transpiler::visit(std::shared_ptr<ExpressionStmt> stmt) {
 std::any Transpiler::visit(std::shared_ptr<VarStmt> stmt) {
     std::stringstream ss;
     ss << (stmt->is_mutable ? "" : "const ");
-    // For now, we'll just use auto for type inference
-    ss << "auto " << stmt->name.lexeme;
+
+    if (stmt->type) {
+        ss << type_map.at(stmt->type->type) << " ";
+    } else {
+        ss << "auto ";
+    }
+
+    ss << stmt->name.lexeme;
     if (stmt->initializer) {
         ss << " = " << evaluate(stmt->initializer);
     }

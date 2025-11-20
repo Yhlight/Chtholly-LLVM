@@ -4,6 +4,7 @@
 #include "Token.hpp"
 #include <vector>
 #include <memory>
+#include <optional>
 
 namespace chtholly {
 
@@ -104,11 +105,12 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 
 struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
     Token name;
+    std::optional<Token> type;
     std::shared_ptr<Expr> initializer;
     bool is_mutable;
 
-    VarStmt(Token name, std::shared_ptr<Expr> initializer, bool is_mutable)
-        : name(std::move(name)), initializer(std::move(initializer)), is_mutable(is_mutable) {}
+    VarStmt(Token name, std::optional<Token> type, std::shared_ptr<Expr> initializer, bool is_mutable)
+        : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)), is_mutable(is_mutable) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visit(shared_from_this());

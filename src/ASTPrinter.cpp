@@ -6,7 +6,9 @@ namespace chtholly {
 std::string ASTPrinter::print(const std::vector<std::shared_ptr<Stmt>>& statements) {
     std::stringstream ss;
     for (const auto& stmt : statements) {
-        ss << std::any_cast<std::string>(stmt->accept(*this));
+        if (stmt) { // Add null check
+            ss << std::any_cast<std::string>(stmt->accept(*this));
+        }
     }
     return ss.str();
 }
@@ -51,6 +53,9 @@ std::any ASTPrinter::visit(std::shared_ptr<ExpressionStmt> stmt) {
 std::any ASTPrinter::visit(std::shared_ptr<VarStmt> stmt) {
     std::stringstream ss;
     ss << "(" << (stmt->is_mutable ? "mut" : "let") << " " << stmt->name.lexeme;
+    if (stmt->type) {
+        ss << ": " << stmt->type->lexeme;
+    }
     if (stmt->initializer) {
         ss << " = " << print(stmt->initializer);
     }

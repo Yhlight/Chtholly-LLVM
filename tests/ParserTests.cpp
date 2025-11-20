@@ -8,7 +8,7 @@
 using namespace chtholly;
 
 TEST(ParserTest, TestSimpleExpression) {
-    std::string source = "1 + 2 * 3";
+    std::string source = "1 + 2 * 3;";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scan_tokens();
 
@@ -22,7 +22,7 @@ TEST(ParserTest, TestSimpleExpression) {
 }
 
 TEST(ParserTest, TestParenthesizedExpression) {
-    std::string source = "(1 + 2) * 3";
+    std::string source = "(1 + 2) * 3;";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scan_tokens();
 
@@ -36,7 +36,7 @@ TEST(ParserTest, TestParenthesizedExpression) {
 }
 
 TEST(ParserTest, TestUnaryExpression) {
-    std::string source = "-5";
+    std::string source = "-5;";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scan_tokens();
 
@@ -50,7 +50,7 @@ TEST(ParserTest, TestUnaryExpression) {
 }
 
 TEST(ParserTest, TestComparisonExpression) {
-    std::string source = "1 < 2 == 3 > 4";
+    std::string source = "1 < 2 == 3 > 4;";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scan_tokens();
 
@@ -89,4 +89,18 @@ TEST(ParserTest, TestMutDeclaration) {
     std::string result = printer.print(stmts);
 
     EXPECT_EQ(result, "(mut b = 20)");
+}
+
+TEST(ParserTest, TestTypedLetDeclaration) {
+    std::string source = "let a: int = 10;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(let a: int = 10)");
 }

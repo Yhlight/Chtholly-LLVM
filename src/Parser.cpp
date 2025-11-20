@@ -25,16 +25,31 @@ std::shared_ptr<Stmt> Parser::declaration() {
 
 std::shared_ptr<Stmt> Parser::var_declaration(bool is_mutable) {
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+
+    std::optional<Token> type;
+    if (match({TokenType::COLON})) {
+        if (match({TokenType::INT, TokenType::I8, TokenType::I16, TokenType::I32, TokenType::I64,
+                   TokenType::U8, TokenType::U16, TokenType::U32, TokenType::U64,
+                   TokenType::CHAR, TokenType::DOUBLE, TokenType::FLOAT, TokenType::LONG_DOUBLE,
+                   TokenType::VOID, TokenType::BOOL, TokenType::STRING})) {
+            type = previous();
+        } else {
+            throw error(peek(), "Expect type annotation.");
+        }
+    }
+
     std::shared_ptr<Expr> initializer = nullptr;
     if (match({TokenType::EQUAL})) {
         initializer = expression();
     }
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
-    return std::make_shared<VarStmt>(name, initializer, is_mutable);
+    return std::make_shared<VarStmt>(name, type, initializer, is_mutable);
 }
 
 std::shared_ptr<Stmt> Parser::statement() {
-    return std::make_shared<ExpressionStmt>(expression());
+    auto expr = expression();
+    consume(TokenType::SEMICOLON, "Expect ';' after expression.");
+    return std::make_shared<ExpressionStmt>(expr);
 }
 
 
