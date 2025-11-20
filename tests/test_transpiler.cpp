@@ -35,6 +35,66 @@ TEST(TranspilerTest, SimpleMain) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(TranspilerTest, SwitchStatement) {
+    std::string source = R"(
+        fn main() {
+            let x = 2;
+            switch (x) {
+                case 1: {
+                    return 1;
+                }
+                case 2: {
+                    return 2;
+                    break;
+                }
+                case 3: {
+                    fallthrough;
+                }
+                case 4: {
+                    return 4;
+                }
+            }
+            return 0;
+        }
+    )";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <iostream>
+        #include <string>
+        #include <vector>
+
+        int main(int argc, char* argv[]) {
+            auto x = 2;
+            switch (x) {
+                case 1:
+                    {
+                        return 1;
+                    }
+                case 2:
+                    {
+                        return 2;
+                        break;
+                    }
+                case 3:
+                    {
+                        [[fallthrough]];
+                    }
+                case 4:
+                    {
+                        return 4;
+                    }
+            }
+            return 0;
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(TranspilerTest, ForStatement) {
     std::string source = "fn main() { for (let i = 0; i < 10; i = i + 1) {} return 0; }";
     Lexer lexer(source);

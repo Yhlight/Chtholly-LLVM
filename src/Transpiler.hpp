@@ -29,6 +29,9 @@ public:
     std::any visit(const std::shared_ptr<IfStmt>& stmt) override;
     std::any visit(const std::shared_ptr<WhileStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ForStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<SwitchStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<BreakStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<FallthroughStmt>& stmt) override;
 
 private:
     std::string transpile(const std::shared_ptr<Stmt>& stmt);

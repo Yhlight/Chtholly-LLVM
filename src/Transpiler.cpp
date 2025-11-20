@@ -156,21 +156,46 @@ std::any Transpiler::visit(const std::shared_ptr<ForStmt>& stmt) {
     std::stringstream ss;
     ss << "for (";
     if (stmt->initializer) {
-        ss << transpile(stmt->initializer);
-    } else {
-        ss << ";";
+        if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(stmt->initializer)) {
+            ss << "auto " << var_stmt->name.lexeme;
+            if (var_stmt->initializer) {
+                ss << " = " << transpile(var_stmt->initializer);
+            }
+        } else if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStmt>(stmt->initializer)) {
+            ss << transpile(expr_stmt->expression);
+        }
     }
+    ss << ";";
 
     if (stmt->condition) {
-        ss << transpile(stmt->condition);
+        ss << " " << transpile(stmt->condition);
     }
     ss << ";";
 
     if (stmt->increment) {
-        ss << transpile(stmt->increment);
+        ss << " " << transpile(stmt->increment);
     }
     ss << ") " << transpile(stmt->body);
     return ss.str();
+}
+
+std::any Transpiler::visit(const std::shared_ptr<SwitchStmt>& stmt) {
+    std::stringstream ss;
+    ss << "switch (" << transpile(stmt->expression) << ") {\n";
+    for (const auto& case_ : stmt->cases) {
+        ss << "case " << transpile(case_.condition) << ":\n";
+        ss << transpile(case_.body);
+    }
+    ss << "}\n";
+    return ss.str();
+}
+
+std::any Transpiler::visit(const std::shared_ptr<BreakStmt>& stmt) {
+    return std::string("break;\n");
+}
+
+std::any Transpiler::visit(const std::shared_ptr<FallthroughStmt>& stmt) {
+    return std::string("[[fallthrough]];\n");
 }
 
 } // namespace chtholly

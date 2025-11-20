@@ -137,6 +137,24 @@ std::any ASTPrinter::visit(const std::shared_ptr<ForStmt>& stmt) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<SwitchStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(switch " << print(stmt->expression);
+    for (const auto& case_ : stmt->cases) {
+        ss << " (case " << print(case_.condition) << " " << print(case_.body) << ")";
+    }
+    ss << ")";
+    return ss.str();
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<BreakStmt>& stmt) {
+    return std::string("(break)");
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<FallthroughStmt>& stmt) {
+    return std::string("(fallthrough)");
+}
+
 // Helper methods for parenthesizing
 std::string ASTPrinter::parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr) {
     std::stringstream ss;

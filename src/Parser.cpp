@@ -33,10 +33,19 @@ std::shared_ptr<Stmt> Parser::declaration() {
 }
 
 std::shared_ptr<Stmt> Parser::statement() {
+    if (match({TokenType::SWITCH})) return switchStatement();
     if (match({TokenType::FOR})) return forStatement();
     if (match({TokenType::WHILE})) return whileStatement();
     if (match({TokenType::IF})) return ifStatement();
     if (match({TokenType::RETURN})) return returnStatement();
+    if (match({TokenType::BREAK})) {
+        consume(TokenType::SEMICOLON, "Expect ';' after 'break'.");
+        return std::make_shared<BreakStmt>();
+    }
+    if (match({TokenType::FALLTHROUGH})) {
+        consume(TokenType::SEMICOLON, "Expect ';' after 'fallthrough'.");
+        return std::make_shared<FallthroughStmt>();
+    }
     if (match({TokenType::LEFT_BRACE})) {
         return std::make_shared<BlockStmt>(block());
     }
@@ -143,6 +152,25 @@ std::shared_ptr<Stmt> Parser::forStatement() {
     auto body = statement();
 
     return std::make_shared<ForStmt>(initializer, condition, increment, body);
+}
+
+std::shared_ptr<Stmt> Parser::switchStatement() {
+    consume(TokenType::LEFT_PAREN, "Expect '(' after 'switch'.");
+    auto expression = this->expression();
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after switch expression.");
+    consume(TokenType::LEFT_BRACE, "Expect '{' before switch cases.");
+
+    std::vector<Case> cases;
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+        consume(TokenType::CASE, "Expect 'case' in switch statement.");
+        auto condition = this->expression();
+        consume(TokenType::COLON, "Expect ':' after case value.");
+        auto body = statement();
+        cases.emplace_back(condition, body);
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after switch cases.");
+    return std::make_shared<SwitchStmt>(expression, cases);
 }
 
 
@@ -325,6 +353,7 @@ void Parser::synchronize() {
             case TokenType::IF:
             case TokenType::WHILE:
             case TokenType::RETURN:
+            case TokenType::SWITCH:
                 return;
             default:
                 // Do nothing.

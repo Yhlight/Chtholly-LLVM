@@ -28,7 +28,7 @@
   - [X] `if`/`else if`/`else` statements.
   - [X] `while` loops.
   - [X] `for` loops (C-style and range-based).
-  - [ ] `switch` statements.
+  - [X] `switch` statements.
 - [ ] **Data Structures:**
   - [ ] Arrays (static and dynamic).
   - [ ] Enums.

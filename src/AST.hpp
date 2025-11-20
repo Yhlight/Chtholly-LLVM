@@ -25,6 +25,9 @@ struct ReturnStmt;
 struct IfStmt;
 struct WhileStmt;
 struct ForStmt;
+struct SwitchStmt;
+struct BreakStmt;
+struct FallthroughStmt;
 struct Expr;
 struct Stmt;
 
@@ -51,6 +54,9 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<IfStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<WhileStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ForStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<SwitchStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<BreakStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<FallthroughStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -242,6 +248,42 @@ struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
     const std::shared_ptr<Expr> condition;
     const std::shared_ptr<Expr> increment;
     const std::shared_ptr<Stmt> body;
+};
+
+struct Case {
+    Case(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body)
+        : condition(std::move(condition)), body(std::move(body)) {}
+
+    const std::shared_ptr<Expr> condition;
+    const std::shared_ptr<Stmt> body;
+};
+
+struct SwitchStmt : Stmt, public std::enable_shared_from_this<SwitchStmt> {
+    SwitchStmt(std::shared_ptr<Expr> expression, std::vector<Case> cases)
+        : expression(std::move(expression)), cases(std::move(cases)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> expression;
+    const std::vector<Case> cases;
+};
+
+struct BreakStmt : Stmt, public std::enable_shared_from_this<BreakStmt> {
+    BreakStmt() {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct FallthroughStmt : Stmt, public std::enable_shared_from_this<FallthroughStmt> {
+    FallthroughStmt() {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
 };
 
 } // namespace chtholly

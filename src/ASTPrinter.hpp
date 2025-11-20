@@ -31,10 +31,12 @@ public:
     std::any visit(const std::shared_ptr<IfStmt>& stmt) override;
     std::any visit(const std::shared_ptr<WhileStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ForStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<SwitchStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<BreakStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<FallthroughStmt>& stmt) override;
 
 
 private:
-    std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs);
     std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr);
     std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr1, const std::shared_ptr<Expr>& expr2);
 };
