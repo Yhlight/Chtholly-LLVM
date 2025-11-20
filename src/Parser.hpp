@@ -19,6 +19,7 @@ private:
     std::shared_ptr<Stmt> statement();
     std::shared_ptr<Stmt> var_declaration(bool is_mutable);
     std::shared_ptr<Stmt> function_declaration();
+    std::shared_ptr<Stmt> return_statement();
     std::shared_ptr<Stmt> if_statement();
     std::shared_ptr<Stmt> while_statement();
     std::shared_ptr<Stmt> for_statement();

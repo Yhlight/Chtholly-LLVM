@@ -27,6 +27,7 @@ public:
     std::any visit(std::shared_ptr<Variable> expr) override;
     std::any visit(std::shared_ptr<CallExpr> expr) override;
     std::any visit(std::shared_ptr<FunctionStmt> stmt) override;
+    std::any visit(std::shared_ptr<ReturnStmt> stmt) override;
 
 private:
     std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs);

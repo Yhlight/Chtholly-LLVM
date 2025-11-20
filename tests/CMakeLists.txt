@@ -2,6 +2,7 @@ add_executable(chtholly_tests
     LexerTests.cpp
     ParserTests.cpp
     TranspilerTests.cpp
+    FunctionTests.cpp
 )
 
 # Fetch Google Test

@@ -18,8 +18,8 @@
 - [X] Implement for loops
 
 ## Phase 4: Functions
-- [ ] Implement function declarations
-- [ ] Implement function calls
+- [X] Implement function declarations
+- [X] Implement function calls
 
 ## Phase 5: Advanced Features
 - [ ] Implement classes

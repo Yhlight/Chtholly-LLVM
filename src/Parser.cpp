@@ -91,6 +91,7 @@ std::shared_ptr<Stmt> Parser::statement() {
     if (match({TokenType::IF})) return if_statement();
     if (match({TokenType::WHILE})) return while_statement();
     if (match({TokenType::FOR})) return for_statement();
+    if (match({TokenType::RETURN})) return return_statement();
     if (match({TokenType::LEFT_BRACE})) return std::make_shared<BlockStmt>(block());
 
     auto expr = expression();
@@ -148,6 +149,16 @@ std::shared_ptr<Stmt> Parser::for_statement() {
     auto body = statement();
 
     return std::make_shared<ForStmt>(initializer, condition, increment, body);
+}
+
+std::shared_ptr<Stmt> Parser::return_statement() {
+    Token keyword = previous();
+    std::shared_ptr<Expr> value = nullptr;
+    if (!check(TokenType::SEMICOLON)) {
+        value = expression();
+    }
+    consume(TokenType::SEMICOLON, "Expect ';' after return value.");
+    return std::make_shared<ReturnStmt>(keyword, value);
 }
 
 std::vector<std::shared_ptr<Stmt>> Parser::block() {

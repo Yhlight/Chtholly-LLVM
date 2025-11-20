@@ -27,6 +27,7 @@ private:
     std::any visit(std::shared_ptr<Variable> expr) override;
     std::any visit(std::shared_ptr<CallExpr> expr) override;
     std::any visit(std::shared_ptr<FunctionStmt> stmt) override;
+    std::any visit(std::shared_ptr<ReturnStmt> stmt) override;
 
     std::string evaluate(std::shared_ptr<Expr> expr);
     std::string execute(std::shared_ptr<Stmt> stmt);

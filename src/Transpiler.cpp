@@ -171,6 +171,16 @@ std::any Transpiler::visit(std::shared_ptr<FunctionStmt> stmt) {
     return ss.str();
 }
 
+std::any Transpiler::visit(std::shared_ptr<ReturnStmt> stmt) {
+    std::stringstream ss;
+    ss << "return";
+    if (stmt->value) {
+        ss << " " << evaluate(stmt->value);
+    }
+    ss << ";\n";
+    return ss.str();
+}
+
 std::string Transpiler::evaluate(std::shared_ptr<Expr> expr) {
     return std::any_cast<std::string>(expr->accept(*this));
 }

@@ -23,6 +23,7 @@ struct IfStmt;
 struct WhileStmt;
 struct ForStmt;
 struct FunctionStmt;
+struct ReturnStmt;
 
 // Visitor for Expressions
 struct ExprVisitor {
@@ -50,6 +51,7 @@ struct StmtVisitor {
     virtual std::any visit(std::shared_ptr<WhileStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<ForStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<FunctionStmt> stmt) = 0;
+    virtual std::any visit(std::shared_ptr<ReturnStmt> stmt) = 0;
 };
 
 // Base class for all statements
@@ -227,6 +229,18 @@ struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
 
     VarStmt(Token name, std::optional<Token> type, std::shared_ptr<Expr> initializer, bool is_mutable)
         : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)), is_mutable(is_mutable) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct ReturnStmt : Stmt, public std::enable_shared_from_this<ReturnStmt> {
+    Token keyword;
+    std::shared_ptr<Expr> value;
+
+    ReturnStmt(Token keyword, std::shared_ptr<Expr> value)
+        : keyword(std::move(keyword)), value(std::move(value)) {}
 
     std::any accept(StmtVisitor& visitor) override {
         return visitor.visit(shared_from_this());

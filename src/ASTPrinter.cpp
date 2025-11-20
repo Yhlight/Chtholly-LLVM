@@ -138,6 +138,13 @@ std::any ASTPrinter::visit(std::shared_ptr<FunctionStmt> stmt) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(std::shared_ptr<ReturnStmt> stmt) {
+    if (stmt->value) {
+        return parenthesize("return", {stmt->value});
+    }
+    return "(return)";
+}
+
 std::string ASTPrinter::parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs) {
     std::stringstream ss;
     ss << "(" << name;
