@@ -2,15 +2,15 @@
 
 ## Phase 1: Core Compiler Infrastructure
 
-- [ ] **Project Setup:**
+- [X] **Project Setup:**
   - [X] Initialize Git repository.
   - [X] Set up CMake build system.
   - [X] Create `build.py` script for automation.
-  - [ ] Configure Google Test for unit testing.
-- [ ] **Lexer (Tokenizer):**
-  - [ ] Implement token definitions for all language constructs.
-  - [ ] Handle basic literals (integers, doubles, strings, booleans).
-  - [ ] Support single-line and multi-line comments.
+  - [X] Configure Google Test for unit testing.
+- [X] **Lexer (Tokenizer):**
+  - [X] Implement token definitions for all language constructs.
+  - [X] Handle basic literals (integers, doubles, strings, booleans).
+  - [X] Support single-line and multi-line comments.
 - [ ] **Parser (AST Generation):**
   - [ ] Implement basic AST node structures.
   - [ ] Parse variable declarations (`let`, `mut`).

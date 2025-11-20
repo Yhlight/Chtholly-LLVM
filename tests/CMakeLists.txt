@@ -1,0 +1,12 @@
+add_executable(chtholly_tests
+  test_lexer.cpp
+)
+
+# Link against the core library and Google Test
+target_link_libraries(chtholly_tests PRIVATE chtholly_lib gtest_main)
+
+# Add the src directory to the include path
+target_include_directories(chtholly_tests PRIVATE ../src)
+
+include(GoogleTest)
+gtest_discover_tests(chtholly_tests)
