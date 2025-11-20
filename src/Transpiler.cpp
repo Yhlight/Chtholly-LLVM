@@ -81,7 +81,24 @@ std::any Transpiler::visit(const std::shared_ptr<Call>& expr) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<Assign>& expr) {
-    return expr->name.lexeme + " = " + transpile(expr->value);
+    return transpile(expr->target) + " = " + transpile(expr->value);
+}
+
+std::any Transpiler::visit(const std::shared_ptr<ArrayLiteral>& expr) {
+    std::stringstream ss;
+    ss << "{";
+    for (size_t i = 0; i < expr->elements.size(); ++i) {
+        ss << transpile(expr->elements[i]);
+        if (i < expr->elements.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << "}";
+    return ss.str();
+}
+
+std::any Transpiler::visit(const std::shared_ptr<SubscriptExpr>& expr) {
+    return transpile(expr->name) + "[" + transpile(expr->index) + "]";
 }
 
 // Statement visitors
@@ -89,9 +106,26 @@ std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return transpile(stmt->expression) + ";\n";
 }
 
+std::string transpileType(const std::shared_ptr<Type>& type) {
+    if (type->getKind() == TypeKind::PRIMITIVE) {
+        auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
+        return primitive->name;
+    }
+    if (type->getKind() == TypeKind::ARRAY) {
+        auto array = std::dynamic_pointer_cast<ArrayType>(type);
+        return "std::vector<" + transpileType(array->element_type) + ">";
+    }
+    return "auto";
+}
+
 std::any Transpiler::visit(const std::shared_ptr<VarStmt>& stmt) {
     std::stringstream ss;
-    ss << "auto " << stmt->name.lexeme;
+    if (stmt->type) {
+        ss << transpileType(stmt->type) << " " << stmt->name.lexeme;
+    } else {
+        ss << "auto " << stmt->name.lexeme;
+    }
+
     if (stmt->initializer) {
         ss << " = " << transpile(stmt->initializer);
     }

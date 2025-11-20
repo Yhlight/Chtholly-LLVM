@@ -19,6 +19,8 @@ public:
     std::any visit(const std::shared_ptr<Variable>& expr) override;
     std::any visit(const std::shared_ptr<Call>& expr) override;
     std::any visit(const std::shared_ptr<Assign>& expr) override;
+    std::any visit(const std::shared_ptr<ArrayLiteral>& expr) override;
+    std::any visit(const std::shared_ptr<SubscriptExpr>& expr) override;
 
     // Statement visitors
     std::any visit(const std::shared_ptr<ExpressionStmt>& stmt) override;

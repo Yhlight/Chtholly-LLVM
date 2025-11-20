@@ -2,6 +2,7 @@
 #define CHTHOLLY_AST_HPP
 
 #include "Token.hpp"
+#include "Type.hpp"
 #include <any>
 #include <memory>
 #include <vector>
@@ -17,6 +18,8 @@ struct Unary;
 struct Variable;
 struct Call;
 struct Assign;
+struct ArrayLiteral;
+struct SubscriptExpr;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
@@ -41,6 +44,8 @@ struct ExprVisitor {
     virtual R visit(const std::shared_ptr<Variable>& expr) = 0;
     virtual R visit(const std::shared_ptr<Call>& expr) = 0;
     virtual R visit(const std::shared_ptr<Assign>& expr) = 0;
+    virtual R visit(const std::shared_ptr<ArrayLiteral>& expr) = 0;
+    virtual R visit(const std::shared_ptr<SubscriptExpr>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -140,15 +145,38 @@ struct Call : Expr, public std::enable_shared_from_this<Call> {
 };
 
 struct Assign : Expr, public std::enable_shared_from_this<Assign> {
-    Assign(Token name, std::shared_ptr<Expr> value)
-        : name(std::move(name)), value(std::move(value)) {}
+    Assign(std::shared_ptr<Expr> target, std::shared_ptr<Expr> value)
+        : target(std::move(target)), value(std::move(value)) {}
 
     std::any accept(ExprVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
 
-    const Token name;
+    const std::shared_ptr<Expr> target;
     const std::shared_ptr<Expr> value;
+};
+
+struct ArrayLiteral : Expr, public std::enable_shared_from_this<ArrayLiteral> {
+    ArrayLiteral(std::vector<std::shared_ptr<Expr>> elements)
+        : elements(std::move(elements)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::vector<std::shared_ptr<Expr>> elements;
+};
+
+struct SubscriptExpr : Expr, public std::enable_shared_from_this<SubscriptExpr> {
+    SubscriptExpr(std::shared_ptr<Expr> name, std::shared_ptr<Expr> index)
+        : name(std::move(name)), index(std::move(index)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> name;
+    const std::shared_ptr<Expr> index;
 };
 
 // Concrete statement classes
@@ -164,14 +192,15 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 };
 
 struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
-    VarStmt(Token name, std::shared_ptr<Expr> initializer)
-        : name(std::move(name)), initializer(std::move(initializer)) {}
+    VarStmt(Token name, std::shared_ptr<Type> type, std::shared_ptr<Expr> initializer)
+        : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
 
     const Token name;
+    const std::shared_ptr<Type> type;
     const std::shared_ptr<Expr> initializer;
 };
 

@@ -54,12 +54,16 @@ std::shared_ptr<Stmt> Parser::statement() {
 
 std::shared_ptr<Stmt> Parser::varDeclaration() {
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+    std::shared_ptr<Type> type = nullptr;
+    if (match({TokenType::COLON})) {
+        type = this->type();
+    }
     std::shared_ptr<Expr> initializer = nullptr;
     if (match({TokenType::EQUAL})) {
         initializer = expression();
     }
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
-    return std::make_shared<VarStmt>(name, initializer);
+    return std::make_shared<VarStmt>(name, type, initializer);
 }
 
 std::shared_ptr<Stmt> Parser::expressionStatement() {
@@ -173,13 +177,25 @@ std::shared_ptr<Stmt> Parser::switchStatement() {
     return std::make_shared<SwitchStmt>(expression, cases);
 }
 
+std::shared_ptr<Type> Parser::type() {
+    Token token = consume(TokenType::IDENTIFIER, "Expect type name.");
+    auto primitive_type = std::make_shared<PrimitiveType>(token.lexeme);
+
+    if (match({TokenType::LEFT_BRACKET})) {
+        consume(TokenType::RIGHT_BRACKET, "Expect ']' after type.");
+        return std::make_shared<ArrayType>(primitive_type);
+    }
+
+    return primitive_type;
+}
+
 
 // expression -> assignment
 std::shared_ptr<Expr> Parser::expression() {
     return assignment();
 }
 
-// assignment -> IDENTIFIER "=" assignment | equality
+// assignment -> ( call "." )? IDENTIFIER "=" assignment | equality
 std::shared_ptr<Expr> Parser::assignment() {
     auto expr = equality();
 
@@ -187,9 +203,8 @@ std::shared_ptr<Expr> Parser::assignment() {
         Token equals = previous();
         auto value = assignment();
 
-        if (auto var = std::dynamic_pointer_cast<Variable>(expr)) {
-            Token name = var->name;
-            return std::make_shared<Assign>(name, value);
+        if (std::dynamic_pointer_cast<Variable>(expr) || std::dynamic_pointer_cast<SubscriptExpr>(expr)) {
+            return std::make_shared<Assign>(expr, value);
         }
 
         // error(equals, "Invalid assignment target.");
@@ -252,12 +267,16 @@ std::shared_ptr<Expr> Parser::unary() {
     return call();
 }
 
-// call -> primary ( "(" arguments? ")" )*
+// call -> primary ( "(" arguments? ")" | "[" expression "]" )*
 std::shared_ptr<Expr> Parser::call() {
     auto expr = primary();
     while (true) {
         if (match({TokenType::LEFT_PAREN})) {
             expr = finishCall(expr);
+        } else if (match({TokenType::LEFT_BRACKET})) {
+            auto index = expression();
+            consume(TokenType::RIGHT_BRACKET, "Expect ']' after subscript index.");
+            expr = std::make_shared<SubscriptExpr>(expr, index);
         } else {
             break;
         }
@@ -279,7 +298,7 @@ std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
     return std::make_shared<Call>(callee, paren, arguments);
 }
 
-// primary -> NUMBER | STRING | "true" | "false" | IDENTIFIER | "(" expression ")"
+// primary -> NUMBER | STRING | "true" | "false" | IDENTIFIER | "(" expression ")" | "[" elements? "]"
 std::shared_ptr<Expr> Parser::primary() {
     if (match({TokenType::FALSE})) return std::make_shared<Literal>(false);
     if (match({TokenType::TRUE})) return std::make_shared<Literal>(true);
@@ -296,6 +315,17 @@ std::shared_ptr<Expr> Parser::primary() {
         auto expr = expression();
         consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
         return std::make_shared<Grouping>(expr);
+    }
+
+    if (match({TokenType::LEFT_BRACKET})) {
+        std::vector<std::shared_ptr<Expr>> elements;
+        if (!check(TokenType::RIGHT_BRACKET)) {
+            do {
+                elements.push_back(expression());
+            } while (match({TokenType::COMMA}));
+        }
+        consume(TokenType::RIGHT_BRACKET, "Expect ']' after array literal.");
+        return std::make_shared<ArrayLiteral>(elements);
     }
 
     throw ParseError("Expect expression.");

@@ -29,8 +29,8 @@
   - [X] `while` loops.
   - [X] `for` loops (C-style and range-based).
   - [X] `switch` statements.
-- [ ] **Data Structures:**
-  - [ ] Arrays (static and dynamic).
+- [X] **Data Structures:**
+  - [X] Arrays (static and dynamic).
   - [ ] Enums.
 - [ ] **Functions:**
   - [ ] Lambda functions.

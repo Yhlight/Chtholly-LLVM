@@ -70,7 +70,21 @@ std::any ASTPrinter::visit(const std::shared_ptr<Call>& expr) {
 }
 
 std::any ASTPrinter::visit(const std::shared_ptr<Assign>& expr) {
-    return parenthesize("= " + expr->name.lexeme, expr->value);
+    return parenthesize("= " + print(expr->target), expr->value);
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<ArrayLiteral>& expr) {
+    std::stringstream ss;
+    ss << "(array";
+    for (const auto& element : expr->elements) {
+        ss << " " << print(element);
+    }
+    ss << ")";
+    return ss.str();
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<SubscriptExpr>& expr) {
+    return parenthesize("subscript " + print(expr->name), expr->index);
 }
 
 
@@ -79,11 +93,30 @@ std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return parenthesize("expr_stmt", stmt->expression);
 }
 
-std::any ASTPrinter::visit(const std::shared_ptr<VarStmt>& stmt) {
-    if (stmt->initializer) {
-        return parenthesize("var " + stmt->name.lexeme, stmt->initializer);
+std::string printType(const std::shared_ptr<Type>& type) {
+    if (!type) return "";
+    if (type->getKind() == TypeKind::PRIMITIVE) {
+        auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
+        return primitive->name;
     }
-    return parenthesize("var " + stmt->name.lexeme, nullptr);
+    if (type->getKind() == TypeKind::ARRAY) {
+        auto array = std::dynamic_pointer_cast<ArrayType>(type);
+        return printType(array->element_type) + "[]";
+    }
+    return "unknown_type";
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<VarStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(var " << stmt->name.lexeme;
+    if (stmt->type) {
+        ss << " : " << printType(stmt->type);
+    }
+    if (stmt->initializer) {
+        ss << " " << print(stmt->initializer);
+    }
+    ss << ")";
+    return ss.str();
 }
 
 std::any ASTPrinter::visit(const std::shared_ptr<BlockStmt>& stmt) {

@@ -160,3 +160,15 @@ TEST(ParserTest, SwitchStatement) {
     std::string result = printer.print(stmts);
     EXPECT_EQ(result, "(switch x (case 1 (block (return 1))) (case 2 (block (return 2) (break))) (case 3 (block (fallthrough))) (case 4 (block (return 4))))\n");
 }
+
+TEST(ParserTest, ArrayDeclaration) {
+    std::string source = "let a: int[] = [1, 2, 3]; a[0] = 10;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 2);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(var a : int[] (array 1 2 3))\n(expr_stmt (= (subscript a 0) 10))\n");
+}
