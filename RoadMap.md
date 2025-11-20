@@ -10,8 +10,8 @@
 
 ## Phase 2: Language Features
 
-- [ ] Variables (let, mut)
-- [ ] Data Types (int, double, bool, string, etc.)
+- [x] Variables (let, mut)
+- [x] Data Types (int, double, bool, string, etc.)
 - [ ] Operators
 - [ ] Control Flow (if, else, while, for)
 - [ ] Functions

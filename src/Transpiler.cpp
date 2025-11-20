@@ -72,9 +72,9 @@ std::any Transpiler::visitVariableExpr(std::shared_ptr<VariableExpr> expr) {
 // Statement Visitors
 std::any Transpiler::visitBlockStmt(std::shared_ptr<BlockStmt> stmt) {
     std::stringstream builder;
-    builder << "{\\n";
+    builder << "{\n";
     for (const auto& statement : stmt->statements) {
-        builder << "    " << execute(statement) << "\\n";
+        builder << "    " << execute(statement) << "\n";
     }
     builder << "}";
     return builder.str();
@@ -84,28 +84,19 @@ std::any Transpiler::visitExpressionStmt(std::shared_ptr<ExpressionStmt> stmt) {
     return evaluate(stmt->expression) + ";";
 }
 
-std::any Transpiler::visitFunctionStmt(std::shared_ptr<FunctionStmt> stmt) {
-    // Placeholder implementation
-    return std::string("/* function statement */");
-}
-
-std::any Transpiler::visitIfStmt(std::shared_ptr<IfStmt> stmt) {
-    // Placeholder implementation
-    return std::string("/* if statement */");
-}
-
-std::any Transpiler::visitReturnStmt(std::shared_ptr<ReturnStmt> stmt) {
-    // Placeholder implementation
-    return std::string("/* return statement */");
-}
-
 std::any Transpiler::visitVarStmt(std::shared_ptr<VarStmt> stmt) {
-    std::string type = stmt->isMutable ? "auto" : "const auto";
-    std::string initializer = " = " + (stmt->initializer ? evaluate(stmt->initializer) : "nullptr");
-    return type + " " + stmt->name.lexeme + initializer + ";";
-}
+    std::string baseType;
+    if (stmt->type) {
+        baseType = stmt->type->lexeme;
+    } else {
+        baseType = "auto";
+    }
 
-std::any Transpiler::visitWhileStmt(std::shared_ptr<WhileStmt> stmt) {
-    // Placeholder implementation
-    return std::string("/* while statement */");
+    std::string type = stmt->isMutable ? baseType : "const " + baseType;
+    std::string initializer = "";
+    if (stmt->initializer) {
+        initializer = " = " + evaluate(stmt->initializer);
+    }
+
+    return type + " " + stmt->name.lexeme + initializer + ";";
 }

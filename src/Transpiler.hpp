@@ -21,11 +21,7 @@ public:
 
     std::any visitBlockStmt(std::shared_ptr<BlockStmt> stmt) override;
     std::any visitExpressionStmt(std::shared_ptr<ExpressionStmt> stmt) override;
-    std::any visitFunctionStmt(std::shared_ptr<FunctionStmt> stmt) override;
-    std::any visitIfStmt(std::shared_ptr<IfStmt> stmt) override;
-    std::any visitReturnStmt(std::shared_ptr<ReturnStmt> stmt) override;
     std::any visitVarStmt(std::shared_ptr<VarStmt> stmt) override;
-    std::any visitWhileStmt(std::shared_ptr<WhileStmt> stmt) override;
 
 private:
     std::string evaluate(std::shared_ptr<Expr> expr);

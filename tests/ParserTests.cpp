@@ -68,3 +68,17 @@ TEST(ParserTest, ParsesAssignment) {
     std::string result = printer.print(exprStmt->expression);
     EXPECT_EQ(result, "(= a 2.000000)");
 }
+
+TEST(ParserTest, ParsesVariableWithType) {
+    std::string source = "let x: int = 10;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
+
+    ASSERT_EQ(statements.size(), 1);
+    auto varStmt = std::dynamic_pointer_cast<VarStmt>(statements[0]);
+    ASSERT_NE(varStmt, nullptr);
+    EXPECT_TRUE(varStmt->type.has_value());
+    EXPECT_EQ(varStmt->type->lexeme, "int");
+}

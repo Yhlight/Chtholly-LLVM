@@ -29,12 +29,16 @@ std::shared_ptr<Stmt> Parser::declaration() {
 
 std::shared_ptr<Stmt> Parser::varDeclaration(bool isMutable) {
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+    std::optional<Token> type;
+    if (match({TokenType::COLON})) {
+        type = consume(TokenType::IDENTIFIER, "Expect type specifier.");
+    }
     std::shared_ptr<Expr> initializer = nullptr;
     if (match({TokenType::EQUAL})) {
         initializer = expression();
     }
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
-    return std::make_shared<VarStmt>(name, initializer, isMutable);
+    return std::make_shared<VarStmt>(name, type, initializer, isMutable);
 }
 
 std::shared_ptr<Stmt> Parser::statement() {
@@ -206,14 +210,8 @@ void Parser::synchronize() {
     while (!isAtEnd()) {
         if (previous().type == TokenType::SEMICOLON) return;
         switch (peek().type) {
-            case TokenType::CLASS:
-            case TokenType::FN:
             case TokenType::LET:
             case TokenType::MUT:
-            case TokenType::FOR:
-            case TokenType::IF:
-            case TokenType::WHILE:
-            case TokenType::RETURN:
                 return;
         }
         advance();
