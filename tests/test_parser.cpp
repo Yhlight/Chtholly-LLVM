@@ -96,3 +96,15 @@ TEST(ParserTest, ReturnStatement) {
     std::string result = printer.print(stmts);
     EXPECT_EQ(result, "(return 123)\n");
 }
+
+TEST(ParserTest, IfStatement) {
+    std::string source = "if (x > 5) { return true; } else { return false; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(if (> x 5) (block (return true)) (block (return false)))\n");
+}

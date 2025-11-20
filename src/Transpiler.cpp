@@ -133,4 +133,13 @@ std::any Transpiler::visit(const std::shared_ptr<ReturnStmt>& stmt) {
     return ss.str();
 }
 
+std::any Transpiler::visit(const std::shared_ptr<IfStmt>& stmt) {
+    std::stringstream ss;
+    ss << "if (" << transpile(stmt->condition) << ") " << transpile(stmt->thenBranch);
+    if (stmt->elseBranch) {
+        ss << "else " << transpile(stmt->elseBranch);
+    }
+    return ss.str();
+}
+
 } // namespace chtholly

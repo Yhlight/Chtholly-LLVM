@@ -11,6 +11,7 @@ class ASTPrinter : public ExprVisitor<std::any>, public StmtVisitor<std::any> {
 public:
     std::string print(const std::vector<std::shared_ptr<Stmt>>& statements);
     std::string print(const std::shared_ptr<Expr>& expr);
+    std::string print(const std::shared_ptr<Stmt>& stmt);
 
     // Expression visitors
     std::any visit(const std::shared_ptr<Binary>& expr) override;
@@ -26,6 +27,7 @@ public:
     std::any visit(const std::shared_ptr<BlockStmt>& stmt) override;
     std::any visit(const std::shared_ptr<FunctionStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ReturnStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<IfStmt>& stmt) override;
 
 
 private:

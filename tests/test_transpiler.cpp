@@ -35,6 +35,30 @@ TEST(TranspilerTest, SimpleMain) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(TranspilerTest, IfStatement) {
+    std::string source = "fn main() { if (true) { return 1; } else { return 0; } }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <iostream>
+        #include <string>
+        #include <vector>
+
+        int main(int argc, char* argv[]) {
+            if (true) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(TranspilerTest, VariableDeclaration) {
     std::string source = "fn main() { let x = 10; return x; }";
     Lexer lexer(source);

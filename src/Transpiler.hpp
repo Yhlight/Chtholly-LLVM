@@ -25,6 +25,7 @@ public:
     std::any visit(const std::shared_ptr<BlockStmt>& stmt) override;
     std::any visit(const std::shared_ptr<FunctionStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ReturnStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<IfStmt>& stmt) override;
 
 private:
     std::string transpile(const std::shared_ptr<Stmt>& stmt);

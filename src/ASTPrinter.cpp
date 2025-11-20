@@ -15,7 +15,13 @@ std::string ASTPrinter::print(const std::vector<std::shared_ptr<Stmt>>& statemen
 }
 
 std::string ASTPrinter::print(const std::shared_ptr<Expr>& expr) {
+    if (!expr) return "";
     return std::any_cast<std::string>(expr->accept(*this));
+}
+
+std::string ASTPrinter::print(const std::shared_ptr<Stmt>& stmt) {
+    if (!stmt) return "";
+    return std::any_cast<std::string>(stmt->accept(*this));
 }
 
 // Expression visitors
@@ -80,7 +86,7 @@ std::any ASTPrinter::visit(const std::shared_ptr<BlockStmt>& stmt) {
     std::stringstream ss;
     ss << "(block";
     for (const auto& statement : stmt->statements) {
-        ss << " " << std::any_cast<std::string>(statement->accept(*this));
+        ss << " " << print(statement);
     }
     ss << ")";
     return ss.str();
@@ -96,13 +102,23 @@ std::any ASTPrinter::visit(const std::shared_ptr<FunctionStmt>& stmt) {
         }
     }
     ss << ") ";
-    ss << std::any_cast<std::string>(stmt->body->accept(*this));
+    ss << print(stmt->body);
     ss << ")";
     return ss.str();
 }
 
 std::any ASTPrinter::visit(const std::shared_ptr<ReturnStmt>& stmt) {
     return parenthesize("return", stmt->value);
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<IfStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(if " << print(stmt->condition) << " " << print(stmt->thenBranch);
+    if (stmt->elseBranch) {
+        ss << " " << print(stmt->elseBranch);
+    }
+    ss << ")";
+    return ss.str();
 }
 
 // Helper methods for parenthesizing

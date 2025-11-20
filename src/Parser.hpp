@@ -31,6 +31,7 @@ private:
     std::vector<std::shared_ptr<Stmt>> block();
     std::shared_ptr<Stmt> function(const std::string& kind);
     std::shared_ptr<Stmt> returnStatement();
+    std::shared_ptr<Stmt> ifStatement();
 
 
     bool match(const std::vector<TokenType>& types);

@@ -25,7 +25,7 @@
 ## Phase 2: Language Features
 
 - [ ] **Control Flow:**
-  - [ ] `if`/`else if`/`else` statements.
+  - [X] `if`/`else if`/`else` statements.
   - [ ] `while` loops.
   - [ ] `for` loops (C-style and range-based).
   - [ ] `switch` statements.

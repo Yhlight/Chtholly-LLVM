@@ -21,6 +21,7 @@ struct VarStmt;
 struct BlockStmt;
 struct FunctionStmt;
 struct ReturnStmt;
+struct IfStmt;
 struct Expr;
 struct Stmt;
 
@@ -43,6 +44,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<BlockStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<FunctionStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ReturnStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<IfStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -183,6 +185,19 @@ struct ReturnStmt : Stmt, public std::enable_shared_from_this<ReturnStmt> {
 
     const Token keyword;
     const std::shared_ptr<Expr> value;
+};
+
+struct IfStmt : Stmt, public std::enable_shared_from_this<IfStmt> {
+    IfStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch, std::shared_ptr<Stmt> elseBranch)
+        : condition(std::move(condition)), thenBranch(std::move(thenBranch)), elseBranch(std::move(elseBranch)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> condition;
+    const std::shared_ptr<Stmt> thenBranch;
+    const std::shared_ptr<Stmt> elseBranch;
 };
 
 } // namespace chtholly
