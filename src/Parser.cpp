@@ -48,6 +48,7 @@ std::shared_ptr<Stmt> Parser::var_declaration(bool is_mutable) {
 
 std::shared_ptr<Stmt> Parser::statement() {
     if (match({TokenType::IF})) return if_statement();
+    if (match({TokenType::WHILE})) return while_statement();
     if (match({TokenType::LEFT_BRACE})) return std::make_shared<BlockStmt>(block());
 
     auto expr = expression();
@@ -67,6 +68,15 @@ std::shared_ptr<Stmt> Parser::if_statement() {
     }
 
     return std::make_shared<IfStmt>(condition, then_branch, else_branch);
+}
+
+std::shared_ptr<Stmt> Parser::while_statement() {
+    consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+    auto condition = expression();
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
+    auto body = statement();
+
+    return std::make_shared<WhileStmt>(condition, body);
 }
 
 std::vector<std::shared_ptr<Stmt>> Parser::block() {

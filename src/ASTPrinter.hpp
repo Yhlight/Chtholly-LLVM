@@ -21,6 +21,7 @@ public:
     std::any visit(std::shared_ptr<VarStmt> stmt) override;
     std::any visit(std::shared_ptr<BlockStmt> stmt) override;
     std::any visit(std::shared_ptr<IfStmt> stmt) override;
+    std::any visit(std::shared_ptr<WhileStmt> stmt) override;
 
 private:
     std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs);

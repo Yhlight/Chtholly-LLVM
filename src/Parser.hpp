@@ -19,6 +19,7 @@ private:
     std::shared_ptr<Stmt> statement();
     std::shared_ptr<Stmt> var_declaration(bool is_mutable);
     std::shared_ptr<Stmt> if_statement();
+    std::shared_ptr<Stmt> while_statement();
     std::vector<std::shared_ptr<Stmt>> block();
     std::shared_ptr<Expr> expression();
     std::shared_ptr<Expr> equality();

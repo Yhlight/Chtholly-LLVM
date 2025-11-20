@@ -104,3 +104,17 @@ TEST(TranspilerTest, TestIfElseStatement) {
 
     EXPECT_EQ(result, "if (false) 1;\nelse 2;\n");
 }
+
+TEST(TranspilerTest, TestWhileStatement) {
+    std::string source = "while (true) { 1; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+
+    EXPECT_EQ(result, "while (true) {\n1;\n}\n");
+}

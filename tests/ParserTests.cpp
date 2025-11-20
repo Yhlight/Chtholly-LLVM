@@ -132,3 +132,17 @@ TEST(ParserTest, TestIfElseStatement) {
 
     EXPECT_EQ(result, "(if false (; 1) else (; 2))");
 }
+
+TEST(ParserTest, TestWhileStatement) {
+    std::string source = "while (true) 1;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scan_tokens();
+
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+
+    EXPECT_EQ(result, "(while true (; 1))");
+}

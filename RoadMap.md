@@ -13,8 +13,8 @@
 - [X] Implement basic operators (+, -, *, /)
 
 ## Phase 3: Control Flow
-- [ ] Implement if/else statements
-- [ ] Implement while loops
+- [X] Implement if/else statements
+- [X] Implement while loops
 - [ ] Implement for loops
 
 ## Phase 4: Functions

@@ -78,6 +78,14 @@ std::any ASTPrinter::visit(std::shared_ptr<IfStmt> stmt) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(std::shared_ptr<WhileStmt> stmt) {
+    std::stringstream ss;
+    ss << "(while " << print(stmt->condition);
+    ss << " " << std::any_cast<std::string>(stmt->body->accept(*this));
+    ss << ")";
+    return ss.str();
+}
+
 std::string ASTPrinter::parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs) {
     std::stringstream ss;
     ss << "(" << name;

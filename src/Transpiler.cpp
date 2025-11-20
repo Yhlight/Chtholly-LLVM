@@ -103,6 +103,12 @@ std::any Transpiler::visit(std::shared_ptr<IfStmt> stmt) {
     return ss.str();
 }
 
+std::any Transpiler::visit(std::shared_ptr<WhileStmt> stmt) {
+    std::stringstream ss;
+    ss << "while (" << evaluate(stmt->condition) << ") " << execute(stmt->body);
+    return ss.str();
+}
+
 std::string Transpiler::evaluate(std::shared_ptr<Expr> expr) {
     return std::any_cast<std::string>(expr->accept(*this));
 }
