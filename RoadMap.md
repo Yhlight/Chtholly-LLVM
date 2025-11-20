@@ -5,8 +5,8 @@
 - [x] Integrate CMake build system.
 - [x] Create a Python build script (`build.py`).
 - [x] Integrate Google Test for unit testing.
-- [ ] Implement a basic command-line interface (`chtholly_cli`).
-- [ ] Implement the Lexer for tokenizing Chtholly source code.
+- [x] Implement a basic command-line interface (`chtholly_cli`).
+- [x] Implement the Lexer for tokenizing Chtholly source code.
 - [ ] Implement the Parser for building the Abstract Syntax Tree (AST).
 - [ ] Implement the C++ Transpiler using the Visitor pattern.
 - [ ] Implement an ASTPrinter for debugging.

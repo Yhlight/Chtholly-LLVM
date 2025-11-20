@@ -3,15 +3,18 @@
 #include <sstream>
 #include <vector>
 #include "Lexer.hpp"
-#include "Token.hpp"
+#include "Parser.hpp"
+#include "ASTPrinter.hpp"
 
 void run(const std::string& source) {
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scan_tokens();
-    for (const auto& token : tokens) {
-        std::cout << "Type: " << token_type_to_string(token.type)
-                  << ", Lexeme: '" << token.lexeme
-                  << "', Line: " << token.line << std::endl;
+    Parser parser(tokens);
+    std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
+
+    if (!parser.had_error) {
+        ASTPrinter printer;
+        std::cout << printer.print(statements) << std::endl;
     }
 }
 

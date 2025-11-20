@@ -17,6 +17,7 @@ FetchContent_MakeAvailable(googletest)
 add_executable(
   chtholly_tests
   LexerTests.cpp
+  ParserTests.cpp
 )
 
 target_link_libraries(

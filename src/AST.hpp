@@ -8,20 +8,25 @@
 // Forward declarations for mutual recursion
 struct Expr;
 struct Stmt;
+struct Assign;
 struct Binary;
 struct Grouping;
 struct Literal;
 struct Unary;
+struct Variable;
 struct ExpressionStmt;
+struct VarStmt;
 
 // Visitor interface for expressions
 class ExprVisitor {
 public:
     virtual ~ExprVisitor() = default;
+    virtual std::any visit(std::shared_ptr<Assign> expr) = 0;
     virtual std::any visit(std::shared_ptr<Binary> expr) = 0;
     virtual std::any visit(std::shared_ptr<Grouping> expr) = 0;
     virtual std::any visit(std::shared_ptr<Literal> expr) = 0;
     virtual std::any visit(std::shared_ptr<Unary> expr) = 0;
+    virtual std::any visit(std::shared_ptr<Variable> expr) = 0;
 };
 
 // Base class for all expression nodes
@@ -31,6 +36,18 @@ struct Expr {
 };
 
 // --- Concrete Expression Nodes ---
+
+struct Assign : Expr, std::enable_shared_from_this<Assign> {
+    Assign(Token name, std::shared_ptr<Expr> value)
+        : name(std::move(name)), value(std::move(value)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token name;
+    const std::shared_ptr<Expr> value;
+};
 
 struct Binary : Expr, std::enable_shared_from_this<Binary> {
     Binary(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right)
@@ -76,11 +93,22 @@ struct Unary : Expr, std::enable_shared_from_this<Unary> {
     const std::shared_ptr<Expr> right;
 };
 
+struct Variable : Expr, std::enable_shared_from_this<Variable> {
+    Variable(Token name) : name(std::move(name)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token name;
+};
+
 // Visitor interface for statements
 class StmtVisitor {
 public:
     virtual ~StmtVisitor() = default;
     virtual std::any visit(std::shared_ptr<ExpressionStmt> stmt) = 0;
+    virtual std::any visit(std::shared_ptr<VarStmt> stmt) = 0;
 };
 
 // Base class for all statement nodes
@@ -99,4 +127,16 @@ struct ExpressionStmt : Stmt, std::enable_shared_from_this<ExpressionStmt> {
     }
 
     const std::shared_ptr<Expr> expression;
+};
+
+struct VarStmt : Stmt, std::enable_shared_from_this<VarStmt> {
+    VarStmt(Token name, std::shared_ptr<Expr> initializer)
+        : name(std::move(name)), initializer(std::move(initializer)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token name;
+    const std::shared_ptr<Expr> initializer;
 };

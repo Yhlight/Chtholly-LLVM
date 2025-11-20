@@ -5,6 +5,10 @@ add_library(chtholly STATIC
     Lexer.hpp
     Token.hpp
     AST.hpp
+    ASTPrinter.cpp
+    ASTPrinter.hpp
+    Parser.cpp
+    Parser.hpp
 )
 
 add_executable(chtholly_cli
