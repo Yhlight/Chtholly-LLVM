@@ -3,7 +3,7 @@
 ## Phase 1: Core Compiler Infrastructure (In Progress)
 
 - [x] Project Setup
-- [ ] Lexer (Tokenizer)
+- [x] Lexer (Tokenizer)
 - [ ] Parser (AST Generation)
 - [ ] C++ Transpiler
 - [ ] Command-Line Interface (CLI)
