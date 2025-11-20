@@ -11,7 +11,7 @@ namespace chtholly {
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens);
-    std::shared_ptr<Expr> parse();
+    std::vector<std::shared_ptr<Stmt>> parse();
 
 private:
     std::shared_ptr<Expr> expression();
@@ -22,6 +22,15 @@ private:
     std::shared_ptr<Expr> unary();
     std::shared_ptr<Expr> primary();
 
+    std::shared_ptr<Stmt> declaration();
+    std::shared_ptr<Stmt> statement();
+    std::shared_ptr<Stmt> varDeclaration();
+    std::shared_ptr<Stmt> expressionStatement();
+    std::vector<std::shared_ptr<Stmt>> block();
+    std::shared_ptr<Stmt> function(const std::string& kind);
+    std::shared_ptr<Stmt> returnStatement();
+
+
     bool match(const std::vector<TokenType>& types);
     Token consume(TokenType type, const std::string& message);
     bool check(TokenType type) const;
@@ -29,6 +38,8 @@ private:
     bool isAtEnd() const;
     Token peek() const;
     Token previous() const;
+    void synchronize();
+
 
     const std::vector<Token>& tokens;
     int current = 0;

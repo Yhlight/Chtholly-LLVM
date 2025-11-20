@@ -11,10 +11,10 @@
   - [X] Implement token definitions for all language constructs.
   - [X] Handle basic literals (integers, doubles, strings, booleans).
   - [X] Support single-line and multi-line comments.
-- [ ] **Parser (AST Generation):**
+- [X] **Parser (AST Generation):**
   - [X] Implement basic AST node structures.
-  - [ ] Parse variable declarations (`let`, `mut`).
-  - [ ] Parse function definitions (`fn`).
+  - [X] Parse variable declarations (`let`, `mut`).
+  - [X] Parse function definitions (`fn`).
   - [X] Parse basic expressions and operators.
 - [ ] **Transpiler (C++ Code Generation):**
   - [ ] Implement a visitor pattern for the AST.

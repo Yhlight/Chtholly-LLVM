@@ -3,21 +3,34 @@
 
 #include "AST.hpp"
 #include <string>
+#include <vector>
 
 namespace chtholly {
 
-class ASTPrinter : public ExprVisitor<std::any> {
+class ASTPrinter : public ExprVisitor<std::any>, public StmtVisitor<std::any> {
 public:
-    std::string print(const Expr& expr);
+    std::string print(const std::vector<std::shared_ptr<Stmt>>& statements);
+    std::string print(const std::shared_ptr<Expr>& expr);
 
-    std::any visit(const Binary& expr) override;
-    std::any visit(const Grouping& expr) override;
-    std::any visit(const Literal& expr) override;
-    std::any visit(const Unary& expr) override;
+    // Expression visitors
+    std::any visit(const std::shared_ptr<Binary>& expr) override;
+    std::any visit(const std::shared_ptr<Grouping>& expr) override;
+    std::any visit(const std::shared_ptr<Literal>& expr) override;
+    std::any visit(const std::shared_ptr<Unary>& expr) override;
+    std::any visit(const std::shared_ptr<Variable>& expr) override;
+
+    // Statement visitors
+    std::any visit(const std::shared_ptr<ExpressionStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<VarStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<BlockStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<FunctionStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<ReturnStmt>& stmt) override;
+
 
 private:
-    template<typename... Exprs>
-    std::string parenthesize(const std::string& name, const Exprs&... exprs);
+    std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs);
+    std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr);
+    std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr1, const std::shared_ptr<Expr>& expr2);
 };
 
 } // namespace chtholly
