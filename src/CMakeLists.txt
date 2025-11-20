@@ -3,6 +3,11 @@ add_library(chtholly_lib
     Token.hpp
     Lexer.hpp
     Lexer.cpp
+    AST.hpp
+    ASTPrinter.hpp
+    ASTPrinter.cpp
+    Parser.hpp
+    Parser.cpp
 )
 
 # The CLI executable links against the library
