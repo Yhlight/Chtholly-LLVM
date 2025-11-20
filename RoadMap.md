@@ -5,7 +5,7 @@ This document outlines the development plan for the Chtholly programming languag
 ## Phase 1: Core Compiler Infrastructure
 
 - [ ] Set up project structure (`src`, `tests`, `build.py`)
-- [ ] Implement command-line interface
+- [x] Implement command-line interface
 - [ ] Implement Lexer (Tokenization)
 - [ ] Implement Parser (AST Generation)
 - [ ] Implement AST Printer for debugging

@@ -2,6 +2,7 @@ add_library(chtholly
     Lexer.cpp
     Parser.cpp
     AST.cpp
+    Chtholly.cpp
 )
 
 add_executable(chtholly_cli main.cpp)
