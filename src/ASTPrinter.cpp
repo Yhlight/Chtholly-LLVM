@@ -131,6 +131,12 @@ std::any ASTPrinter::visit(const std::shared_ptr<WhileStmt>& stmt) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<ForStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(for " << print(stmt->initializer) << " " << print(stmt->condition) << " " << print(stmt->increment) << " " << print(stmt->body) << ")";
+    return ss.str();
+}
+
 // Helper methods for parenthesizing
 std::string ASTPrinter::parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr) {
     std::stringstream ss;

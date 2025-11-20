@@ -120,3 +120,15 @@ TEST(ParserTest, WhileStatement) {
     std::string result = printer.print(stmts);
     EXPECT_EQ(result, "(while (< x 10) (block (expr_stmt (= x (+ x 1)))))\n");
 }
+
+TEST(ParserTest, ForStatement) {
+    std::string source = "for (let i = 0; i < 10; i = i + 1) { }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(for (var i 0) (< i 10) (= i (+ i 1)) (block))\n");
+}

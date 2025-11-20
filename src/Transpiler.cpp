@@ -152,4 +152,25 @@ std::any Transpiler::visit(const std::shared_ptr<WhileStmt>& stmt) {
     return ss.str();
 }
 
+std::any Transpiler::visit(const std::shared_ptr<ForStmt>& stmt) {
+    std::stringstream ss;
+    ss << "for (";
+    if (stmt->initializer) {
+        ss << transpile(stmt->initializer);
+    } else {
+        ss << ";";
+    }
+
+    if (stmt->condition) {
+        ss << transpile(stmt->condition);
+    }
+    ss << ";";
+
+    if (stmt->increment) {
+        ss << transpile(stmt->increment);
+    }
+    ss << ") " << transpile(stmt->body);
+    return ss.str();
+}
+
 } // namespace chtholly

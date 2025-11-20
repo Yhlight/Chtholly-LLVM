@@ -24,6 +24,7 @@ struct FunctionStmt;
 struct ReturnStmt;
 struct IfStmt;
 struct WhileStmt;
+struct ForStmt;
 struct Expr;
 struct Stmt;
 
@@ -49,6 +50,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<ReturnStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<IfStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<WhileStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<ForStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -225,6 +227,20 @@ struct WhileStmt : Stmt, public std::enable_shared_from_this<WhileStmt> {
     }
 
     const std::shared_ptr<Expr> condition;
+    const std::shared_ptr<Stmt> body;
+};
+
+struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
+    ForStmt(std::shared_ptr<Stmt> initializer, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> increment, std::shared_ptr<Stmt> body)
+        : initializer(std::move(initializer)), condition(std::move(condition)), increment(std::move(increment)), body(std::move(body)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Stmt> initializer;
+    const std::shared_ptr<Expr> condition;
+    const std::shared_ptr<Expr> increment;
     const std::shared_ptr<Stmt> body;
 };
 

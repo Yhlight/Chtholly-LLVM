@@ -24,10 +24,10 @@
 
 ## Phase 2: Language Features
 
-- [ ] **Control Flow:**
+- [X] **Control Flow:**
   - [X] `if`/`else if`/`else` statements.
   - [X] `while` loops.
-  - [ ] `for` loops (C-style and range-based).
+  - [X] `for` loops (C-style and range-based).
   - [ ] `switch` statements.
 - [ ] **Data Structures:**
   - [ ] Arrays (static and dynamic).
