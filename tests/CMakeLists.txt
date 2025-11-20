@@ -9,6 +9,7 @@ add_executable(chtholly_tests
     test_errors.cpp
     test_operators.cpp
     test_control_flow.cpp
+    test_functions.cpp
 )
 
 target_link_libraries(chtholly_tests

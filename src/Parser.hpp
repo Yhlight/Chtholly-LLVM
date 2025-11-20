@@ -22,7 +22,10 @@ private:
     std::shared_ptr<Expr> term();
     std::shared_ptr<Expr> factor();
     std::shared_ptr<Expr> unary();
+    std::shared_ptr<Expr> call();
     std::shared_ptr<Expr> primary();
+
+    std::shared_ptr<Expr> finishCall(std::shared_ptr<Expr> callee);
 
     std::shared_ptr<Stmt> statement();
     std::shared_ptr<Stmt> declaration();
@@ -31,6 +34,8 @@ private:
     std::shared_ptr<Stmt> ifStatement();
     std::shared_ptr<Stmt> whileStatement();
     std::shared_ptr<Stmt> forStatement();
+    std::shared_ptr<Stmt> returnStatement();
+    std::shared_ptr<FunctionStmt> function(const std::string& kind);
     std::vector<std::shared_ptr<Stmt>> block();
 
     bool match(const std::vector<TokenType>& types);

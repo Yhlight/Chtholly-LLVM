@@ -17,7 +17,7 @@ This document outlines the development plan for the Chtholly programming languag
 - [x] Variables (let, mut) and basic types (int, double, bool, string)
 - [x] Arithmetic and logical operators
 - [x] Control flow (if/else, while, for)
-- [ ] Functions
+- [x] Functions
 - [ ] Arrays (static and dynamic)
 - [ ] Classes (members, methods, constructors, destructors)
 - [ ] Enums

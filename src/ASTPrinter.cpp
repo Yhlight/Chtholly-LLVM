@@ -6,7 +6,8 @@ namespace chtholly {
 std::string ASTPrinter::print(const std::vector<std::shared_ptr<Stmt>>& statements) {
     std::stringstream out;
     for (const auto& stmt : statements) {
-        out << std::any_cast<std::string>(stmt->accept(*this));
+        if (stmt != nullptr)
+            out << std::any_cast<std::string>(stmt->accept(*this));
     }
     return out.str();
 }
@@ -17,6 +18,10 @@ std::any ASTPrinter::visitAssignExpr(std::shared_ptr<Assign> expr) {
 
 std::any ASTPrinter::visitBinaryExpr(std::shared_ptr<Binary> expr) {
     return parenthesize(expr->op.lexeme, {expr->left, expr->right});
+}
+
+std::any ASTPrinter::visitCallExpr(std::shared_ptr<CallExpr> expr) {
+    return parenthesize("call", {expr->callee});
 }
 
 std::any ASTPrinter::visitGroupingExpr(std::shared_ptr<Grouping> expr) {
@@ -51,7 +56,8 @@ std::any ASTPrinter::visitBlockStmt(std::shared_ptr<BlockStmt> stmt) {
     std::stringstream out;
     out << "(block ";
     for (const auto& statement : stmt->statements) {
-        out << std::any_cast<std::string>(statement->accept(*this));
+        if (statement != nullptr)
+            out << std::any_cast<std::string>(statement->accept(*this));
     }
     out << ")";
     return out.str();
@@ -70,6 +76,22 @@ std::any ASTPrinter::visitForStmt(std::shared_ptr<ForStmt> stmt) {
     return out.str();
 }
 
+std::any ASTPrinter::visitFunctionStmt(std::shared_ptr<FunctionStmt> stmt) {
+    std::stringstream out;
+    out << "(fn " << stmt->name.lexeme << " (";
+    for (size_t i = 0; i < stmt->params.size(); ++i) {
+        out << stmt->params[i].lexeme;
+        if (i < stmt->params.size() - 1) out << " ";
+    }
+    out << ") ";
+    for (const auto& statement : stmt->body) {
+        if(statement != nullptr)
+             out << std::any_cast<std::string>(statement->accept(*this));
+    }
+    out << ")";
+    return out.str();
+}
+
 std::any ASTPrinter::visitIfStmt(std::shared_ptr<IfStmt> stmt) {
     std::stringstream out;
     out << "(if " << std::any_cast<std::string>(stmt->condition->accept(*this))
@@ -79,6 +101,13 @@ std::any ASTPrinter::visitIfStmt(std::shared_ptr<IfStmt> stmt) {
     }
     out << ")";
     return out.str();
+}
+
+std::any ASTPrinter::visitReturnStmt(std::shared_ptr<ReturnStmt> stmt) {
+    if (stmt->value) {
+        return parenthesize("return", {stmt->value});
+    }
+    return "(return)";
 }
 
 std::any ASTPrinter::visitVarStmt(std::shared_ptr<VarStmt> stmt) {

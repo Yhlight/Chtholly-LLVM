@@ -12,6 +12,7 @@ namespace chtholly {
 struct Expr;
 struct Assign;
 struct Binary;
+struct CallExpr;
 struct Grouping;
 struct Literal;
 struct Unary;
@@ -21,6 +22,7 @@ struct Variable;
 struct ExprVisitor {
     virtual std::any visitAssignExpr(std::shared_ptr<Assign> expr) = 0;
     virtual std::any visitBinaryExpr(std::shared_ptr<Binary> expr) = 0;
+    virtual std::any visitCallExpr(std::shared_ptr<CallExpr> expr) = 0;
     virtual std::any visitGroupingExpr(std::shared_ptr<Grouping> expr) = 0;
     virtual std::any visitLiteralExpr(std::shared_ptr<Literal> expr) = 0;
     virtual std::any visitUnaryExpr(std::shared_ptr<Unary> expr) = 0;
@@ -37,7 +39,9 @@ struct Stmt;
 struct BlockStmt;
 struct ExpressionStmt;
 struct ForStmt;
+struct FunctionStmt;
 struct IfStmt;
+struct ReturnStmt;
 struct VarStmt;
 struct WhileStmt;
 
@@ -46,7 +50,9 @@ struct StmtVisitor {
     virtual std::any visitBlockStmt(std::shared_ptr<BlockStmt> stmt) = 0;
     virtual std::any visitExpressionStmt(std::shared_ptr<ExpressionStmt> stmt) = 0;
     virtual std::any visitForStmt(std::shared_ptr<ForStmt> stmt) = 0;
+    virtual std::any visitFunctionStmt(std::shared_ptr<FunctionStmt> stmt) = 0;
     virtual std::any visitIfStmt(std::shared_ptr<IfStmt> stmt) = 0;
+    virtual std::any visitReturnStmt(std::shared_ptr<ReturnStmt> stmt) = 0;
     virtual std::any visitVarStmt(std::shared_ptr<VarStmt> stmt) = 0;
     virtual std::any visitWhileStmt(std::shared_ptr<WhileStmt> stmt) = 0;
 };
@@ -80,6 +86,19 @@ struct Binary : Expr, public std::enable_shared_from_this<Binary> {
     const std::shared_ptr<Expr> left;
     const Token op;
     const std::shared_ptr<Expr> right;
+};
+
+struct CallExpr : Expr, public std::enable_shared_from_this<CallExpr> {
+    CallExpr(std::shared_ptr<Expr> callee, Token paren, const std::vector<std::shared_ptr<Expr>>& arguments)
+        : callee(callee), paren(paren), arguments(arguments) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visitCallExpr(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> callee;
+    const Token paren;
+    const std::vector<std::shared_ptr<Expr>> arguments;
 };
 
 struct Grouping : Expr, public std::enable_shared_from_this<Grouping> {
@@ -159,6 +178,19 @@ struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
     const std::shared_ptr<Stmt> body;
 };
 
+struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
+    FunctionStmt(Token name, const std::vector<Token>& params, const std::vector<std::shared_ptr<Stmt>>& body)
+        : name(name), params(params), body(body) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visitFunctionStmt(shared_from_this());
+    }
+
+    const Token name;
+    const std::vector<Token> params;
+    const std::vector<std::shared_ptr<Stmt>> body;
+};
+
 struct IfStmt : Stmt, public std::enable_shared_from_this<IfStmt> {
     IfStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> thenBranch,
            std::shared_ptr<Stmt> elseBranch)
@@ -171,6 +203,18 @@ struct IfStmt : Stmt, public std::enable_shared_from_this<IfStmt> {
     const std::shared_ptr<Expr> condition;
     const std::shared_ptr<Stmt> thenBranch;
     const std::shared_ptr<Stmt> elseBranch;
+};
+
+struct ReturnStmt : Stmt, public std::enable_shared_from_this<ReturnStmt> {
+    ReturnStmt(Token keyword, std::shared_ptr<Expr> value)
+        : keyword(keyword), value(value) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visitReturnStmt(shared_from_this());
+    }
+
+    const Token keyword;
+    const std::shared_ptr<Expr> value;
 };
 
 struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
