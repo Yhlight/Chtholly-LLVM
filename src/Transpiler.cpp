@@ -80,6 +80,10 @@ std::any Transpiler::visit(const std::shared_ptr<Call>& expr) {
     return ss.str();
 }
 
+std::any Transpiler::visit(const std::shared_ptr<Assign>& expr) {
+    return expr->name.lexeme + " = " + transpile(expr->value);
+}
+
 // Statement visitors
 std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return transpile(stmt->expression) + ";\n";
@@ -139,6 +143,12 @@ std::any Transpiler::visit(const std::shared_ptr<IfStmt>& stmt) {
     if (stmt->elseBranch) {
         ss << "else " << transpile(stmt->elseBranch);
     }
+    return ss.str();
+}
+
+std::any Transpiler::visit(const std::shared_ptr<WhileStmt>& stmt) {
+    std::stringstream ss;
+    ss << "while (" << transpile(stmt->condition) << ") " << transpile(stmt->body);
     return ss.str();
 }
 

@@ -69,6 +69,10 @@ std::any ASTPrinter::visit(const std::shared_ptr<Call>& expr) {
     return parenthesize("call", expr->callee);
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<Assign>& expr) {
+    return parenthesize("= " + expr->name.lexeme, expr->value);
+}
+
 
 // Statement visitors
 std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
@@ -118,6 +122,12 @@ std::any ASTPrinter::visit(const std::shared_ptr<IfStmt>& stmt) {
         ss << " " << print(stmt->elseBranch);
     }
     ss << ")";
+    return ss.str();
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<WhileStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(while " << print(stmt->condition) << " " << print(stmt->body) << ")";
     return ss.str();
 }
 

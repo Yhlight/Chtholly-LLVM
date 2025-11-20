@@ -33,6 +33,7 @@ std::shared_ptr<Stmt> Parser::declaration() {
 }
 
 std::shared_ptr<Stmt> Parser::statement() {
+    if (match({TokenType::WHILE})) return whileStatement();
     if (match({TokenType::IF})) return ifStatement();
     if (match({TokenType::RETURN})) return returnStatement();
     if (match({TokenType::LEFT_BRACE})) {
@@ -106,10 +107,37 @@ std::shared_ptr<Stmt> Parser::ifStatement() {
     return std::make_shared<IfStmt>(condition, thenBranch, elseBranch);
 }
 
+std::shared_ptr<Stmt> Parser::whileStatement() {
+    consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+    auto condition = expression();
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
+    auto body = statement();
+    return std::make_shared<WhileStmt>(condition, body);
+}
 
-// expression -> equality
+
+// expression -> assignment
 std::shared_ptr<Expr> Parser::expression() {
-    return equality();
+    return assignment();
+}
+
+// assignment -> IDENTIFIER "=" assignment | equality
+std::shared_ptr<Expr> Parser::assignment() {
+    auto expr = equality();
+
+    if (match({TokenType::EQUAL})) {
+        Token equals = previous();
+        auto value = assignment();
+
+        if (auto var = std::dynamic_pointer_cast<Variable>(expr)) {
+            Token name = var->name;
+            return std::make_shared<Assign>(name, value);
+        }
+
+        // error(equals, "Invalid assignment target.");
+    }
+
+    return expr;
 }
 
 // equality -> comparison ( ( "!=" | "==" ) comparison )*

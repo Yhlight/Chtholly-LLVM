@@ -15,6 +15,7 @@ public:
 
 private:
     std::shared_ptr<Expr> expression();
+    std::shared_ptr<Expr> assignment();
     std::shared_ptr<Expr> equality();
     std::shared_ptr<Expr> comparison();
     std::shared_ptr<Expr> term();
@@ -32,6 +33,7 @@ private:
     std::shared_ptr<Stmt> function(const std::string& kind);
     std::shared_ptr<Stmt> returnStatement();
     std::shared_ptr<Stmt> ifStatement();
+    std::shared_ptr<Stmt> whileStatement();
 
 
     bool match(const std::vector<TokenType>& types);

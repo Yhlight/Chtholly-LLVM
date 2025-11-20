@@ -108,3 +108,15 @@ TEST(ParserTest, IfStatement) {
     std::string result = printer.print(stmts);
     EXPECT_EQ(result, "(if (> x 5) (block (return true)) (block (return false)))\n");
 }
+
+TEST(ParserTest, WhileStatement) {
+    std::string source = "while (x < 10) { x = x + 1; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(while (< x 10) (block (expr_stmt (= x (+ x 1)))))\n");
+}

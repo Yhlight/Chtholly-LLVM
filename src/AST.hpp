@@ -16,12 +16,14 @@ struct Literal;
 struct Unary;
 struct Variable;
 struct Call;
+struct Assign;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
 struct FunctionStmt;
 struct ReturnStmt;
 struct IfStmt;
+struct WhileStmt;
 struct Expr;
 struct Stmt;
 
@@ -34,6 +36,7 @@ struct ExprVisitor {
     virtual R visit(const std::shared_ptr<Unary>& expr) = 0;
     virtual R visit(const std::shared_ptr<Variable>& expr) = 0;
     virtual R visit(const std::shared_ptr<Call>& expr) = 0;
+    virtual R visit(const std::shared_ptr<Assign>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -45,6 +48,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<FunctionStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ReturnStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<IfStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<WhileStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -127,6 +131,18 @@ struct Call : Expr, public std::enable_shared_from_this<Call> {
     const std::vector<std::shared_ptr<Expr>> arguments;
 };
 
+struct Assign : Expr, public std::enable_shared_from_this<Assign> {
+    Assign(Token name, std::shared_ptr<Expr> value)
+        : name(std::move(name)), value(std::move(value)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token name;
+    const std::shared_ptr<Expr> value;
+};
+
 // Concrete statement classes
 struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt> {
     ExpressionStmt(std::shared_ptr<Expr> expression)
@@ -198,6 +214,18 @@ struct IfStmt : Stmt, public std::enable_shared_from_this<IfStmt> {
     const std::shared_ptr<Expr> condition;
     const std::shared_ptr<Stmt> thenBranch;
     const std::shared_ptr<Stmt> elseBranch;
+};
+
+struct WhileStmt : Stmt, public std::enable_shared_from_this<WhileStmt> {
+    WhileStmt(std::shared_ptr<Expr> condition, std::shared_ptr<Stmt> body)
+        : condition(std::move(condition)), body(std::move(body)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> condition;
+    const std::shared_ptr<Stmt> body;
 };
 
 } // namespace chtholly

@@ -35,6 +35,30 @@ TEST(TranspilerTest, SimpleMain) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(TranspilerTest, WhileStatement) {
+    std::string source = "fn main() { let i = 0; while (i < 10) { i = i + 1; } return i; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <iostream>
+        #include <string>
+        #include <vector>
+
+        int main(int argc, char* argv[]) {
+            auto i = 0;
+            while (i < 10) {
+                i = i + 1;
+            }
+            return i;
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(TranspilerTest, IfStatement) {
     std::string source = "fn main() { if (true) { return 1; } else { return 0; } }";
     Lexer lexer(source);

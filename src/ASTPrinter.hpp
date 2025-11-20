@@ -20,6 +20,7 @@ public:
     std::any visit(const std::shared_ptr<Unary>& expr) override;
     std::any visit(const std::shared_ptr<Variable>& expr) override;
     std::any visit(const std::shared_ptr<Call>& expr) override;
+    std::any visit(const std::shared_ptr<Assign>& expr) override;
 
     // Statement visitors
     std::any visit(const std::shared_ptr<ExpressionStmt>& stmt) override;
@@ -28,6 +29,7 @@ public:
     std::any visit(const std::shared_ptr<FunctionStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ReturnStmt>& stmt) override;
     std::any visit(const std::shared_ptr<IfStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<WhileStmt>& stmt) override;
 
 
 private:

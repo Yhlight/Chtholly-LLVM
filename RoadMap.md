@@ -26,7 +26,7 @@
 
 - [ ] **Control Flow:**
   - [X] `if`/`else if`/`else` statements.
-  - [ ] `while` loops.
+  - [X] `while` loops.
   - [ ] `for` loops (C-style and range-based).
   - [ ] `switch` statements.
 - [ ] **Data Structures:**
