@@ -59,6 +59,10 @@ std::any ASTPrinter::visit(const std::shared_ptr<Variable>& expr) {
     return expr->name.lexeme;
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<Call>& expr) {
+    return parenthesize("call", expr->callee);
+}
+
 
 // Statement visitors
 std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {

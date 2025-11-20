@@ -1,5 +1,5 @@
-#ifndef CHTHOLLY_AST_PRINTER_HPP
-#define CHTHOLLY_AST_PRINTER_HPP
+#ifndef CHTHOLLY_TRANSPILER_HPP
+#define CHTHOLLY_TRANSPILER_HPP
 
 #include "AST.hpp"
 #include <string>
@@ -7,10 +7,9 @@
 
 namespace chtholly {
 
-class ASTPrinter : public ExprVisitor<std::any>, public StmtVisitor<std::any> {
+class Transpiler : public ExprVisitor<std::any>, public StmtVisitor<std::any> {
 public:
-    std::string print(const std::vector<std::shared_ptr<Stmt>>& statements);
-    std::string print(const std::shared_ptr<Expr>& expr);
+    std::string transpile(const std::vector<std::shared_ptr<Stmt>>& statements);
 
     // Expression visitors
     std::any visit(const std::shared_ptr<Binary>& expr) override;
@@ -27,13 +26,11 @@ public:
     std::any visit(const std::shared_ptr<FunctionStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ReturnStmt>& stmt) override;
 
-
 private:
-    std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Expr>>& exprs);
-    std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr);
-    std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr1, const std::shared_ptr<Expr>& expr2);
+    std::string transpile(const std::shared_ptr<Stmt>& stmt);
+    std::string transpile(const std::shared_ptr<Expr>& expr);
 };
 
 } // namespace chtholly
 
-#endif // CHTHOLLY_AST_PRINTER_HPP
+#endif // CHTHOLLY_TRANSPILER_HPP

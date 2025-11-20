@@ -143,14 +143,41 @@ std::shared_ptr<Expr> Parser::factor() {
     return expr;
 }
 
-// unary -> ( "!" | "-" ) unary | primary
+// unary -> ( "!" | "-" ) unary | call
 std::shared_ptr<Expr> Parser::unary() {
     if (match({TokenType::BANG, TokenType::MINUS})) {
         Token op = previous();
         auto right = unary();
         return std::make_shared<Unary>(op, right);
     }
-    return primary();
+    return call();
+}
+
+// call -> primary ( "(" arguments? ")" )*
+std::shared_ptr<Expr> Parser::call() {
+    auto expr = primary();
+    while (true) {
+        if (match({TokenType::LEFT_PAREN})) {
+            expr = finishCall(expr);
+        } else {
+            break;
+        }
+    }
+    return expr;
+}
+
+std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
+    std::vector<std::shared_ptr<Expr>> arguments;
+    if (!check(TokenType::RIGHT_PAREN)) {
+        do {
+            if (arguments.size() >= 255) {
+                // error("Can't have more than 255 arguments.");
+            }
+            arguments.push_back(expression());
+        } while (match({TokenType::COMMA}));
+    }
+    Token paren = consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+    return std::make_shared<Call>(callee, paren, arguments);
 }
 
 // primary -> NUMBER | STRING | "true" | "false" | IDENTIFIER | "(" expression ")"

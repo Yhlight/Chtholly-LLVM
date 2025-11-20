@@ -8,6 +8,8 @@ add_library(chtholly_lib
     ASTPrinter.cpp
     Parser.hpp
     Parser.cpp
+    Transpiler.hpp
+    Transpiler.cpp
 )
 
 # The CLI executable links against the library

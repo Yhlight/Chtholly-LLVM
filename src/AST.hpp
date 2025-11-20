@@ -15,6 +15,7 @@ struct Grouping;
 struct Literal;
 struct Unary;
 struct Variable;
+struct Call;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
@@ -31,6 +32,7 @@ struct ExprVisitor {
     virtual R visit(const std::shared_ptr<Literal>& expr) = 0;
     virtual R visit(const std::shared_ptr<Unary>& expr) = 0;
     virtual R visit(const std::shared_ptr<Variable>& expr) = 0;
+    virtual R visit(const std::shared_ptr<Call>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -108,6 +110,19 @@ struct Variable : Expr, public std::enable_shared_from_this<Variable> {
     }
 
     const Token name;
+};
+
+struct Call : Expr, public std::enable_shared_from_this<Call> {
+    Call(std::shared_ptr<Expr> callee, Token paren, std::vector<std::shared_ptr<Expr>> arguments)
+        : callee(std::move(callee)), paren(std::move(paren)), arguments(std::move(arguments)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> callee;
+    const Token paren;
+    const std::vector<std::shared_ptr<Expr>> arguments;
 };
 
 // Concrete statement classes

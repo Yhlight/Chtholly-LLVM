@@ -16,11 +16,11 @@
   - [X] Parse variable declarations (`let`, `mut`).
   - [X] Parse function definitions (`fn`).
   - [X] Parse basic expressions and operators.
-- [ ] **Transpiler (C++ Code Generation):**
-  - [ ] Implement a visitor pattern for the AST.
-  - [ ] Transpile basic expressions and variable declarations.
-  - [ ] Transpile function definitions.
-  - [ ] Generate a runnable C++ `main` function from `fn main`.
+- [X] **Transpiler (C++ Code Generation):**
+  - [X] Implement a visitor pattern for the AST.
+  - [X] Transpile basic expressions and variable declarations.
+  - [X] Transpile function definitions.
+  - [X] Generate a runnable C++ `main` function from `fn main`.
 
 ## Phase 2: Language Features
 
