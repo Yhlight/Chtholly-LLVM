@@ -1,0 +1,10 @@
+// This is a test file for the Chtholly lexer.
+
+let x = 10;
+let y = "hello";
+
+fn main() {
+    if (x > 5) {
+        print(y);
+    }
+}

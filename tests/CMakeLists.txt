@@ -16,8 +16,7 @@ FetchContent_MakeAvailable(googletest)
 
 add_executable(
   chtholly_tests
-  # Add test source files here
-  test_main.cpp
+  LexerTests.cpp
 )
 
 target_link_libraries(

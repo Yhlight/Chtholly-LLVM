@@ -1,10 +1,10 @@
 # RoadMap
 
 ## Phase 1: Core Compiler Infrastructure
-- [ ] Set up project structure (`src`, `tests`, `build`).
-- [ ] Integrate CMake build system.
-- [ ] Create a Python build script (`build.py`).
-- [ ] Integrate Google Test for unit testing.
+- [x] Set up project structure (`src`, `tests`, `build`).
+- [x] Integrate CMake build system.
+- [x] Create a Python build script (`build.py`).
+- [x] Integrate Google Test for unit testing.
 - [ ] Implement a basic command-line interface (`chtholly_cli`).
 - [ ] Implement the Lexer for tokenizing Chtholly source code.
 - [ ] Implement the Parser for building the Abstract Syntax Tree (AST).
