@@ -5,8 +5,8 @@
 - [x] Project Setup
 - [x] Lexer (Tokenizer)
 - [x] Parser (AST Generation)
-- [ ] C++ Transpiler
-- [ ] Command-Line Interface (CLI)
+- [x] C++ Transpiler
+- [x] Command-Line Interface (CLI)
 
 ## Phase 2: Language Features
 
