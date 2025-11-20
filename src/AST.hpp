@@ -152,8 +152,8 @@ struct ExprStmt : Stmt {
 };
 
 struct VarStmt : Stmt {
-    VarStmt(Token name, std::unique_ptr<Expr> initializer)
-        : name(name), initializer(std::move(initializer)) {}
+    VarStmt(Token name, std::unique_ptr<Expr> initializer, bool isMutable)
+        : name(name), initializer(std::move(initializer)), isMutable(isMutable) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) const override {
         return visitor.visit(*this);
@@ -161,6 +161,7 @@ struct VarStmt : Stmt {
 
     Token name;
     std::unique_ptr<Expr> initializer;
+    bool isMutable;
 };
 
 struct BlockStmt : Stmt {

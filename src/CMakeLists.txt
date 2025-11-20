@@ -7,6 +7,8 @@ add_library(chtholly STATIC
     ASTPrinter.cpp
     Parser.hpp
     Parser.cpp
+    Transpiler.hpp
+    Transpiler.cpp
 )
 
 add_executable(chtholly_cli

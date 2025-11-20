@@ -24,13 +24,14 @@ std::unique_ptr<Stmt> Parser::declaration() {
 }
 
 std::unique_ptr<Stmt> Parser::varDeclaration() {
+    bool isMutable = previous().type == TokenType::MUT;
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
     std::unique_ptr<Expr> initializer = nullptr;
     if (match({TokenType::EQUAL})) {
         initializer = expression();
     }
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
-    return std::make_unique<VarStmt>(name, std::move(initializer));
+    return std::make_unique<VarStmt>(name, std::move(initializer), isMutable);
 }
 
 std::unique_ptr<Stmt> Parser::statement() {
