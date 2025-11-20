@@ -26,6 +26,19 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     return out.str();
 }
 
+std::any Transpiler::visitArrayLiteralExpr(std::shared_ptr<ArrayLiteralExpr> expr) {
+    std::stringstream out;
+    out << "std::vector<auto>({";
+    for (size_t i = 0; i < expr->elements.size(); ++i) {
+        out << std::any_cast<std::string>(expr->elements[i]->accept(*this));
+        if (i < expr->elements.size() - 1) {
+            out << ", ";
+        }
+    }
+    out << "})";
+    return out.str();
+}
+
 std::any Transpiler::visitAssignExpr(std::shared_ptr<Assign> expr) {
     return expr->name.lexeme + " = " + std::any_cast<std::string>(expr->value->accept(*this));
 }
@@ -66,6 +79,17 @@ std::any Transpiler::visitLiteralExpr(std::shared_ptr<Literal> expr) {
         }
     }
     return "nullptr";
+}
+
+std::any Transpiler::visitSetExpr(std::shared_ptr<SetExpr> expr) {
+    return std::any_cast<std::string>(expr->object->accept(*this)) + "[" +
+           std::any_cast<std::string>(expr->index->accept(*this)) + "] = " +
+           std::any_cast<std::string>(expr->value->accept(*this));
+}
+
+std::any Transpiler::visitSubscriptExpr(std::shared_ptr<SubscriptExpr> expr) {
+    return std::any_cast<std::string>(expr->callee->accept(*this)) + "[" +
+           std::any_cast<std::string>(expr->index->accept(*this)) + "]";
 }
 
 std::any Transpiler::visitUnaryExpr(std::shared_ptr<Unary> expr) {

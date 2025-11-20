@@ -28,6 +28,8 @@ std::shared_ptr<Expr> Parser::assignment() {
         if (auto var = std::dynamic_pointer_cast<Variable>(expr)) {
             Token name = var->name;
             return std::make_shared<Assign>(name, value);
+        } else if (auto sub = std::dynamic_pointer_cast<SubscriptExpr>(expr)) {
+            return std::make_shared<SetExpr>(sub->callee, sub->index, value);
         }
 
         Chtholly::error(equals, "Invalid assignment target.");
@@ -124,7 +126,12 @@ std::shared_ptr<Expr> Parser::call() {
     while (true) {
         if (match({TokenType::LEFT_PAREN})) {
             expr = finishCall(expr);
-        } else {
+        } else if (match({TokenType::LEFT_BRACKET})) {
+            auto index = expression();
+            consume(TokenType::RIGHT_BRACKET, "Expect ']' after subscript.");
+            expr = std::make_shared<SubscriptExpr>(expr, index);
+        }
+        else {
             break;
         }
     }
@@ -157,6 +164,17 @@ std::shared_ptr<Expr> Parser::primary() {
         auto expr = expression();
         consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
         return std::make_shared<Grouping>(expr);
+    }
+
+    if (match({TokenType::LEFT_BRACKET})) {
+        std::vector<std::shared_ptr<Expr>> elements;
+        if (peek().type != TokenType::RIGHT_BRACKET) {
+            do {
+                elements.push_back(expression());
+            } while (match({TokenType::COMMA}));
+        }
+        consume(TokenType::RIGHT_BRACKET, "Expect ']' after array elements.");
+        return std::make_shared<ArrayLiteralExpr>(elements);
     }
 
     throw std::runtime_error("Expect expression.");

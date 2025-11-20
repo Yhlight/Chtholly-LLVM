@@ -12,6 +12,10 @@ std::string ASTPrinter::print(const std::vector<std::shared_ptr<Stmt>>& statemen
     return out.str();
 }
 
+std::any ASTPrinter::visitArrayLiteralExpr(std::shared_ptr<ArrayLiteralExpr> expr) {
+    return parenthesize("array", expr->elements);
+}
+
 std::any ASTPrinter::visitAssignExpr(std::shared_ptr<Assign> expr) {
     return parenthesize("= " + expr->name.lexeme, {expr->value});
 }
@@ -42,6 +46,14 @@ std::any ASTPrinter::visitLiteralExpr(std::shared_ptr<Literal> expr) {
         }
     }
     return "nil";
+}
+
+std::any ASTPrinter::visitSetExpr(std::shared_ptr<SetExpr> expr) {
+    return parenthesize("set", {expr->object, expr->index, expr->value});
+}
+
+std::any ASTPrinter::visitSubscriptExpr(std::shared_ptr<SubscriptExpr> expr) {
+    return parenthesize("subscript", {expr->callee, expr->index});
 }
 
 std::any ASTPrinter::visitUnaryExpr(std::shared_ptr<Unary> expr) {

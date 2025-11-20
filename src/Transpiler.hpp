@@ -11,11 +11,14 @@ class Transpiler : public ExprVisitor, public StmtVisitor {
 public:
     std::string transpile(const std::vector<std::shared_ptr<Stmt>>& statements);
 
+    std::any visitArrayLiteralExpr(std::shared_ptr<ArrayLiteralExpr> expr) override;
     std::any visitAssignExpr(std::shared_ptr<Assign> expr) override;
     std::any visitBinaryExpr(std::shared_ptr<Binary> expr) override;
     std::any visitCallExpr(std::shared_ptr<CallExpr> expr) override;
     std::any visitGroupingExpr(std::shared_ptr<Grouping> expr) override;
     std::any visitLiteralExpr(std::shared_ptr<Literal> expr) override;
+    std::any visitSetExpr(std::shared_ptr<SetExpr> expr) override;
+    std::any visitSubscriptExpr(std::shared_ptr<SubscriptExpr> expr) override;
     std::any visitUnaryExpr(std::shared_ptr<Unary> expr) override;
     std::any visitVariableExpr(std::shared_ptr<Variable> expr) override;
 

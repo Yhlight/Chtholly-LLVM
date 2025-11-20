@@ -10,6 +10,7 @@ add_executable(chtholly_tests
     test_operators.cpp
     test_control_flow.cpp
     test_functions.cpp
+    test_arrays.cpp
 )
 
 target_link_libraries(chtholly_tests
