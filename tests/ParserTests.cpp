@@ -69,6 +69,22 @@ TEST(ParserTest, ParsesAssignment) {
     EXPECT_EQ(result, "(= a 2.000000)");
 }
 
+TEST(ParserTest, ParsesCompoundAssignment) {
+    std::string source = "mut a = 1; a += 2;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
+
+    ASSERT_EQ(statements.size(), 2);
+    auto exprStmt = std::dynamic_pointer_cast<ExpressionStmt>(statements[1]);
+    ASSERT_NE(exprStmt, nullptr);
+
+    ASTPrinter printer;
+    std::string result = printer.print(exprStmt->expression);
+    EXPECT_EQ(result, "(+= a 2.000000)");
+}
+
 TEST(ParserTest, ParsesVariableWithType) {
     std::string source = "let x: int = 10;";
     Lexer lexer(source);

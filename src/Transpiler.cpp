@@ -30,7 +30,7 @@ std::string Transpiler::execute(std::shared_ptr<Stmt> stmt) {
 
 // Expression Visitors
 std::any Transpiler::visitAssignExpr(std::shared_ptr<AssignExpr> expr) {
-    return expr->name.lexeme + " = " + evaluate(expr->value);
+    return evaluate(expr->target) + " " + expr->op.lexeme + " " + evaluate(expr->value);
 }
 
 std::any Transpiler::visitBinaryExpr(std::shared_ptr<BinaryExpr> expr) {

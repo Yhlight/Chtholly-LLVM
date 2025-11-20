@@ -1,12 +1,13 @@
 #include "ASTPrinter.hpp"
 #include <sstream>
+#include <any>
 
 std::string ASTPrinter::print(std::shared_ptr<Expr> expr) {
     return std::any_cast<std::string>(expr->accept(*this));
 }
 
 std::any ASTPrinter::visitAssignExpr(std::shared_ptr<AssignExpr> expr) {
-    return parenthesize("= " + expr->name.lexeme, {expr->value});
+    return parenthesize(expr->op.lexeme + " " + std::any_cast<std::string>(expr->target->accept(*this)), {expr->value});
 }
 
 std::any ASTPrinter::visitBinaryExpr(std::shared_ptr<BinaryExpr> expr) {

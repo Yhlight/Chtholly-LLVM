@@ -66,12 +66,11 @@ std::shared_ptr<Expr> Parser::expression() {
 
 std::shared_ptr<Expr> Parser::assignment() {
     std::shared_ptr<Expr> expr = logic_or();
-    if (match({TokenType::EQUAL})) {
-        Token equals = previous();
+    if (match({TokenType::EQUAL, TokenType::PLUS_EQUAL, TokenType::MINUS_EQUAL, TokenType::STAR_EQUAL, TokenType::SLASH_EQUAL, TokenType::PERCENT_EQUAL})) {
+        Token op = previous();
         std::shared_ptr<Expr> value = assignment();
         if (auto varExpr = std::dynamic_pointer_cast<VariableExpr>(expr)) {
-            Token name = varExpr->name;
-            return std::make_shared<AssignExpr>(name, value);
+            return std::make_shared<AssignExpr>(expr, op, value);
         }
         throw std::runtime_error("Invalid assignment target.");
     }

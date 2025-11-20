@@ -54,11 +54,12 @@ public:
 
 // Concrete Expression Nodes
 struct AssignExpr : Expr, public std::enable_shared_from_this<AssignExpr> {
-    Token name;
+    std::shared_ptr<Expr> target;
+    Token op;
     std::shared_ptr<Expr> value;
 
-    AssignExpr(Token name, std::shared_ptr<Expr> value)
-        : name(name), value(std::move(value)) {}
+    AssignExpr(std::shared_ptr<Expr> target, Token op, std::shared_ptr<Expr> value)
+        : target(std::move(target)), op(op), value(std::move(value)) {}
 
     std::any accept(ExprVisitor& visitor) override {
         return visitor.visitAssignExpr(shared_from_this());

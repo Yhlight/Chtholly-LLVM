@@ -13,6 +13,7 @@
 - [x] Variables (let, mut)
 - [x] Data Types (int, double, bool, string, etc.)
 - [ ] Operators
+  - [x] Compound Assignment (+=, -=, *=, /=, %=)
 - [ ] Control Flow (if, else, while, for)
 - [ ] Functions
 - [ ] Structs/Classes
