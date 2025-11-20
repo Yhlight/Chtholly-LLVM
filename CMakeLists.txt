@@ -9,7 +9,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 include_directories(src)
 
 # Create a library for the compiler components
-add_library(chtholly STATIC src/lib.cpp src/Lexer.cpp)
+add_library(chtholly STATIC src/lib.cpp src/Lexer.cpp src/Parser.cpp src/ASTPrinter.cpp)
 
 # Add the command-line interface
 add_executable(chtholly_cli src/main.cpp)

@@ -4,7 +4,7 @@
 
 - [x] Project Setup
 - [x] Lexer (Tokenizer)
-- [ ] Parser (AST Generation)
+- [x] Parser (AST Generation)
 - [ ] C++ Transpiler
 - [ ] Command-Line Interface (CLI)
 
