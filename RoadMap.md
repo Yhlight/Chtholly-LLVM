@@ -1,0 +1,59 @@
+# Chtholly Language Development Roadmap
+
+## Phase 1: Core Compiler Infrastructure
+
+- [ ] **Project Setup:**
+  - [X] Initialize Git repository.
+  - [X] Set up CMake build system.
+  - [X] Create `build.py` script for automation.
+  - [ ] Configure Google Test for unit testing.
+- [ ] **Lexer (Tokenizer):**
+  - [ ] Implement token definitions for all language constructs.
+  - [ ] Handle basic literals (integers, doubles, strings, booleans).
+  - [ ] Support single-line and multi-line comments.
+- [ ] **Parser (AST Generation):**
+  - [ ] Implement basic AST node structures.
+  - [ ] Parse variable declarations (`let`, `mut`).
+  - [ ] Parse function definitions (`fn`).
+  - [ ] Parse basic expressions and operators.
+- [ ] **Transpiler (C++ Code Generation):**
+  - [ ] Implement a visitor pattern for the AST.
+  - [ ] Transpile basic expressions and variable declarations.
+  - [ ] Transpile function definitions.
+  - [ ] Generate a runnable C++ `main` function from `fn main`.
+
+## Phase 2: Language Features
+
+- [ ] **Control Flow:**
+  - [ ] `if`/`else if`/`else` statements.
+  - [ ] `while` loops.
+  - [ ] `for` loops (C-style and range-based).
+  - [ ] `switch` statements.
+- [ ] **Data Structures:**
+  - [ ] Arrays (static and dynamic).
+  - [ ] Enums.
+- [ ] **Functions:**
+  - [ ] Lambda functions.
+  - [ ] Function types.
+- [ ] **Classes:**
+  - [ ] Class definitions with members and methods.
+  - [ ] Constructors and destructors.
+  - [ ] `public`/`private` access modifiers.
+  - [ ] `static` members and methods.
+- [ ] **Generics:**
+  - [ ] Generic functions.
+  - [ ] Generic classes.
+
+## Phase 3: Module System and Standard Library
+
+- [ ] **Module System:**
+  - [ ] Implement `import` for file-based modules.
+  - [ ] Support for module aliasing (`as`).
+  - [ ] Package and namespace system (`package`).
+- [ ] **Standard Library:**
+  - [ ] Basic I/O (`iostream`).
+  - [ ] String manipulation utilities.
+  - [ ] Math library.
+- [ ] **Type System:**
+  - [ ] Implement safe type casting (`type_cast`).
+  - [ ] Refine rules for references and ownership (`&`, `*`, `&&`).
