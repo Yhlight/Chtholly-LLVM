@@ -12,6 +12,9 @@ public:
 
 private:
     void run(const std::string& source);
+    void report(int line, const std::string& where, const std::string& message);
+
+    bool hadError = false;
 };
 
 } // namespace chtholly

@@ -7,8 +7,8 @@ This document outlines the development plan for the Chtholly programming languag
 - [x] Set up project structure (`src`, `tests`, `build.py`)
 - [x] Implement command-line interface
 - [x] Implement Lexer (Tokenization)
-- [ ] Implement Parser (AST Generation)
-- [ ] Implement AST Printer for debugging
+- [x] Implement Parser (AST Generation)
+- [x] Implement AST Printer for debugging
 - [ ] Implement C++ Transpiler
 - [ ] Implement basic error reporting
 

@@ -3,6 +3,7 @@ add_library(chtholly
     Parser.cpp
     AST.cpp
     Chtholly.cpp
+    ASTPrinter.cpp
 )
 
 add_executable(chtholly_cli main.cpp)

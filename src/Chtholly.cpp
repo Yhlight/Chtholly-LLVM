@@ -1,5 +1,7 @@
 #include "Chtholly.hpp"
 #include "Lexer.hpp"
+#include "Parser.hpp"
+#include "ASTPrinter.hpp"
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -17,6 +19,8 @@ void Chtholly::runFile(const std::string& path) {
     std::stringstream buffer;
     buffer << file.rdbuf();
     run(buffer.str());
+
+    if (hadError) exit(65);
 }
 
 void Chtholly::runPrompt() {
@@ -24,6 +28,7 @@ void Chtholly::runPrompt() {
     std::cout << "> ";
     while (std::getline(std::cin, line)) {
         run(line);
+        hadError = false; // Reset error for the next line in REPL
         std::cout << "> ";
     }
 }
@@ -31,10 +36,18 @@ void Chtholly::runPrompt() {
 void Chtholly::run(const std::string& source) {
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    std::vector<std::shared_ptr<Stmt>> statements = parser.parse();
 
-    for (const auto& token : tokens) {
-        std::cout << token.lexeme << std::endl;
-    }
+    if (hadError) return;
+
+    ASTPrinter printer;
+    std::cout << printer.print(statements) << std::endl;
+}
+
+void Chtholly::report(int line, const std::string& where, const std::string& message) {
+    std::cerr << "[line " << line << "] Error" << where << ": " << message << std::endl;
+    hadError = true;
 }
 
 } // namespace chtholly

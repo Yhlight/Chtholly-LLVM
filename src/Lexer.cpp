@@ -155,14 +155,21 @@ void Lexer::string() {
 }
 
 void Lexer::number() {
+    bool isFloat = false;
     while (isdigit(peek())) advance();
 
     if (peek() == '.' && isdigit(peekNext())) {
+        isFloat = true;
         advance();
         while (isdigit(peek())) advance();
     }
 
-    addToken(TokenType::NUMBER, std::stod(source.substr(start, current - start)));
+    std::string numStr = source.substr(start, current - start);
+    if (isFloat) {
+        addToken(TokenType::NUMBER, std::stod(numStr));
+    } else {
+        addToken(TokenType::NUMBER, std::stoi(numStr));
+    }
 }
 
 void Lexer::identifier() {

@@ -10,16 +10,22 @@ namespace chtholly {
 class Parser {
 public:
     Parser(const std::vector<Token>& tokens);
-    std::shared_ptr<Expr> parse();
+    std::vector<std::shared_ptr<Stmt>> parse();
 
 private:
     std::shared_ptr<Expr> expression();
+    std::shared_ptr<Expr> assignment();
     std::shared_ptr<Expr> equality();
     std::shared_ptr<Expr> comparison();
     std::shared_ptr<Expr> term();
     std::shared_ptr<Expr> factor();
     std::shared_ptr<Expr> unary();
     std::shared_ptr<Expr> primary();
+
+    std::shared_ptr<Stmt> statement();
+    std::shared_ptr<Stmt> declaration();
+    std::shared_ptr<Stmt> varDeclaration();
+    std::shared_ptr<Stmt> expressionStatement();
 
     bool match(const std::vector<TokenType>& types);
     Token advance();
@@ -31,6 +37,7 @@ private:
 
     std::vector<Token> tokens;
     int current = 0;
+    bool hadError = false;
 };
 
 } // namespace chtholly
