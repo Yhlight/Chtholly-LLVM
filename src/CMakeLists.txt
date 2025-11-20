@@ -1,5 +1,7 @@
 add_library(chtholly STATIC
-    # Add your source files here
+    Token.hpp
+    Lexer.hpp
+    Lexer.cpp
 )
 
 add_executable(chtholly_cli

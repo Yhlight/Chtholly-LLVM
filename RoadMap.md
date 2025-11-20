@@ -7,7 +7,7 @@ This document outlines the development plan for the Chtholly programming languag
 This phase focuses on setting up the basic infrastructure for the compiler.
 
 - [x] Project Setup (CMake, Python build script)
-- [ ] Lexer (Tokenization)
+- [x] Lexer (Tokenization)
 - [ ] Parser (AST Generation)
 - [ ] C++ Transpiler (Code Generation)
 - [ ] Basic CLI (Command Line Interface)

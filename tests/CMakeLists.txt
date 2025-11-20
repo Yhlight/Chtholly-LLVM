@@ -6,7 +6,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(googletest)
 
 add_executable(chtholly_tests
-    # Add your test files here
+    LexerTests.cpp
 )
 
 target_link_libraries(chtholly_tests PRIVATE chtholly gtest_main)
