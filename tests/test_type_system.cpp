@@ -25,7 +25,7 @@ TEST(TypeSystemTest, TypeCast) {
 #include <vector>
 
 int main(int argc, char* argv[]) {
-    int a = static_cast<int>(10.5);
+    const int a = static_cast<int>(10.5);
 }
 )";
     ASSERT_EQ(normalize(result), normalize(expected));

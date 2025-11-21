@@ -57,6 +57,7 @@ std::shared_ptr<Stmt> Parser::statement() {
 }
 
 std::shared_ptr<Stmt> Parser::varDeclaration() {
+    bool is_mutable = previous().type == TokenType::MUT;
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
     std::shared_ptr<Type> type = nullptr;
     if (match({TokenType::COLON})) {
@@ -67,7 +68,7 @@ std::shared_ptr<Stmt> Parser::varDeclaration() {
         initializer = expression();
     }
     consume(TokenType::SEMICOLON, "Expect ';' after variable declaration.");
-    return std::make_shared<VarStmt>(name, type, initializer);
+    return std::make_shared<VarStmt>(name, type, initializer, is_mutable);
 }
 
 std::shared_ptr<Stmt> Parser::expressionStatement() {

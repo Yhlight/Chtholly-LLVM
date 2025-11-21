@@ -54,10 +54,10 @@
   - [X] Implement `import` for file-based modules.
   - [X] Support for module aliasing (`as`).
   - [X] Package and namespace system (`package`).
-- [X] **Standard Library:**
+- [ ] **Standard Library:**
   - [X] Basic I/O (`iostream`).
-  - [X] String manipulation utilities.
-  - [X] Math library.
+  - [ ] String manipulation utilities.
+  - [ ] Math library.
 - [X] **Type System:**
   - [X] Implement safe type casting (`type_cast`).
   - [X] Refine rules for references and ownership (`&`, `*`, `&&`).

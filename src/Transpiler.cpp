@@ -203,11 +203,15 @@ std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
 
 std::any Transpiler::visit(const std::shared_ptr<VarStmt>& stmt) {
     std::stringstream ss;
-    if (stmt->type) {
-        ss << this->transpileType(stmt->type) << " " << stmt->name.lexeme;
-    } else {
-        ss << "auto " << stmt->name.lexeme;
+    if (!stmt->is_mutable) {
+        ss << "const ";
     }
+    if (stmt->type) {
+        ss << this->transpileType(stmt->type);
+    } else {
+        ss << "auto";
+    }
+    ss << " " << stmt->name.lexeme;
 
     if (stmt->initializer) {
         ss << " = " << transpile(stmt->initializer);
@@ -263,12 +267,6 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     }
     if (needs_iostream) {
         headers << "#include <iostream>" << std::endl;
-    }
-    if (needs_cmath) {
-        headers << "#include <cmath>" << std::endl;
-    }
-    if (needs_string) {
-        headers << "#include <string>" << std::endl;
     }
     headers << std::endl;
 
@@ -470,35 +468,6 @@ namespace iostream {
     void println(const T& msg) {
         std::cout << msg << std::endl;
     }
-}
-)");
-        } else if (stmt->path.lexeme == "math") {
-            needs_cmath = true;
-            return std::string(R"(
-namespace math {
-    template<typename T>
-    T sqrt(T val) { return std::sqrt(val); }
-
-    template<typename T>
-    T sin(T val) { return std::sin(val); }
-
-    template<typename T>
-    T cos(T val) { return std::cos(val); }
-
-    template<typename T>
-    T tan(T val) { return std::tan(val); }
-
-    template<typename T, typename U>
-    auto pow(T base, U exp) -> decltype(std::pow(base, exp)) { return std::pow(base, exp); }
-}
-)");
-        } else if (stmt->path.lexeme == "string") {
-            needs_string = true;
-            return std::string(R"(
-namespace string {
-    size_t length(const std::string& s) { return s.length(); }
-    std::string substr(const std::string& s, size_t pos, size_t len = std::string::npos) { return s.substr(pos, len); }
-    size_t find(const std::string& s, const std::string& to_find, size_t pos = 0) { return s.find(to_find, pos); }
 }
 )");
         }
