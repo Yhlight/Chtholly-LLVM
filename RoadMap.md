@@ -51,7 +51,7 @@
 ## Phase 3: Module System and Standard Library
 
 - [ ] **Module System:**
-  - [ ] Implement `import` for file-based modules.
+  - [X] Implement `import` for file-based modules.
   - [ ] Support for module aliasing (`as`).
   - [ ] Package and namespace system (`package`).
 - [ ] **Standard Library:**

@@ -17,7 +17,7 @@ TEST(GenericsTest, BasicGenericFunction) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>
@@ -46,7 +46,7 @@ TEST(GenericsTest, BasicGenericClass) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>
@@ -78,7 +78,7 @@ TEST(GenericsTest, GenericFunctionCall) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>

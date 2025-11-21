@@ -6,8 +6,16 @@
 #include "Parser.hpp"
 #include "Transpiler.hpp"
 
-void run(const std::string& source) {
-    chtholly::Lexer lexer(source);
+void runFile(const std::string& path) {
+    std::ifstream file(path);
+    if (!file.is_open()) {
+        std::cerr << "Could not open file: " << path << std::endl;
+        return;
+    }
+    std::stringstream buffer;
+    buffer << file.rdbuf();
+
+    chtholly::Lexer lexer(buffer.str());
     std::vector<chtholly::Token> tokens = lexer.scanTokens();
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
@@ -19,20 +27,9 @@ void run(const std::string& source) {
         return;
     }
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler(path);
     std::string output = transpiler.transpile(stmts);
     std::cout << output;
-}
-
-void runFile(const std::string& path) {
-    std::ifstream file(path);
-    if (!file.is_open()) {
-        std::cerr << "Could not open file: " << path << std::endl;
-        return;
-    }
-    std::stringstream buffer;
-    buffer << file.rdbuf();
-    run(buffer.str());
 }
 
 int main(int argc, char* argv[]) {

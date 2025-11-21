@@ -23,7 +23,7 @@ TEST(ClassTest, BasicClass) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>
@@ -36,6 +36,37 @@ int a = 1;
 private:
 int b = 2;
 auto hello() {
+}
+};
+)";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(ClassTest, StaticMethod) {
+    std::string source = R"(
+        class Test {
+            public:
+            static fn hello() {
+                // Do nothing
+            }
+        }
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(#include <iostream>
+#include <string>
+#include <vector>
+
+class Test {
+public:
+static auto hello() {
 }
 };
 )";
@@ -55,7 +86,7 @@ TEST(ClassTest, PrivateMember) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>
@@ -86,7 +117,7 @@ TEST(ClassTest, Constructor) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>
@@ -117,7 +148,7 @@ TEST(ClassTest, StaticMember) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>
@@ -147,7 +178,7 @@ TEST(ClassTest, Destructor) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>
@@ -176,7 +207,7 @@ TEST(ClassTest, ClassInstantiation) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>
@@ -209,7 +240,7 @@ TEST(ClassTest, MemberAccess) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler;
+    chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(#include <iostream>

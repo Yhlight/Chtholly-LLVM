@@ -39,6 +39,7 @@ private:
     std::shared_ptr<Stmt> enumDeclaration();
     std::shared_ptr<Stmt> classDeclaration();
     std::shared_ptr<Stmt> constructorOrDestructorDeclaration();
+    std::shared_ptr<Stmt> importStatement();
     std::shared_ptr<Type> type();
 
 

@@ -38,6 +38,7 @@ struct BreakStmt;
 struct FallthroughStmt;
 struct EnumStmt;
 struct ClassStmt;
+struct ImportStmt;
 struct Expr;
 struct Stmt;
 
@@ -76,6 +77,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<FallthroughStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<EnumStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ClassStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<ImportStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -432,6 +434,16 @@ struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
     const Token name;
     const std::vector<Token> type_params;
     const std::vector<ClassMember> members;
+};
+
+struct ImportStmt : Stmt, public std::enable_shared_from_this<ImportStmt> {
+    ImportStmt(Token path) : path(std::move(path)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token path;
 };
 
 } // namespace chtholly

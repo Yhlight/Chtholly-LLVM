@@ -4,6 +4,7 @@ add_executable(chtholly_tests
   test_transpiler.cpp
   test_class.cpp
   test_generics.cpp
+  test_module.cpp
 )
 
 # Link against the core library and Google Test

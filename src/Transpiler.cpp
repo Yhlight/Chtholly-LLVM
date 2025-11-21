@@ -1,27 +1,16 @@
 #include "Transpiler.hpp"
 #include <sstream>
 #include <functional>
+#include <fstream>
+#include "Lexer.hpp"
+#include "Parser.hpp"
 
 namespace chtholly {
 
+Transpiler::Transpiler(std::string path) : current_path(std::move(path)) {}
+
 std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& statements) {
-    std::stringstream body;
-    for (const auto& stmt : statements) {
-        if (stmt) {
-            body << transpile(stmt);
-        }
-    }
-
-    std::stringstream headers;
-    headers << "#include <iostream>" << std::endl;
-    headers << "#include <string>" << std::endl;
-    headers << "#include <vector>" << std::endl;
-    if (needs_functional) {
-        headers << "#include <functional>" << std::endl;
-    }
-    headers << std::endl;
-
-    return headers.str() + body.str();
+    return transpile(statements, true);
 }
 
 std::string Transpiler::transpile(const std::shared_ptr<Stmt>& stmt) {
@@ -164,6 +153,7 @@ std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
 }
 
 std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
+    if (!type) return "auto";
     if (type->getKind() == TypeKind::PRIMITIVE) {
         auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
         return primitive->name;
@@ -218,6 +208,30 @@ std::any Transpiler::visit(const std::shared_ptr<BlockStmt>& stmt) {
     return ss.str();
 }
 
+std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& statements, bool is_main) {
+    std::stringstream body;
+    for (const auto& stmt : statements) {
+        if (stmt) {
+            body << transpile(stmt);
+        }
+    }
+
+    if (!is_main) {
+        return body.str();
+    }
+
+    std::stringstream headers;
+    headers << "#include <iostream>" << std::endl;
+    headers << "#include <string>" << std::endl;
+    headers << "#include <vector>" << std::endl;
+    if (needs_functional) {
+        headers << "#include <functional>" << std::endl;
+    }
+    headers << std::endl;
+
+    return headers.str() + body.str();
+}
+
 std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
     std::stringstream ss;
     if (!stmt->type_params.empty()) {
@@ -234,11 +248,7 @@ std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
     if (stmt->name.lexeme == "main") {
         ss << "int main(int argc, char* argv[]) ";
     } else {
-        if (stmt->return_type) {
-            ss << transpileType(stmt->return_type) << " ";
-        } else {
-            ss << "auto ";
-        }
+        ss << transpileType(stmt->return_type) << " ";
         ss << stmt->name.lexeme << "(";
         for (size_t i = 0; i < stmt->params.size(); ++i) {
             ss << transpileType(stmt->params[i].type) << " " << stmt->params[i].name.lexeme;
@@ -363,7 +373,7 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
             ss << (current_access == AccessModifier::PUBLIC ? "public:\n" : "private:\n");
         }
 
-        std::string static_keyword = member.is_static ? "inline static " : "";
+        std::string static_keyword = member.is_static ? "static " : "";
 
         if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
             // Constructor
@@ -384,7 +394,7 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
                  ss << static_keyword << transpile(member.declaration);
             }
         } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
-            ss << static_keyword;
+            ss << (member.is_static ? "inline static " : "") ;
             if (var_stmt->type) {
                 ss << transpileType(var_stmt->type) << " " << var_stmt->name.lexeme;
             } else {
@@ -402,4 +412,37 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
     return ss.str();
 }
 
-} // namespace chtholly
+std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
+    std::string path = std::any_cast<std::string>(stmt->path.literal);
+    std::string dir = "";
+    auto pos = current_path.find_last_of('/');
+    if (pos != std::string::npos) {
+        dir = current_path.substr(0, pos);
+    }
+
+    std::string full_path = dir.empty() ? path : dir + "/" + path;
+
+    if (included_files.count(full_path)) {
+        return "";
+    }
+    included_files.insert(full_path);
+
+    std::ifstream file(full_path);
+    if (!file.is_open()) {
+        throw std::runtime_error("Could not open file: " + full_path);
+    }
+    std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+
+    Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    std::string old_path = current_path;
+    current_path = full_path;
+    std::string result = transpile(stmts, false);
+    current_path = old_path;
+
+    return result;
+}
+}

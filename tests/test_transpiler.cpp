@@ -21,7 +21,7 @@ TEST(TranspilerTest, SimpleMain) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -41,7 +41,7 @@ TEST(TranspilerTest, LambdaExpression) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -74,7 +74,7 @@ TEST(TranspilerTest, FunctionType) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -111,7 +111,7 @@ TEST(TranspilerTest, EnumDeclaration) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -138,7 +138,7 @@ TEST(TranspilerTest, ArrayDeclaration) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -180,7 +180,7 @@ TEST(TranspilerTest, SwitchStatement) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -220,7 +220,7 @@ TEST(TranspilerTest, ForStatement) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -242,7 +242,7 @@ TEST(TranspilerTest, WhileStatement) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -266,7 +266,7 @@ TEST(TranspilerTest, IfStatement) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -290,7 +290,7 @@ TEST(TranspilerTest, VariableDeclaration) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
@@ -320,7 +320,7 @@ TEST(TranspilerTest, FunctionCall) {
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
     auto stmts = parser.parse();
-    Transpiler transpiler;
+    Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
         #include <iostream>
