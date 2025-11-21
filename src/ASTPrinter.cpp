@@ -301,6 +301,10 @@ std::any ASTPrinter::visit(const std::shared_ptr<ImportStmt>& stmt) {
     return "(import " + stmt->path.lexeme + ")";
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<PackageStmt>& stmt) {
+    return "(package " + stmt->name.lexeme + ")";
+}
+
 // Helper methods for parenthesizing
 std::string ASTPrinter::parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr) {
     std::stringstream ss;

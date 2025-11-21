@@ -210,10 +210,27 @@ std::any Transpiler::visit(const std::shared_ptr<BlockStmt>& stmt) {
 
 std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& statements, bool is_main) {
     std::stringstream body;
-    for (const auto& stmt : statements) {
-        if (stmt) {
-            body << transpile(stmt);
+    std::string package_name;
+    bool has_package = false;
+    if (!statements.empty()) {
+        if (auto package_stmt = std::dynamic_pointer_cast<PackageStmt>(statements[0])) {
+            package_name = package_stmt->name.lexeme;
+            has_package = true;
         }
+    }
+
+    if (has_package) {
+        body << "namespace " << package_name << " {\n";
+    }
+
+    for (size_t i = (has_package ? 1 : 0); i < statements.size(); ++i) {
+        if (statements[i]) {
+            body << transpile(statements[i]);
+        }
+    }
+
+    if (has_package) {
+        body << "}\n";
     }
 
     if (!is_main) {
@@ -440,9 +457,33 @@ std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
 
     std::string old_path = current_path;
     current_path = full_path;
-    std::string result = transpile(stmts, false);
+    std::string transpiled_code = transpile(stmts, false);
     current_path = old_path;
 
-    return result;
+    std::string module_name;
+    if (!stmt->alias.lexeme.empty()) {
+        module_name = stmt->alias.lexeme;
+    } else {
+        size_t start = path.find_last_of('/');
+        if (start == std::string::npos) {
+            start = 0;
+        } else {
+            start++;
+        }
+
+        size_t end = path.find_last_of('.');
+        if (end == std::string::npos || end < start) {
+            module_name = path.substr(start);
+        } else {
+            module_name = path.substr(start, end - start);
+        }
+    }
+
+    return "namespace " + module_name + " {\n" + transpiled_code + "}\n";
 }
+
+std::any Transpiler::visit(const std::shared_ptr<PackageStmt>& stmt) {
+    return "";
+}
+
 }

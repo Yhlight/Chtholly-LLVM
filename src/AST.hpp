@@ -39,6 +39,7 @@ struct FallthroughStmt;
 struct EnumStmt;
 struct ClassStmt;
 struct ImportStmt;
+struct PackageStmt;
 struct Expr;
 struct Stmt;
 
@@ -78,6 +79,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<EnumStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ClassStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ImportStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<PackageStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -437,13 +439,24 @@ struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
 };
 
 struct ImportStmt : Stmt, public std::enable_shared_from_this<ImportStmt> {
-    ImportStmt(Token path) : path(std::move(path)) {}
+    ImportStmt(Token path, Token alias) : path(std::move(path)), alias(std::move(alias)) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
 
     const Token path;
+    const Token alias;
+};
+
+struct PackageStmt : Stmt, public std::enable_shared_from_this<PackageStmt> {
+    PackageStmt(Token name) : name(std::move(name)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token name;
 };
 
 } // namespace chtholly

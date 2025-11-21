@@ -23,6 +23,7 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse() {
 
 std::shared_ptr<Stmt> Parser::declaration() {
     try {
+        if (match({TokenType::PACKAGE})) return packageStatement();
         if (match({TokenType::IMPORT})) return importStatement();
         if (match({TokenType::CLASS})) return classDeclaration();
         if (match({TokenType::ENUM})) return enumDeclaration();
@@ -263,8 +264,18 @@ std::shared_ptr<Stmt> Parser::classDeclaration() {
 
 std::shared_ptr<Stmt> Parser::importStatement() {
     Token path = consume(TokenType::STRING, "Expect module path.");
+    Token alias = {TokenType::IDENTIFIER, "", {}, path.line};
+    if (match({TokenType::AS})) {
+        alias = consume(TokenType::IDENTIFIER, "Expect alias after 'as'.");
+    }
     consume(TokenType::SEMICOLON, "Expect ';' after import statement.");
-    return std::make_shared<ImportStmt>(path);
+    return std::make_shared<ImportStmt>(path, alias);
+}
+
+std::shared_ptr<Stmt> Parser::packageStatement() {
+    Token name = consume(TokenType::IDENTIFIER, "Expect package name.");
+    consume(TokenType::SEMICOLON, "Expect ';' after package name.");
+    return std::make_shared<PackageStmt>(name);
 }
 
 std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {

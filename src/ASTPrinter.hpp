@@ -45,6 +45,7 @@ public:
     std::any visit(const std::shared_ptr<EnumStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ClassStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ImportStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<PackageStmt>& stmt) override;
 
 
 private:

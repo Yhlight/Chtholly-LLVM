@@ -50,10 +50,10 @@
 
 ## Phase 3: Module System and Standard Library
 
-- [ ] **Module System:**
+- [X] **Module System:**
   - [X] Implement `import` for file-based modules.
-  - [ ] Support for module aliasing (`as`).
-  - [ ] Package and namespace system (`package`).
+  - [X] Support for module aliasing (`as`).
+  - [X] Package and namespace system (`package`).
 - [ ] **Standard Library:**
   - [ ] Basic I/O (`iostream`).
   - [ ] String manipulation utilities.
