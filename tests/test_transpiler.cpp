@@ -24,7 +24,6 @@ TEST(TranspilerTest, SimpleMain) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 
@@ -44,7 +43,6 @@ TEST(TranspilerTest, LambdaExpression) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
         #include <functional>
@@ -77,7 +75,6 @@ TEST(TranspilerTest, FunctionType) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
         #include <functional>
@@ -114,7 +111,6 @@ TEST(TranspilerTest, EnumDeclaration) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 
@@ -141,7 +137,6 @@ TEST(TranspilerTest, ArrayDeclaration) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 
@@ -183,7 +178,6 @@ TEST(TranspilerTest, SwitchStatement) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 
@@ -223,7 +217,6 @@ TEST(TranspilerTest, ForStatement) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 
@@ -245,7 +238,6 @@ TEST(TranspilerTest, WhileStatement) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 
@@ -269,7 +261,6 @@ TEST(TranspilerTest, IfStatement) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 
@@ -293,7 +284,6 @@ TEST(TranspilerTest, VariableDeclaration) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 
@@ -323,7 +313,6 @@ TEST(TranspilerTest, FunctionCall) {
     Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
     std::string expected = R"(
-        #include <iostream>
         #include <string>
         #include <vector>
 

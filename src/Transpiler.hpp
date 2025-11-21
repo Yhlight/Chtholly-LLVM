@@ -55,6 +55,7 @@ private:
     std::set<std::string> included_files;
     std::string current_path;
     bool needs_functional = false;
+    bool needs_iostream = false;
 };
 
 } // namespace chtholly

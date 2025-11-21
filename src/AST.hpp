@@ -439,7 +439,7 @@ struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
 };
 
 struct ImportStmt : Stmt, public std::enable_shared_from_this<ImportStmt> {
-    ImportStmt(Token path, Token alias) : path(std::move(path)), alias(std::move(alias)) {}
+    ImportStmt(Token path, Token alias, bool is_stdlib) : path(std::move(path)), alias(std::move(alias)), is_stdlib(is_stdlib) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
@@ -447,6 +447,7 @@ struct ImportStmt : Stmt, public std::enable_shared_from_this<ImportStmt> {
 
     const Token path;
     const Token alias;
+    const bool is_stdlib;
 };
 
 struct PackageStmt : Stmt, public std::enable_shared_from_this<PackageStmt> {

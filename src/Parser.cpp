@@ -263,13 +263,23 @@ std::shared_ptr<Stmt> Parser::classDeclaration() {
 }
 
 std::shared_ptr<Stmt> Parser::importStatement() {
-    Token path = consume(TokenType::STRING, "Expect module path.");
+    Token path;
+    bool is_stdlib = false;
+    if (match({TokenType::STRING})) {
+        path = previous();
+    } else if (match({TokenType::IDENTIFIER})) {
+        path = previous();
+        is_stdlib = true;
+    } else {
+        throw ParseError("Expect module path or identifier.");
+    }
+
     Token alias = {TokenType::IDENTIFIER, "", {}, path.line};
     if (match({TokenType::AS})) {
         alias = consume(TokenType::IDENTIFIER, "Expect alias after 'as'.");
     }
     consume(TokenType::SEMICOLON, "Expect ';' after import statement.");
-    return std::make_shared<ImportStmt>(path, alias);
+    return std::make_shared<ImportStmt>(path, alias, is_stdlib);
 }
 
 std::shared_ptr<Stmt> Parser::packageStatement() {

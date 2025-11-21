@@ -21,7 +21,7 @@ TEST(ModuleTest, NamespacedImport) {
     chtholly::Transpiler transpiler("tests/main.cns");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -53,7 +53,7 @@ TEST(ModuleTest, ModuleAlias) {
     chtholly::Transpiler transpiler("tests/main.cns");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -86,7 +86,6 @@ TEST(ModuleTest, Package) {
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(
-#include <iostream>
 #include <string>
 #include <vector>
 

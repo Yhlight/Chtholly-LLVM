@@ -20,7 +20,7 @@ TEST(GenericsTest, BasicGenericFunction) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -49,7 +49,7 @@ TEST(GenericsTest, BasicGenericClass) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -81,7 +81,7 @@ TEST(GenericsTest, GenericFunctionCall) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 

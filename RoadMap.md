@@ -55,7 +55,7 @@
   - [X] Support for module aliasing (`as`).
   - [X] Package and namespace system (`package`).
 - [ ] **Standard Library:**
-  - [ ] Basic I/O (`iostream`).
+  - [X] Basic I/O (`iostream`).
   - [ ] String manipulation utilities.
   - [ ] Math library.
 - [ ] **Type System:**

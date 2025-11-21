@@ -26,7 +26,7 @@ TEST(ClassTest, BasicClass) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -60,7 +60,7 @@ TEST(ClassTest, StaticMethod) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -89,7 +89,7 @@ TEST(ClassTest, PrivateMember) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -120,7 +120,7 @@ TEST(ClassTest, Constructor) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -151,7 +151,7 @@ TEST(ClassTest, StaticMember) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -181,7 +181,7 @@ TEST(ClassTest, Destructor) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -210,7 +210,7 @@ TEST(ClassTest, ClassInstantiation) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 
@@ -243,7 +243,7 @@ TEST(ClassTest, MemberAccess) {
     chtholly::Transpiler transpiler("");
     std::string result = transpiler.transpile(stmts);
 
-    std::string expected = R"(#include <iostream>
+    std::string expected = R"(
 #include <string>
 #include <vector>
 

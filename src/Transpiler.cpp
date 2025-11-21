@@ -238,11 +238,13 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     }
 
     std::stringstream headers;
-    headers << "#include <iostream>" << std::endl;
     headers << "#include <string>" << std::endl;
     headers << "#include <vector>" << std::endl;
     if (needs_functional) {
         headers << "#include <functional>" << std::endl;
+    }
+    if (needs_iostream) {
+        headers << "#include <iostream>" << std::endl;
     }
     headers << std::endl;
 
@@ -430,6 +432,26 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
+    if (stmt->is_stdlib) {
+        if (stmt->path.lexeme == "iostream") {
+            needs_iostream = true;
+            return std::string(R"(
+namespace iostream {
+    template<typename T>
+    void print(const T& msg) {
+        std::cout << msg;
+    }
+
+    template<typename T>
+    void println(const T& msg) {
+        std::cout << msg << std::endl;
+    }
+}
+)");
+        }
+        return std::string("");
+    }
+
     std::string path = std::any_cast<std::string>(stmt->path.literal);
     std::string dir = "";
     auto pos = current_path.find_last_of('/');
