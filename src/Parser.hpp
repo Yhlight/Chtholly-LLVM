@@ -41,7 +41,7 @@ private:
     std::shared_ptr<Stmt> constructorOrDestructorDeclaration();
     std::shared_ptr<Stmt> importStatement();
     std::shared_ptr<Stmt> packageStatement();
-    std::shared_ptr<Type> type();
+    std::shared_ptr<Type> type(bool in_function_parameter = false);
 
 
     bool match(const std::vector<TokenType>& types);
@@ -53,6 +53,7 @@ private:
     Token previous() const;
     void synchronize();
 
+    bool isGenericCallAhead(int start_pos);
 
     const std::vector<Token>& tokens;
     int current = 0;

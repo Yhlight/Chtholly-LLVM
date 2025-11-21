@@ -57,6 +57,7 @@ private:
     std::string current_path;
     bool needs_functional = false;
     bool needs_iostream = false;
+    bool needs_cmath = false;
 };
 
 } // namespace chtholly

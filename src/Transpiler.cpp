@@ -44,9 +44,12 @@ std::any Transpiler::visit(const std::shared_ptr<Literal>& expr) {
         return std::to_string(std::any_cast<int>(val));
     }
     if (val.type() == typeid(double)) {
-        std::stringstream ss;
-        ss << std::any_cast<double>(val);
-        return ss.str();
+        std::string s = std::to_string(std::any_cast<double>(val));
+        s.erase(s.find_last_not_of('0') + 1, std::string::npos);
+        if (s.back() == '.') {
+            s += '0';
+        }
+        return s;
     }
     if (val.type() == typeid(bool)) {
         return std::string(std::any_cast<bool>(val) ? "true" : "false");
@@ -161,6 +164,9 @@ std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
     if (!type) return "auto";
     if (type->getKind() == TypeKind::PRIMITIVE) {
         auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
+        if (primitive->name == "string") {
+            return "std::string";
+        }
         return primitive->name;
     }
     if (type->getKind() == TypeKind::ARRAY) {
@@ -263,6 +269,9 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     }
     if (needs_iostream) {
         headers << "#include <iostream>" << std::endl;
+    }
+    if (needs_cmath) {
+        headers << "#include <cmath>" << std::endl;
     }
     headers << std::endl;
 
@@ -463,6 +472,20 @@ namespace iostream {
     template<typename T>
     void println(const T& msg) {
         std::cout << msg << std::endl;
+    }
+}
+)");
+        }
+        if (stmt->path.lexeme == "math") {
+            needs_cmath = true;
+            return std::string(R"(
+namespace math {
+    double sqrt(double x) {
+        return std::sqrt(x);
+    }
+
+    double pow(double x, double y) {
+        return std::pow(x, y);
     }
 }
 )");

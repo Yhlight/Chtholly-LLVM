@@ -57,7 +57,7 @@
 - [ ] **Standard Library:**
   - [X] Basic I/O (`iostream`).
   - [ ] String manipulation utilities.
-  - [ ] Math library.
+  - [X] Math library.
 - [X] **Type System:**
   - [X] Implement safe type casting (`type_cast`).
   - [X] Refine rules for references and ownership (`&`, `*`, `&&`).

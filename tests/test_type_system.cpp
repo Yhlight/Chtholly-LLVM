@@ -96,3 +96,25 @@ auto test(int a) {}
 )";
     ASSERT_EQ(normalize(result), normalize(expected));
 }
+
+TEST(TypeSystemTest, DefaultImmutableReference) {
+    std::string source = R"(
+        fn test(a: string) {}
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/main.cns");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+#include <string>
+#include <vector>
+
+auto test(const std::string& a) {}
+)";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}

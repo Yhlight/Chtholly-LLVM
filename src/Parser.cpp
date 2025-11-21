@@ -60,7 +60,7 @@ std::shared_ptr<Stmt> Parser::varDeclaration() {
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
     std::shared_ptr<Type> type = nullptr;
     if (match({TokenType::COLON})) {
-        type = this->type();
+        type = this->type(false);
     }
     std::shared_ptr<Expr> initializer = nullptr;
     if (match({TokenType::EQUAL})) {
@@ -103,7 +103,7 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
             }
             Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
             consume(TokenType::COLON, "Expect ':' after parameter name.");
-            auto param_type = type();
+            auto param_type = type(true);
             parameters.push_back({param_name, param_type});
         } while (match({TokenType::COMMA}));
     }
@@ -111,7 +111,7 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
 
     std::shared_ptr<Type> return_type = nullptr;
     if (match({TokenType::COLON})) {
-        return_type = type();
+        return_type = type(true);
     }
 
     consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
@@ -304,7 +304,7 @@ std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {
         do {
             Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
             consume(TokenType::COLON, "Expect ':' after parameter name.");
-            auto param_type = type();
+            auto param_type = type(true);
             parameters.push_back({param_name, param_type});
         } while (match({TokenType::COMMA}));
     }
@@ -316,15 +316,15 @@ std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {
 }
 
 
-std::shared_ptr<Type> Parser::type() {
+std::shared_ptr<Type> Parser::type(bool in_function_parameter) {
     if (match({TokenType::AMPERSAND_AMPERSAND})) {
-        return std::make_shared<ReferenceType>(type(), ReferenceKind::MOVE);
+        return std::make_shared<ReferenceType>(type(in_function_parameter), ReferenceKind::MOVE);
     }
     if (match({TokenType::AMPERSAND})) {
-        return std::make_shared<ReferenceType>(type(), ReferenceKind::MUTABLE);
+        return std::make_shared<ReferenceType>(type(in_function_parameter), ReferenceKind::MUTABLE);
     }
     if (match({TokenType::STAR})) {
-        return std::make_shared<ReferenceType>(type(), ReferenceKind::COPY);
+        return std::make_shared<ReferenceType>(type(in_function_parameter), ReferenceKind::COPY);
     }
 
 
@@ -332,24 +332,42 @@ std::shared_ptr<Type> Parser::type() {
         std::vector<std::shared_ptr<Type>> param_types;
         if (!check(TokenType::RIGHT_PAREN)) {
             do {
-                param_types.push_back(type());
+                param_types.push_back(type(in_function_parameter));
             } while (match({TokenType::COMMA}));
         }
         consume(TokenType::RIGHT_PAREN, "Expect ')' after function type parameters.");
         consume(TokenType::COLON, "Expect ':' after function type parameters.");
-        auto return_type = type();
+        auto return_type = type(in_function_parameter);
         return std::make_shared<FunctionType>(param_types, return_type);
     }
 
     Token token = consume(TokenType::IDENTIFIER, "Expect type name.");
-    auto primitive_type = std::make_shared<PrimitiveType>(token.lexeme);
 
+    std::shared_ptr<Type> parsed_type;
     if (match({TokenType::LEFT_BRACKET})) {
         consume(TokenType::RIGHT_BRACKET, "Expect ']' after type.");
-        return std::make_shared<ArrayType>(primitive_type);
+        parsed_type = std::make_shared<ArrayType>(std::make_shared<PrimitiveType>(token.lexeme));
+    } else {
+        parsed_type = std::make_shared<PrimitiveType>(token.lexeme);
     }
 
-    return primitive_type;
+    // Check if it is a basic type
+    const std::vector<std::string> basic_types = {"int", "i8", "i16", "i32", "i64", "u8", "u16", "u32", "u64", "char", "double", "float", "long double", "void", "bool"};
+    bool is_basic_type = false;
+    if (auto p = std::dynamic_pointer_cast<PrimitiveType>(parsed_type)) {
+        for (const auto& basic_type : basic_types) {
+            if (p->name == basic_type) {
+                is_basic_type = true;
+                break;
+            }
+        }
+    }
+
+    if (in_function_parameter && !is_basic_type) {
+        return std::make_shared<ReferenceType>(parsed_type, ReferenceKind::IMMUTABLE);
+    }
+
+    return parsed_type;
 }
 
 
@@ -440,20 +458,15 @@ std::shared_ptr<Expr> Parser::call() {
     while (true) {
         if (match({TokenType::LEFT_PAREN})) {
             expr = finishCall(expr, {});
-        } else if (match({TokenType::LESS})) {
-            int backtrack_point = current;
-            try {
-                std::vector<std::shared_ptr<Type>> type_arguments;
-                do {
-                    type_arguments.push_back(type());
-                } while (match({TokenType::COMMA}));
-                consume(TokenType::GREATER, "Expect '>' after type arguments.");
-                consume(TokenType::LEFT_PAREN, "Expect '(' after type arguments.");
-                expr = finishCall(expr, type_arguments);
-            } catch (const ParseError& error) {
-                current = backtrack_point - 1;
-                break;
-            }
+        } else if (check(TokenType::LESS) && isGenericCallAhead(current)) {
+            advance(); // consume '<'
+            std::vector<std::shared_ptr<Type>> type_arguments;
+            do {
+                type_arguments.push_back(type(true));
+            } while (match({TokenType::COMMA}));
+            consume(TokenType::GREATER, "Expect '>' after type arguments.");
+            consume(TokenType::LEFT_PAREN, "Expect '(' after type arguments.");
+            expr = finishCall(expr, type_arguments);
         } else if (match({TokenType::LEFT_BRACKET})) {
             auto index = expression();
             consume(TokenType::RIGHT_BRACKET, "Expect ']' after subscript index.");
@@ -501,7 +514,7 @@ std::shared_ptr<Expr> Parser::primary() {
 
     if (match({TokenType::TYPE_CAST})) {
         consume(TokenType::LESS, "Expect '<' after 'type_cast'.");
-        auto type = this->type();
+        auto type = this->type(false);
         consume(TokenType::GREATER, "Expect '>' after type.");
         consume(TokenType::LEFT_PAREN, "Expect '(' after type.");
         auto expr = expression();
@@ -526,7 +539,7 @@ std::shared_ptr<Expr> Parser::primary() {
             do {
                 Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
                 consume(TokenType::COLON, "Expect ':' after parameter name.");
-                auto param_type = type();
+                auto param_type = type(true);
                 parameters.push_back({param_name, param_type});
             } while (match({TokenType::COMMA}));
         }
@@ -534,7 +547,7 @@ std::shared_ptr<Expr> Parser::primary() {
 
         std::shared_ptr<Type> return_type = nullptr;
         if (match({TokenType::COLON})) {
-            return_type = type();
+            return_type = type(true);
         }
 
         consume(TokenType::LEFT_BRACE, "Expect '{' before lambda body.");
@@ -617,6 +630,31 @@ void Parser::synchronize() {
         }
         advance();
     }
+}
+
+bool Parser::isGenericCallAhead(int start_pos) {
+    int pos = start_pos;
+    if (pos < tokens.size() && tokens[pos].type != TokenType::LESS) {
+        return false;
+    }
+    pos++;
+
+    while (pos < tokens.size()) {
+        if (tokens[pos].type == TokenType::GREATER) {
+            pos++;
+            return pos < tokens.size() && tokens[pos].type == TokenType::LEFT_PAREN;
+        }
+        if (tokens[pos].type == TokenType::IDENTIFIER) {
+            pos++;
+            if (pos < tokens.size() && tokens[pos].type == TokenType::COMMA) {
+                pos++;
+                continue;
+            }
+        } else {
+            return false; // Not a simple type identifier.
+        }
+    }
+    return false;
 }
 
 } // namespace chtholly
