@@ -5,6 +5,7 @@
 #include <vector>
 #include <memory>
 #include <optional>
+#include <any>
 
 namespace chtholly {
 
@@ -24,6 +25,11 @@ struct WhileStmt;
 struct ForStmt;
 struct FunctionStmt;
 struct ReturnStmt;
+struct ClassStmt;
+struct GetExpr;
+struct SetExpr;
+struct ThisExpr;
+struct NewExpr;
 
 // Visitor for Expressions
 struct ExprVisitor {
@@ -34,6 +40,10 @@ struct ExprVisitor {
     virtual std::any visit(std::shared_ptr<Assign> expr) = 0;
     virtual std::any visit(std::shared_ptr<Variable> expr) = 0;
     virtual std::any visit(std::shared_ptr<CallExpr> expr) = 0;
+    virtual std::any visit(std::shared_ptr<GetExpr> expr) = 0;
+    virtual std::any visit(std::shared_ptr<SetExpr> expr) = 0;
+    virtual std::any visit(std::shared_ptr<ThisExpr> expr) = 0;
+    virtual std::any visit(std::shared_ptr<NewExpr> expr) = 0;
 };
 
 // Base class for all expressions
@@ -52,6 +62,7 @@ struct StmtVisitor {
     virtual std::any visit(std::shared_ptr<ForStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<FunctionStmt> stmt) = 0;
     virtual std::any visit(std::shared_ptr<ReturnStmt> stmt) = 0;
+    virtual std::any visit(std::shared_ptr<ClassStmt> stmt) = 0;
 };
 
 // Base class for all statements
@@ -243,6 +254,66 @@ struct ReturnStmt : Stmt, public std::enable_shared_from_this<ReturnStmt> {
         : keyword(std::move(keyword)), value(std::move(value)) {}
 
     std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
+    Token name;
+    std::vector<std::shared_ptr<FunctionStmt>> methods;
+    std::vector<std::shared_ptr<VarStmt>> fields;
+
+    ClassStmt(Token name, std::vector<std::shared_ptr<FunctionStmt>> methods, std::vector<std::shared_ptr<VarStmt>> fields)
+        : name(std::move(name)), methods(std::move(methods)), fields(std::move(fields)) {}
+
+    std::any accept(StmtVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct GetExpr : Expr, public std::enable_shared_from_this<GetExpr> {
+    std::shared_ptr<Expr> object;
+    Token name;
+
+    GetExpr(std::shared_ptr<Expr> object, Token name)
+        : object(std::move(object)), name(std::move(name)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct SetExpr : Expr, public std::enable_shared_from_this<SetExpr> {
+    std::shared_ptr<Expr> object;
+    Token name;
+    std::shared_ptr<Expr> value;
+
+    SetExpr(std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value)
+        : object(std::move(object)), name(std::move(name)), value(std::move(value)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct ThisExpr : Expr, public std::enable_shared_from_this<ThisExpr> {
+    Token keyword;
+
+    ThisExpr(Token keyword) : keyword(std::move(keyword)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+};
+
+struct NewExpr : Expr, public std::enable_shared_from_this<NewExpr> {
+    Token name;
+    std::vector<std::shared_ptr<Expr>> arguments;
+
+    NewExpr(Token name, std::vector<std::shared_ptr<Expr>> arguments)
+        : name(std::move(name)), arguments(std::move(arguments)) {}
+
+    std::any accept(ExprVisitor& visitor) override {
         return visitor.visit(shared_from_this());
     }
 };

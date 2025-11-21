@@ -17,6 +17,7 @@ public:
 private:
     std::shared_ptr<Stmt> declaration();
     std::shared_ptr<Stmt> statement();
+    std::shared_ptr<Stmt> class_declaration();
     std::shared_ptr<Stmt> var_declaration(bool is_mutable);
     std::shared_ptr<Stmt> function_declaration();
     std::shared_ptr<Stmt> return_statement();
@@ -37,6 +38,7 @@ private:
     bool match(const std::vector<TokenType>& types);
     Token consume(TokenType type, const std::string& message);
     bool check(TokenType type) const;
+    bool check_type();
     Token advance();
     bool is_at_end() const;
     Token peek() const;

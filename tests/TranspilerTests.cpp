@@ -7,6 +7,11 @@
 
 using namespace chtholly;
 
+const std::string includes = "#include <iostream>\n"
+                             "#include <string>\n"
+                             "#include <vector>\n"
+                             "#include <memory>\n\n";
+
 TEST(TranspilerTest, TestSimpleExpression) {
     std::string source = "1 + 2 * 3;";
     Lexer lexer(source);
@@ -18,7 +23,7 @@ TEST(TranspilerTest, TestSimpleExpression) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "1 + 2 * 3;\n");
+    EXPECT_EQ(result, includes + "1 + 2 * 3;\n");
 }
 
 TEST(TranspilerTest, TestParenthesizedExpression) {
@@ -32,7 +37,7 @@ TEST(TranspilerTest, TestParenthesizedExpression) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "(1 + 2) * 3;\n");
+    EXPECT_EQ(result, includes + "(1 + 2) * 3;\n");
 }
 
 TEST(TranspilerTest, TestLetDeclaration) {
@@ -46,7 +51,7 @@ TEST(TranspilerTest, TestLetDeclaration) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "const auto a = 10;\n");
+    EXPECT_EQ(result, includes + "const auto a = 10;\n");
 }
 
 TEST(TranspilerTest, TestMutDeclaration) {
@@ -60,7 +65,7 @@ TEST(TranspilerTest, TestMutDeclaration) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "auto b = 20;\n");
+    EXPECT_EQ(result, includes + "auto b = 20;\n");
 }
 
 TEST(TranspilerTest, TestTypedLetDeclaration) {
@@ -74,7 +79,7 @@ TEST(TranspilerTest, TestTypedLetDeclaration) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "const int a = 10;\n");
+    EXPECT_EQ(result, includes + "const int a = 10;\n");
 }
 
 TEST(TranspilerTest, TestIfStatement) {
@@ -88,7 +93,7 @@ TEST(TranspilerTest, TestIfStatement) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "if (true) {\n1;\n}\n");
+    EXPECT_EQ(result, includes + "if (true) {\n1;\n}\n");
 }
 
 TEST(TranspilerTest, TestIfElseStatement) {
@@ -102,7 +107,7 @@ TEST(TranspilerTest, TestIfElseStatement) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "if (false) 1;\nelse 2;\n");
+    EXPECT_EQ(result, includes + "if (false) 1;\nelse 2;\n");
 }
 
 TEST(TranspilerTest, TestWhileStatement) {
@@ -116,7 +121,7 @@ TEST(TranspilerTest, TestWhileStatement) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "while (true) {\n1;\n}\n");
+    EXPECT_EQ(result, includes + "while (true) {\n1;\n}\n");
 }
 
 TEST(TranspilerTest, TestForStatement) {
@@ -130,7 +135,7 @@ TEST(TranspilerTest, TestForStatement) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "for (const auto i = 0; i < 10; i = i + 1) {\n1;\n}\n");
+    EXPECT_EQ(result, includes + "for (const auto i = 0; i < 10; i = i + 1) {\n1;\n}\n");
 }
 
 TEST(TranspilerTest, TestFunctionDeclaration) {
@@ -144,7 +149,7 @@ TEST(TranspilerTest, TestFunctionDeclaration) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "int add(int a, int b) {\n1;\n}\n");
+    EXPECT_EQ(result, includes + "int add(int a, int b) {\n1;\n}\n");
 }
 
 TEST(TranspilerTest, TestFunctionCall) {
@@ -158,5 +163,5 @@ TEST(TranspilerTest, TestFunctionCall) {
     Transpiler transpiler;
     std::string result = transpiler.transpile(stmts);
 
-    EXPECT_EQ(result, "add(1, 2);\n");
+    EXPECT_EQ(result, includes + "add(1, 2);\n");
 }

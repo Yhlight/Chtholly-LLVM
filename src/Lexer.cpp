@@ -1,5 +1,6 @@
 #include "Lexer.hpp"
 #include <unordered_map>
+#include <iostream>
 
 namespace chtholly {
 
@@ -16,6 +17,7 @@ static const std::unordered_map<std::string, TokenType> keywords = {
     {"false", TokenType::FALSE},
     {"class", TokenType::CLASS},
     {"this", TokenType::THIS},
+    {"new", TokenType::NEW},
     {"static", TokenType::STATIC},
     {"import", TokenType::IMPORT},
     {"as", TokenType::AS},
@@ -117,7 +119,7 @@ void Lexer::scan_token() {
                 advance(); // consume the closing '
                 add_token(TokenType::CHARACTER, value);
             } else {
-                // error
+                error(line, "Malformed character literal.");
             }
             break;
 
@@ -127,7 +129,7 @@ void Lexer::scan_token() {
             } else if (isalpha(c) || c == '_') {
                 identifier();
             } else {
-                // error
+                error(line, "Unexpected character.");
             }
             break;
     }
@@ -168,6 +170,7 @@ void Lexer::string() {
 
     if (current >= source.length()) {
         // Unterminated string.
+    error(line, "Unterminated string.");
         return;
     }
 
@@ -202,6 +205,11 @@ void Lexer::identifier() {
         type = keywords.at(text);
     }
     add_token(type);
+}
+
+void Lexer::error(int line, const std::string& message) {
+    had_error = true;
+    std::cerr << "[line " << line << "] Error: " << message << std::endl;
 }
 
 } // namespace chtholly

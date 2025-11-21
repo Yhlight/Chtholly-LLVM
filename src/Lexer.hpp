@@ -28,6 +28,9 @@ private:
     int start = 0;
     int current = 0;
     int line = 1;
+
+    bool had_error = false;
+    void error(int line, const std::string& message);
 };
 
 } // namespace chtholly

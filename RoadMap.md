@@ -22,6 +22,6 @@
 - [X] Implement function calls
 
 ## Phase 5: Advanced Features
-- [ ] Implement classes
+- [/] Implement classes (basic implementation)
 - [ ] Implement modules
 - [ ] Implement generics

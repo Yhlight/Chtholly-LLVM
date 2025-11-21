@@ -8,10 +8,13 @@ const std::string includes = "#include <iostream>\n"
                              "#include <vector>\n"
                              "#include <memory>\n\n";
 
-TEST(FunctionTests, TranspileSimpleFunction) {
+TEST(ClassTests, TranspileSimpleClass) {
     std::string source = R"(
-        fn add(a: int, b: int): int {
-            return a + b;
+        class Test {
+            let a: int = 1;
+            fn add(a: int, b: int): int {
+                return a + b;
+            }
         }
     )";
     chtholly::Lexer lexer(source);
@@ -20,16 +23,13 @@ TEST(FunctionTests, TranspileSimpleFunction) {
     auto stmts = parser.parse();
     chtholly::Transpiler transpiler;
     std::string output = transpiler.transpile(stmts);
-    std::string expected = includes + "int add(int a, int b) {\nreturn a + b;\n}\n";
+    std::string expected = includes + "class Test {\npublic:\nconst int a = 1;\nint add(int a, int b) {\nreturn a + b;\n}\n};\n";
     ASSERT_EQ(output, expected);
 }
 
-TEST(FunctionTests, TranspileFunctionCall) {
+TEST(ClassTests, TranspileClassInstantiation) {
     std::string source = R"(
-        fn main(): int {
-            add(1, 2);
-            return 0;
-        }
+        let test = new Test();
     )";
     chtholly::Lexer lexer(source);
     auto tokens = lexer.scan_tokens();
@@ -37,6 +37,6 @@ TEST(FunctionTests, TranspileFunctionCall) {
     auto stmts = parser.parse();
     chtholly::Transpiler transpiler;
     std::string output = transpiler.transpile(stmts);
-    std::string expected = includes + "int main() {\nadd(1, 2);\nreturn 0;\n}\n";
+    std::string expected = includes + "const std::unique_ptr<Test> test = std::make_unique<Test>();\n";
     ASSERT_EQ(output, expected);
 }

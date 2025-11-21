@@ -14,6 +14,7 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse() {
 
 std::shared_ptr<Stmt> Parser::declaration() {
     try {
+        if (match({TokenType::CLASS})) return class_declaration();
         if (match({TokenType::FN})) return function_declaration();
         if (match({TokenType::LET})) return var_declaration(false);
         if (match({TokenType::MUT})) return var_declaration(true);
@@ -34,11 +35,8 @@ std::shared_ptr<Stmt> Parser::function_declaration() {
         do {
             params.push_back(consume(TokenType::IDENTIFIER, "Expect parameter name."));
             consume(TokenType::COLON, "Expect ':' after parameter name.");
-            if (match({TokenType::INT, TokenType::I8, TokenType::I16, TokenType::I32, TokenType::I64,
-                       TokenType::U8, TokenType::U16, TokenType::U32, TokenType::U64,
-                       TokenType::CHAR, TokenType::DOUBLE, TokenType::FLOAT, TokenType::LONG_DOUBLE,
-                       TokenType::VOID, TokenType::BOOL, TokenType::STRING})) {
-                param_types.push_back(previous());
+            if (check_type()) {
+                param_types.push_back(advance());
             } else {
                 throw error(peek(), "Expect type annotation.");
             }
@@ -48,11 +46,8 @@ std::shared_ptr<Stmt> Parser::function_declaration() {
 
     std::optional<Token> return_type;
     if (match({TokenType::COLON})) {
-        if (match({TokenType::INT, TokenType::I8, TokenType::I16, TokenType::I32, TokenType::I64,
-                   TokenType::U8, TokenType::U16, TokenType::U32, TokenType::U64,
-                   TokenType::CHAR, TokenType::DOUBLE, TokenType::FLOAT, TokenType::LONG_DOUBLE,
-                   TokenType::VOID, TokenType::BOOL, TokenType::STRING})) {
-            return_type = previous();
+        if (check_type()) {
+            return_type = advance();
         } else {
             throw error(peek(), "Expect return type.");
         }
@@ -63,17 +58,36 @@ std::shared_ptr<Stmt> Parser::function_declaration() {
     return std::make_shared<FunctionStmt>(name, params, param_types, return_type, body);
 }
 
+std::shared_ptr<Stmt> Parser::class_declaration() {
+    Token name = consume(TokenType::IDENTIFIER, "Expect class name.");
+    consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
+
+    std::vector<std::shared_ptr<FunctionStmt>> methods;
+    std::vector<std::shared_ptr<VarStmt>> fields;
+    while (!check(TokenType::RIGHT_BRACE) && !is_at_end()) {
+        if (match({TokenType::FN})) {
+            methods.push_back(std::dynamic_pointer_cast<FunctionStmt>(function_declaration()));
+        } else if (match({TokenType::LET})) {
+            fields.push_back(std::dynamic_pointer_cast<VarStmt>(var_declaration(false)));
+        } else if (match({TokenType::MUT})) {
+            fields.push_back(std::dynamic_pointer_cast<VarStmt>(var_declaration(true)));
+        } else {
+            throw error(peek(), "Expect method or field declaration.");
+        }
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
+    return std::make_shared<ClassStmt>(name, methods, fields);
+}
+
 
 std::shared_ptr<Stmt> Parser::var_declaration(bool is_mutable) {
     Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
 
     std::optional<Token> type;
     if (match({TokenType::COLON})) {
-        if (match({TokenType::INT, TokenType::I8, TokenType::I16, TokenType::I32, TokenType::I64,
-                   TokenType::U8, TokenType::U16, TokenType::U32, TokenType::U64,
-                   TokenType::CHAR, TokenType::DOUBLE, TokenType::FLOAT, TokenType::LONG_DOUBLE,
-                   TokenType::VOID, TokenType::BOOL, TokenType::STRING})) {
-            type = previous();
+        if (check_type()) {
+            type = advance();
         } else {
             throw error(peek(), "Expect type annotation.");
         }
@@ -186,6 +200,8 @@ std::shared_ptr<Expr> Parser::assignment() {
 
         if (auto var = std::dynamic_pointer_cast<Variable>(expr)) {
             return std::make_shared<Assign>(var->name, value);
+        } else if (auto get = std::dynamic_pointer_cast<GetExpr>(expr)) {
+            return std::make_shared<SetExpr>(get->object, get->name, value);
         }
 
         error(equals, "Invalid assignment target.");
@@ -266,6 +282,9 @@ std::shared_ptr<Expr> Parser::call() {
             }
             Token paren = consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
             expr = std::make_shared<CallExpr>(expr, paren, arguments);
+        } else if (match({TokenType::DOT})) {
+            Token name = consume(TokenType::IDENTIFIER, "Expect property name after '.'.");
+            expr = std::make_shared<GetExpr>(expr, name);
         } else {
             break;
         }
@@ -277,7 +296,21 @@ std::shared_ptr<Expr> Parser::call() {
 std::shared_ptr<Expr> Parser::primary() {
     if (match({TokenType::FALSE})) return std::make_shared<Literal>(false);
     if (match({TokenType::TRUE})) return std::make_shared<Literal>(true);
+    if (match({TokenType::THIS})) return std::make_shared<ThisExpr>(previous());
     if (match({TokenType::IDENTIFIER})) return std::make_shared<Variable>(previous());
+
+    if (match({TokenType::NEW})) {
+        Token name = consume(TokenType::IDENTIFIER, "Expect class name after 'new'.");
+        consume(TokenType::LEFT_PAREN, "Expect '(' after class name.");
+        std::vector<std::shared_ptr<Expr>> arguments;
+        if (!check(TokenType::RIGHT_PAREN)) {
+            do {
+                arguments.push_back(expression());
+            } while (match({TokenType::COMMA}));
+        }
+        consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
+        return std::make_shared<NewExpr>(name, arguments);
+    }
 
     if (match({TokenType::NUMBER, TokenType::STRING})) {
         return std::make_shared<Literal>(previous().literal);
@@ -311,6 +344,14 @@ Token Parser::consume(TokenType type, const std::string& message) {
 bool Parser::check(TokenType type) const {
     if (is_at_end()) return false;
     return peek().type == type;
+}
+
+bool Parser::check_type() {
+    return check(TokenType::INT) || check(TokenType::I8) || check(TokenType::I16) || check(TokenType::I32) ||
+           check(TokenType::I64) || check(TokenType::U8) || check(TokenType::U16) || check(TokenType::U32) ||
+           check(TokenType::U64) || check(TokenType::CHAR) || check(TokenType::DOUBLE) ||
+           check(TokenType::FLOAT) || check(TokenType::LONG_DOUBLE) || check(TokenType::VOID) ||
+           check(TokenType::BOOL) || check(TokenType::STRING);
 }
 
 Token Parser::advance() {
