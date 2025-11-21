@@ -45,7 +45,7 @@
   - [X] `public`/`private` access modifiers.
   - [X] `static` members and methods.
 - [ ] **Generics:**
-  - [ ] Generic functions.
+  - [X] Generic functions.
   - [ ] Generic classes.
 
 ## Phase 3: Module System and Standard Library

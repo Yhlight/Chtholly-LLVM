@@ -85,6 +85,13 @@ std::vector<std::shared_ptr<Stmt>> Parser::block() {
 
 std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
     Token name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
+    std::vector<Token> type_params;
+    if (match({TokenType::LESS})) {
+        do {
+            type_params.push_back(consume(TokenType::IDENTIFIER, "Expect type parameter name."));
+        } while (match({TokenType::COMMA}));
+        consume(TokenType::GREATER, "Expect '>' after type parameters.");
+    }
     consume(TokenType::LEFT_PAREN, "Expect '(' after " + kind + " name.");
     std::vector<Parameter> parameters;
     if (!check(TokenType::RIGHT_PAREN)) {
@@ -107,7 +114,7 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
 
     consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
     auto body = std::make_shared<BlockStmt>(block());
-    return std::make_shared<FunctionStmt>(name, parameters, return_type, body);
+    return std::make_shared<FunctionStmt>(name, type_params, parameters, return_type, body);
 }
 
 std::shared_ptr<Stmt> Parser::returnStatement() {
@@ -270,7 +277,7 @@ std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {
 
     consume(TokenType::LEFT_BRACE, "Expect '{' before constructor/destructor body.");
     auto body = std::make_shared<BlockStmt>(block());
-    return std::make_shared<FunctionStmt>(name, parameters, nullptr, body);
+    return std::make_shared<FunctionStmt>(name, std::vector<Token>{}, parameters, nullptr, body);
 }
 
 
@@ -386,7 +393,21 @@ std::shared_ptr<Expr> Parser::call() {
     auto expr = primary();
     while (true) {
         if (match({TokenType::LEFT_PAREN})) {
-            expr = finishCall(expr);
+            expr = finishCall(expr, {});
+        } else if (match({TokenType::LESS})) {
+            int backtrack_point = current;
+            try {
+                std::vector<std::shared_ptr<Type>> type_arguments;
+                do {
+                    type_arguments.push_back(type());
+                } while (match({TokenType::COMMA}));
+                consume(TokenType::GREATER, "Expect '>' after type arguments.");
+                consume(TokenType::LEFT_PAREN, "Expect '(' after type arguments.");
+                expr = finishCall(expr, type_arguments);
+            } catch (const ParseError& error) {
+                current = backtrack_point - 1;
+                break;
+            }
         } else if (match({TokenType::LEFT_BRACKET})) {
             auto index = expression();
             consume(TokenType::RIGHT_BRACKET, "Expect ']' after subscript index.");
@@ -404,7 +425,7 @@ std::shared_ptr<Expr> Parser::call() {
     return expr;
 }
 
-std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
+std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee, std::vector<std::shared_ptr<Type>> type_arguments) {
     std::vector<std::shared_ptr<Expr>> arguments;
     if (!check(TokenType::RIGHT_PAREN)) {
         do {
@@ -415,7 +436,7 @@ std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
         } while (match({TokenType::COMMA}));
     }
     Token paren = consume(TokenType::RIGHT_PAREN, "Expect ')' after arguments.");
-    return std::make_shared<Call>(callee, paren, arguments);
+    return std::make_shared<Call>(callee, paren, arguments, type_arguments);
 }
 
 // primary -> NUMBER | STRING | "true" | "false" | "this" | IDENTIFIER | "(" expression ")" | "[" elements? "]" | lambda

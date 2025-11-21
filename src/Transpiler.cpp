@@ -75,7 +75,18 @@ std::any Transpiler::visit(const std::shared_ptr<Variable>& expr) {
 
 std::any Transpiler::visit(const std::shared_ptr<Call>& expr) {
     std::stringstream ss;
-    ss << transpile(expr->callee) << "(";
+    ss << transpile(expr->callee);
+    if (!expr->type_arguments.empty()) {
+        ss << "<";
+        for (size_t i = 0; i < expr->type_arguments.size(); ++i) {
+            ss << transpileType(expr->type_arguments[i]);
+            if (i < expr->type_arguments.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ">";
+    }
+    ss << "(";
     for (size_t i = 0; i < expr->arguments.size(); ++i) {
         ss << transpile(expr->arguments[i]);
         if (i < expr->arguments.size() - 1) {
@@ -130,10 +141,16 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
+    if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
+        return transpile(expr->object) + "->" + expr->name.lexeme;
+    }
     return transpile(expr->object) + "." + expr->name.lexeme;
 }
 
 std::any Transpiler::visit(const std::shared_ptr<SetExpr>& expr) {
+    if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
+        return transpile(expr->object) + "->" + expr->name.lexeme + " = " + transpile(expr->value);
+    }
     return transpile(expr->object) + "." + expr->name.lexeme + " = " + transpile(expr->value);
 }
 
@@ -203,6 +220,17 @@ std::any Transpiler::visit(const std::shared_ptr<BlockStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
     std::stringstream ss;
+    if (!stmt->type_params.empty()) {
+        ss << "template <";
+        for (size_t i = 0; i < stmt->type_params.size(); ++i) {
+            ss << "typename " << stmt->type_params[i].lexeme;
+            if (i < stmt->type_params.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ">\n";
+    }
+
     if (stmt->name.lexeme == "main") {
         ss << "int main(int argc, char* argv[]) ";
     } else {
@@ -325,7 +353,7 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
             ss << (current_access == AccessModifier::PUBLIC ? "public:\n" : "private:\n");
         }
 
-        std::string static_keyword = member.is_static ? "static " : "";
+        std::string static_keyword = member.is_static ? "inline static " : "";
 
         if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
             // Constructor

@@ -24,7 +24,7 @@ private:
     std::shared_ptr<Expr> call();
     std::shared_ptr<Expr> primary();
 
-    std::shared_ptr<Expr> finishCall(std::shared_ptr<Expr> callee);
+    std::shared_ptr<Expr> finishCall(std::shared_ptr<Expr> callee, std::vector<std::shared_ptr<Type>> type_arguments);
     std::shared_ptr<Stmt> declaration();
     std::shared_ptr<Stmt> statement();
     std::shared_ptr<Stmt> varDeclaration();

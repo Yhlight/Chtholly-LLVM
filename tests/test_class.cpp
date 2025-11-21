@@ -126,7 +126,7 @@ TEST(ClassTest, StaticMember) {
 
 class Test {
 public:
-static int a = 1;
+inline static int a = 1;
 };
 )";
     ASSERT_EQ(normalize(result), normalize(expected));
