@@ -27,6 +27,19 @@ std::string printType(const std::shared_ptr<Type>& type) {
         ss << "): " << printType(func->return_type);
         return ss.str();
     }
+    if (type->getKind() == TypeKind::REFERENCE) {
+        auto ref = std::dynamic_pointer_cast<ReferenceType>(type);
+        switch (ref->kind) {
+            case ReferenceKind::MUTABLE:
+                return "&" + printType(ref->referenced_type);
+            case ReferenceKind::IMMUTABLE:
+                return printType(ref->referenced_type);
+            case ReferenceKind::MOVE:
+                return "&&" + printType(ref->referenced_type);
+            case ReferenceKind::COPY:
+                return "*" + printType(ref->referenced_type);
+        }
+    }
     return "unknown_type";
 }
 

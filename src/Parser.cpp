@@ -317,6 +317,17 @@ std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {
 
 
 std::shared_ptr<Type> Parser::type() {
+    if (match({TokenType::AMPERSAND_AMPERSAND})) {
+        return std::make_shared<ReferenceType>(type(), ReferenceKind::MOVE);
+    }
+    if (match({TokenType::AMPERSAND})) {
+        return std::make_shared<ReferenceType>(type(), ReferenceKind::MUTABLE);
+    }
+    if (match({TokenType::STAR})) {
+        return std::make_shared<ReferenceType>(type(), ReferenceKind::COPY);
+    }
+
+
     if (match({TokenType::LEFT_PAREN})) {
         std::vector<std::shared_ptr<Type>> param_types;
         if (!check(TokenType::RIGHT_PAREN)) {

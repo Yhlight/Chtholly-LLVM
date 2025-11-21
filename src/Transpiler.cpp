@@ -185,6 +185,19 @@ std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
         ss << ")>";
         return ss.str();
     }
+    if (type->getKind() == TypeKind::REFERENCE) {
+        auto ref = std::dynamic_pointer_cast<ReferenceType>(type);
+        switch (ref->kind) {
+            case ReferenceKind::MUTABLE:
+                return transpileType(ref->referenced_type) + "&";
+            case ReferenceKind::IMMUTABLE:
+                return "const " + transpileType(ref->referenced_type) + "&";
+            case ReferenceKind::MOVE:
+                return transpileType(ref->referenced_type) + "&&";
+            case ReferenceKind::COPY:
+                return transpileType(ref->referenced_type);
+        }
+    }
     return "auto";
 }
 

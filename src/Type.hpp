@@ -12,7 +12,8 @@ enum class TypeKind {
     PRIMITIVE,
     ARRAY,
     ENUM,
-    FUNCTION
+    FUNCTION,
+    REFERENCE
 };
 
 struct Type {
@@ -48,6 +49,22 @@ struct FunctionType : public Type {
 
     const std::vector<std::shared_ptr<Type>> param_types;
     const std::shared_ptr<Type> return_type;
+};
+
+enum class ReferenceKind {
+    IMMUTABLE,
+    MUTABLE,
+    MOVE,
+    COPY
+};
+
+struct ReferenceType : public Type {
+    ReferenceType(std::shared_ptr<Type> referenced_type, ReferenceKind kind)
+        : referenced_type(std::move(referenced_type)), kind(kind) {}
+    TypeKind getKind() const override { return TypeKind::REFERENCE; }
+
+    const std::shared_ptr<Type> referenced_type;
+    const ReferenceKind kind;
 };
 
 } // namespace chtholly

@@ -58,6 +58,6 @@
   - [X] Basic I/O (`iostream`).
   - [ ] String manipulation utilities.
   - [ ] Math library.
-- [ ] **Type System:**
+- [X] **Type System:**
   - [X] Implement safe type casting (`type_cast`).
-  - [ ] Refine rules for references and ownership (`&`, `*`, `&&`).
+  - [X] Refine rules for references and ownership (`&`, `*`, `&&`).

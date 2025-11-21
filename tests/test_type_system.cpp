@@ -30,3 +30,69 @@ int main(int argc, char* argv[]) {
 )";
     ASSERT_EQ(normalize(result), normalize(expected));
 }
+
+TEST(TypeSystemTest, MutableReference) {
+    std::string source = R"(
+        fn test(a: &int) {}
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/main.cns");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+#include <string>
+#include <vector>
+
+auto test(int& a) {}
+)";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(TypeSystemTest, MoveReference) {
+    std::string source = R"(
+        fn test(a: &&int) {}
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/main.cns");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+#include <string>
+#include <vector>
+
+auto test(int&& a) {}
+)";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(TypeSystemTest, Copy) {
+    std::string source = R"(
+        fn test(a: *int) {}
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/main.cns");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+#include <string>
+#include <vector>
+
+auto test(int a) {}
+)";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
