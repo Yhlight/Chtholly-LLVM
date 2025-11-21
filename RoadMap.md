@@ -40,9 +40,9 @@
   - [X] Lambda functions.
   - [X] Function types.
 - [ ] **Classes:**
-  - [ ] Class definitions with members and methods.
+  - [X] Class definitions with members and methods.
   - [ ] Constructors and destructors.
-  - [ ] `public`/`private` access modifiers.
+  - [X] `public`/`private` access modifiers.
   - [ ] `static` members and methods.
 - [ ] **Generics:**
   - [ ] Generic functions.

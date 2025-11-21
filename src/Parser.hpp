@@ -37,6 +37,7 @@ private:
     std::shared_ptr<Stmt> forStatement();
     std::shared_ptr<Stmt> switchStatement();
     std::shared_ptr<Stmt> enumDeclaration();
+    std::shared_ptr<Stmt> classDeclaration();
     std::shared_ptr<Type> type();
 
 

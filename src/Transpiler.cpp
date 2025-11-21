@@ -129,6 +129,18 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
     return ss.str();
 }
 
+std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
+    return transpile(expr->object) + "." + expr->name.lexeme;
+}
+
+std::any Transpiler::visit(const std::shared_ptr<SetExpr>& expr) {
+    return transpile(expr->object) + "." + expr->name.lexeme + " = " + transpile(expr->value);
+}
+
+std::any Transpiler::visit(const std::shared_ptr<ThisExpr>& expr) {
+    return "this";
+}
+
 // Statement visitors
 std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return transpile(stmt->expression) + ";\n";
@@ -293,6 +305,26 @@ std::any Transpiler::visit(const std::shared_ptr<EnumStmt>& stmt) {
         }
     }
     ss << "\n};\n";
+    return ss.str();
+}
+
+std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
+    std::stringstream ss;
+    ss << "class " << stmt->name.lexeme << " {\n";
+
+    AccessModifier current_access = AccessModifier::PUBLIC;
+    bool first_member = true;
+
+    for (const auto& member : stmt->members) {
+        if (first_member || member.access != current_access) {
+            current_access = member.access;
+            ss << (current_access == AccessModifier::PUBLIC ? "public" : "private") << ":\n";
+            first_member = false;
+        }
+        ss << transpile(member.member);
+    }
+
+    ss << "};\n";
     return ss.str();
 }
 

@@ -109,6 +109,16 @@ std::any ASTPrinter::visit(const std::shared_ptr<ArrayLiteral>& expr) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<ClassStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(class " << stmt->name.lexeme;
+    for (const auto& member : stmt->members) {
+        ss << " (" << (member.access == AccessModifier::PUBLIC ? "public" : "private") << " " << print(member.member) << ")";
+    }
+    ss << ")";
+    return ss.str();
+}
+
 std::any ASTPrinter::visit(const std::shared_ptr<SubscriptExpr>& expr) {
     return parenthesize("subscript " + print(expr->name), expr->index);
 }
@@ -133,6 +143,18 @@ std::any ASTPrinter::visit(const std::shared_ptr<LambdaExpr>& expr) {
     ss << " " << print(expr->body);
     ss << ")";
     return ss.str();
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<GetExpr>& expr) {
+    return parenthesize("." , expr->object, std::make_shared<Variable>(expr->name));
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<SetExpr>& expr) {
+    return parenthesize("= .", expr->object, std::make_shared<Variable>(expr->name), expr->value);
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<ThisExpr>& expr) {
+    return "this";
 }
 
 
@@ -255,6 +277,22 @@ std::string ASTPrinter::parenthesize(const std::string& name, const std::shared_
     }
     if (expr2) {
         ss << " " << print(expr2);
+    }
+    ss << ")";
+    return ss.str();
+}
+
+std::string ASTPrinter::parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr1, const std::shared_ptr<Expr>& expr2, const std::shared_ptr<Expr>& expr3) {
+    std::stringstream ss;
+    ss << "(" << name;
+    if (expr1) {
+        ss << " " << print(expr1);
+    }
+    if (expr2) {
+        ss << " " << print(expr2);
+    }
+    if (expr3) {
+        ss << " " << print(expr3);
     }
     ss << ")";
     return ss.str();

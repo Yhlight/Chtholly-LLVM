@@ -26,6 +26,9 @@ public:
     std::any visit(const std::shared_ptr<SubscriptExpr>& expr) override;
     std::any visit(const std::shared_ptr<ScopeExpr>& expr) override;
     std::any visit(const std::shared_ptr<LambdaExpr>& expr) override;
+    std::any visit(const std::shared_ptr<GetExpr>& expr) override;
+    std::any visit(const std::shared_ptr<SetExpr>& expr) override;
+    std::any visit(const std::shared_ptr<ThisExpr>& expr) override;
 
     // Statement visitors
     std::any visit(const std::shared_ptr<ExpressionStmt>& stmt) override;
@@ -40,11 +43,13 @@ public:
     std::any visit(const std::shared_ptr<BreakStmt>& stmt) override;
     std::any visit(const std::shared_ptr<FallthroughStmt>& stmt) override;
     std::any visit(const std::shared_ptr<EnumStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<ClassStmt>& stmt) override;
 
 
 private:
     std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr);
     std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr1, const std::shared_ptr<Expr>& expr2);
+    std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr1, const std::shared_ptr<Expr>& expr2, const std::shared_ptr<Expr>& expr3);
 };
 
 } // namespace chtholly

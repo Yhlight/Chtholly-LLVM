@@ -2,18 +2,9 @@
 #include "../src/Parser.hpp"
 #include "../src/Lexer.hpp"
 #include "../src/Transpiler.hpp"
+#include "test_helper.hpp"
 
 using namespace chtholly;
-
-std::string normalize(const std::string& s) {
-    std::string result;
-    for (char c : s) {
-        if (c != ' ' && c != '\n' && c != '\t' && c != '\r') {
-            result += c;
-        }
-    }
-    return result;
-}
 
 TEST(TranspilerTest, SimpleMain) {
     std::string source = "fn main() { return 0; }";
