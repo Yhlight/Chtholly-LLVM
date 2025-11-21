@@ -74,7 +74,7 @@ TEST(ParserTest, VarDeclaration) {
 }
 
 TEST(ParserTest, FunctionDeclaration) {
-    std::string source = "fn add(a, b) { return a + b; }";
+    std::string source = "fn add(a: int, b: int): int { return a + b; }";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
@@ -82,7 +82,7 @@ TEST(ParserTest, FunctionDeclaration) {
     ASSERT_EQ(stmts.size(), 1);
     ASTPrinter printer;
     std::string result = printer.print(stmts);
-    EXPECT_EQ(result, "(fun add (a b) (block (return (+ a b))))\n");
+    EXPECT_EQ(result, "(fun add (a: int, b: int): int (block (return (+ a b))))\n");
 }
 
 TEST(ParserTest, ReturnStatement) {

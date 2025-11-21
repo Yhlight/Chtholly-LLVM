@@ -101,6 +101,10 @@ std::any Transpiler::visit(const std::shared_ptr<SubscriptExpr>& expr) {
     return transpile(expr->name) + "[" + transpile(expr->index) + "]";
 }
 
+std::any Transpiler::visit(const std::shared_ptr<ScopeExpr>& expr) {
+    return transpile(expr->left) + "::" + expr->name.lexeme;
+}
+
 // Statement visitors
 std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return transpile(stmt->expression) + ";\n";
@@ -114,6 +118,23 @@ std::string transpileType(const std::shared_ptr<Type>& type) {
     if (type->getKind() == TypeKind::ARRAY) {
         auto array = std::dynamic_pointer_cast<ArrayType>(type);
         return "std::vector<" + transpileType(array->element_type) + ">";
+    }
+    if (type->getKind() == TypeKind::ENUM) {
+        auto enum_type = std::dynamic_pointer_cast<EnumType>(type);
+        return enum_type->name;
+    }
+    if (type->getKind() == TypeKind::FUNCTION) {
+        auto func = std::dynamic_pointer_cast<FunctionType>(type);
+        std::stringstream ss;
+        ss << transpileType(func->return_type) << "(*)(";
+        for (size_t i = 0; i < func->param_types.size(); ++i) {
+            ss << transpileType(func->param_types[i]);
+            if (i < func->param_types.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ")";
+        return ss.str();
     }
     return "auto";
 }
@@ -148,9 +169,14 @@ std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
     if (stmt->name.lexeme == "main") {
         ss << "int main(int argc, char* argv[]) ";
     } else {
-        ss << "auto " << stmt->name.lexeme << "(";
+        if (stmt->return_type) {
+            ss << transpileType(stmt->return_type) << " ";
+        } else {
+            ss << "auto ";
+        }
+        ss << stmt->name.lexeme << "(";
         for (size_t i = 0; i < stmt->params.size(); ++i) {
-            ss << "auto " << stmt->params[i].lexeme;
+            ss << transpileType(stmt->params[i].type) << " " << stmt->params[i].name.lexeme;
             if (i < stmt->params.size() - 1) {
                 ss << ", ";
             }
@@ -230,6 +256,19 @@ std::any Transpiler::visit(const std::shared_ptr<BreakStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<FallthroughStmt>& stmt) {
     return std::string("[[fallthrough]];\n");
+}
+
+std::any Transpiler::visit(const std::shared_ptr<EnumStmt>& stmt) {
+    std::stringstream ss;
+    ss << "enum class " << stmt->name.lexeme << " {\n";
+    for (size_t i = 0; i < stmt->members.size(); ++i) {
+        ss << "    " << stmt->members[i].lexeme;
+        if (i < stmt->members.size() - 1) {
+            ss << ",\n";
+        }
+    }
+    ss << "\n};\n";
+    return ss.str();
 }
 
 } // namespace chtholly

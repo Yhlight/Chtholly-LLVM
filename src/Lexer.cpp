@@ -69,7 +69,9 @@ void Lexer::scanToken() {
             addToken(match('=') ? TokenType::STAR_EQUAL : TokenType::STAR);
             break;
         case ';': addToken(TokenType::SEMICOLON); break;
-        case ':': addToken(TokenType::COLON); break;
+        case ':':
+            addToken(match(':') ? TokenType::COLON_COLON : TokenType::COLON);
+            break;
         case '~': addToken(TokenType::TILDE); break;
         case '%':
             addToken(match('=') ? TokenType::PERCENT_EQUAL : TokenType::PERCENT);

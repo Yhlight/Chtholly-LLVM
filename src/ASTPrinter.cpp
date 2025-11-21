@@ -87,6 +87,10 @@ std::any ASTPrinter::visit(const std::shared_ptr<SubscriptExpr>& expr) {
     return parenthesize("subscript " + print(expr->name), expr->index);
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<ScopeExpr>& expr) {
+    return parenthesize(":: " + print(expr->left), std::make_shared<Variable>(expr->name));
+}
+
 
 // Statement visitors
 std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
@@ -133,13 +137,16 @@ std::any ASTPrinter::visit(const std::shared_ptr<FunctionStmt>& stmt) {
     std::stringstream ss;
     ss << "(fun " << stmt->name.lexeme << " (";
     for (size_t i = 0; i < stmt->params.size(); ++i) {
-        ss << stmt->params[i].lexeme;
+        ss << stmt->params[i].name.lexeme << ": " << printType(stmt->params[i].type);
         if (i < stmt->params.size() - 1) {
-            ss << " ";
+            ss << ", ";
         }
     }
-    ss << ") ";
-    ss << print(stmt->body);
+    ss << ")";
+    if (stmt->return_type) {
+        ss << ": " << printType(stmt->return_type);
+    }
+    ss << " " << print(stmt->body);
     ss << ")";
     return ss.str();
 }
@@ -186,6 +193,16 @@ std::any ASTPrinter::visit(const std::shared_ptr<BreakStmt>& stmt) {
 
 std::any ASTPrinter::visit(const std::shared_ptr<FallthroughStmt>& stmt) {
     return std::string("(fallthrough)");
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<EnumStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(enum " << stmt->name.lexeme;
+    for (const auto& member : stmt->members) {
+        ss << " " << member.lexeme;
+    }
+    ss << ")";
+    return ss.str();
 }
 
 // Helper methods for parenthesizing

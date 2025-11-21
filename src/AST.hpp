@@ -20,6 +20,7 @@ struct Call;
 struct Assign;
 struct ArrayLiteral;
 struct SubscriptExpr;
+struct ScopeExpr;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
@@ -31,6 +32,7 @@ struct ForStmt;
 struct SwitchStmt;
 struct BreakStmt;
 struct FallthroughStmt;
+struct EnumStmt;
 struct Expr;
 struct Stmt;
 
@@ -46,6 +48,7 @@ struct ExprVisitor {
     virtual R visit(const std::shared_ptr<Assign>& expr) = 0;
     virtual R visit(const std::shared_ptr<ArrayLiteral>& expr) = 0;
     virtual R visit(const std::shared_ptr<SubscriptExpr>& expr) = 0;
+    virtual R visit(const std::shared_ptr<ScopeExpr>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -62,6 +65,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<SwitchStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<BreakStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<FallthroughStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<EnumStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -179,6 +183,18 @@ struct SubscriptExpr : Expr, public std::enable_shared_from_this<SubscriptExpr> 
     const std::shared_ptr<Expr> index;
 };
 
+struct ScopeExpr : Expr, public std::enable_shared_from_this<ScopeExpr> {
+    ScopeExpr(std::shared_ptr<Expr> left, Token name)
+        : left(std::move(left)), name(std::move(name)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> left;
+    const Token name;
+};
+
 // Concrete statement classes
 struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt> {
     ExpressionStmt(std::shared_ptr<Expr> expression)
@@ -215,16 +231,22 @@ struct BlockStmt : Stmt, public std::enable_shared_from_this<BlockStmt> {
     const std::vector<std::shared_ptr<Stmt>> statements;
 };
 
+struct Parameter {
+    Token name;
+    std::shared_ptr<Type> type;
+};
+
 struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
-    FunctionStmt(Token name, std::vector<Token> params, std::shared_ptr<BlockStmt> body)
-        : name(std::move(name)), params(std::move(params)), body(std::move(body)) {}
+    FunctionStmt(Token name, std::vector<Parameter> params, std::shared_ptr<Type> return_type, std::shared_ptr<BlockStmt> body)
+        : name(std::move(name)), params(std::move(params)), return_type(std::move(return_type)), body(std::move(body)) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
 
     const Token name;
-    const std::vector<Token> params;
+    const std::vector<Parameter> params;
+    const std::shared_ptr<Type> return_type;
     const std::shared_ptr<BlockStmt> body;
 };
 
@@ -313,6 +335,18 @@ struct FallthroughStmt : Stmt, public std::enable_shared_from_this<FallthroughSt
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
+};
+
+struct EnumStmt : Stmt, public std::enable_shared_from_this<EnumStmt> {
+    EnumStmt(Token name, std::vector<Token> members)
+        : name(std::move(name)), members(std::move(members)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token name;
+    const std::vector<Token> members;
 };
 
 } // namespace chtholly

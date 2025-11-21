@@ -84,19 +84,28 @@ std::vector<std::shared_ptr<Stmt>> Parser::block() {
 std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
     Token name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
     consume(TokenType::LEFT_PAREN, "Expect '(' after " + kind + " name.");
-    std::vector<Token> parameters;
+    std::vector<Parameter> parameters;
     if (!check(TokenType::RIGHT_PAREN)) {
         do {
             if (parameters.size() >= 255) {
                 // error("Can't have more than 255 parameters.");
             }
-            parameters.push_back(consume(TokenType::IDENTIFIER, "Expect parameter name."));
+            Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
+            consume(TokenType::COLON, "Expect ':' after parameter name.");
+            auto param_type = type();
+            parameters.push_back({param_name, param_type});
         } while (match({TokenType::COMMA}));
     }
     consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+
+    std::shared_ptr<Type> return_type = nullptr;
+    if (match({TokenType::COLON})) {
+        return_type = type();
+    }
+
     consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
     auto body = std::make_shared<BlockStmt>(block());
-    return std::make_shared<FunctionStmt>(name, parameters, body);
+    return std::make_shared<FunctionStmt>(name, parameters, return_type, body);
 }
 
 std::shared_ptr<Stmt> Parser::returnStatement() {

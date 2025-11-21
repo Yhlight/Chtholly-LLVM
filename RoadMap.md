@@ -21,6 +21,10 @@
   - [X] Transpile basic expressions and variable declarations.
   - [X] Transpile function definitions.
   - [X] Generate a runnable C++ `main` function from `fn main`.
+- [X] **Type System Foundation:**
+  - [X] Implement basic type representation (`int`, `double`, `string`, `bool`).
+  - [X] Support for array types (`int[]`).
+  - [X] Support for typed function signatures.
 
 ## Phase 2: Language Features
 

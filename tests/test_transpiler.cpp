@@ -210,7 +210,7 @@ TEST(TranspilerTest, VariableDeclaration) {
 
 TEST(TranspilerTest, FunctionCall) {
     std::string source = R"(
-        fn add(a, b) {
+        fn add(a: int, b: int): int {
             return a + b;
         }
 
@@ -230,7 +230,7 @@ TEST(TranspilerTest, FunctionCall) {
         #include <string>
         #include <vector>
 
-        auto add(auto a, auto b) {
+        int add(int a, int b) {
             return a + b;
         }
 

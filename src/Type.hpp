@@ -4,12 +4,15 @@
 #include <string>
 #include <memory>
 #include <utility>
+#include <vector>
 
 namespace chtholly {
 
 enum class TypeKind {
     PRIMITIVE,
-    ARRAY
+    ARRAY,
+    ENUM,
+    FUNCTION
 };
 
 struct Type {
@@ -29,6 +32,22 @@ struct ArrayType : public Type {
     TypeKind getKind() const override { return TypeKind::ARRAY; }
 
     const std::shared_ptr<Type> element_type;
+};
+
+struct EnumType : public Type {
+    explicit EnumType(std::string name) : name(std::move(name)) {}
+    TypeKind getKind() const override { return TypeKind::ENUM; }
+
+    const std::string name;
+};
+
+struct FunctionType : public Type {
+    FunctionType(std::vector<std::shared_ptr<Type>> param_types, std::shared_ptr<Type> return_type)
+        : param_types(std::move(param_types)), return_type(std::move(return_type)) {}
+    TypeKind getKind() const override { return TypeKind::FUNCTION; }
+
+    const std::vector<std::shared_ptr<Type>> param_types;
+    const std::shared_ptr<Type> return_type;
 };
 
 } // namespace chtholly
