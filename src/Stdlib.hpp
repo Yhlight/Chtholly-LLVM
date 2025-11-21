@@ -5,8 +5,14 @@
 #include <unordered_map>
 #include <functional>
 #include <optional>
+#include <vector>
 
 namespace chtholly {
+
+struct StdlibModule {
+    std::string source;
+    std::vector<std::string> headers;
+};
 
 class Stdlib {
 public:
@@ -20,15 +26,15 @@ public:
     bool has_module(const std::string& name) const;
 
     /**
-     * @brief Gets the source code of a standard library module.
+     * @brief Gets a standard library module by name.
      * @param name The name of the module.
-     * @return An optional containing the module's source code if found.
+     * @return An optional containing the module if found.
      */
-    std::optional<std::string> get_module_source(const std::string& name) const;
+    std::optional<StdlibModule> get_module(const std::string& name) const;
 
 private:
-    using ModuleSourceProvider = std::function<std::string()>;
-    std::unordered_map<std::string, ModuleSourceProvider> modules;
+    using ModuleProvider = std::function<StdlibModule()>;
+    std::unordered_map<std::string, ModuleProvider> modules;
 
     void initialize_modules();
 };

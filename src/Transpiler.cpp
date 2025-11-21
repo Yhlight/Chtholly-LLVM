@@ -261,8 +261,8 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
     if (needs_functional) {
         headers << "#include <functional>" << std::endl;
     }
-    if (needs_iostream) {
-        headers << "#include <iostream>" << std::endl;
+    for (const auto& header : required_headers) {
+        headers << "#include <" << header << ">" << std::endl;
     }
     headers << std::endl;
 
@@ -452,12 +452,12 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
 std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
     if (stmt->is_stdlib) {
         if (stdlib.has_module(stmt->path.lexeme)) {
-            if (stmt->path.lexeme == "iostream") {
-                needs_iostream = true;
-            }
-            auto source = stdlib.get_module_source(stmt->path.lexeme);
-            if (source) {
-                return *source;
+            auto module = stdlib.get_module(stmt->path.lexeme);
+            if (module) {
+                for (const auto& header : module->headers) {
+                    required_headers.insert(header);
+                }
+                return module->source;
             }
         }
         throw std::runtime_error("Standard library module not found: " + stmt->path.lexeme);

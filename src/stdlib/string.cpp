@@ -2,10 +2,9 @@
 
 namespace chtholly::stdlib {
 
-std::string get_string_module() {
-    return R"(
-#include <string>
-
+StdlibModule get_string_module() {
+    return {
+        R"(
 namespace string {
     std::string concat(const std::string& s1, const std::string& s2) {
         return s1 + s2;
@@ -19,7 +18,9 @@ namespace string {
         return s.substr(start, length);
     }
 }
-)";
+)",
+        {"string"}
+    };
 }
 
 } // namespace chtholly::stdlib

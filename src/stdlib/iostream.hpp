@@ -1,6 +1,7 @@
 #ifndef CHTHOLLY_STDLIB_IOSTREAM_HPP
 #define CHTHOLLY_STDLIB_IOSTREAM_HPP
 
+#include "../Stdlib.hpp"
 #include <string>
 
 namespace chtholly::stdlib {
@@ -10,9 +11,9 @@ namespace chtholly::stdlib {
  *
  * This function provides the necessary C++ implementation for the standard
  * iostream functions, which can then be injected into the final transpiled output.
- * @return A string containing the C++ source code.
+ * @return A StdlibModule struct containing the module's source and headers.
  */
-std::string get_iostream_module();
+StdlibModule get_iostream_module();
 
 } // namespace chtholly::stdlib
 

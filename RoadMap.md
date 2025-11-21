@@ -58,7 +58,7 @@
   - [X] Refactor stdlib into a modular system.
   - [X] Basic I/O (`iostream`).
   - [X] String manipulation utilities (`string`).
-  - [ ] Math library (`math`).
+  - [X] Math library (`math`).
 - [X] **Type System:**
   - [X] Implement safe type casting (`type_cast`).
   - [X] Refine rules for references and ownership (`&`, `*`, `&&`).
