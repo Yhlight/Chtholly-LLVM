@@ -28,8 +28,14 @@ void runFile(const std::string& path) {
     }
 
     chtholly::Transpiler transpiler(path);
-    std::string output = transpiler.transpile(stmts);
-    std::cout << output;
+    try {
+        std::string output = transpiler.transpile(stmts);
+        std::cout << output;
+    } catch (const std::runtime_error& e) {
+        // Transpiler errors are now caught here
+        // The error message is already printed by the transpiler
+        exit(1);
+    }
 }
 
 int main(int argc, char* argv[]) {

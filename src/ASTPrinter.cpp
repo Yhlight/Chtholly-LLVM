@@ -163,6 +163,10 @@ std::any ASTPrinter::visit(const std::shared_ptr<ThisExpr>& expr) {
     return std::string("this");
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<TypeCastExpr>& expr) {
+    return parenthesize("type_cast<" + printType(expr->type) + ">", expr->expression);
+}
+
 
 // Statement visitors
 std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {

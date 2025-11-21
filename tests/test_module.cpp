@@ -97,3 +97,18 @@ int add(int a, int b) {
 )";
     ASSERT_EQ(normalize(result), normalize(expected));
 }
+
+TEST(ModuleTest, MissingImport) {
+    std::string source = R"(
+        import "non_existent_file.cns";
+        fn main() {}
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/main.cns");
+    ASSERT_THROW(transpiler.transpile(stmts), std::runtime_error);
+}

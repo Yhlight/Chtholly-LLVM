@@ -4,6 +4,7 @@
 #include <fstream>
 #include "Lexer.hpp"
 #include "Parser.hpp"
+#include <iostream>
 
 namespace chtholly {
 
@@ -145,6 +146,10 @@ std::any Transpiler::visit(const std::shared_ptr<SetExpr>& expr) {
 
 std::any Transpiler::visit(const std::shared_ptr<ThisExpr>& expr) {
     return std::string("this");
+}
+
+std::any Transpiler::visit(const std::shared_ptr<TypeCastExpr>& expr) {
+    return "static_cast<" + transpileType(expr->type) + ">(" + transpile(expr->expression) + ")";
 }
 
 // Statement visitors
@@ -468,6 +473,7 @@ namespace iostream {
 
     std::ifstream file(full_path);
     if (!file.is_open()) {
+        std::cerr << "Error: cannot find or open file '" << full_path << "'." << std::endl;
         throw std::runtime_error("Could not open file: " + full_path);
     }
     std::string source((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());

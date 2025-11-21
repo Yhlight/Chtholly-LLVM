@@ -488,6 +488,16 @@ std::shared_ptr<Expr> Parser::primary() {
         return std::make_shared<Variable>(previous());
     }
 
+    if (match({TokenType::TYPE_CAST})) {
+        consume(TokenType::LESS, "Expect '<' after 'type_cast'.");
+        auto type = this->type();
+        consume(TokenType::GREATER, "Expect '>' after type.");
+        consume(TokenType::LEFT_PAREN, "Expect '(' after type.");
+        auto expr = expression();
+        consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");
+        return std::make_shared<TypeCastExpr>(type, expr);
+    }
+
     if (match({TokenType::LEFT_PAREN})) {
         auto expr = expression();
         consume(TokenType::RIGHT_PAREN, "Expect ')' after expression.");

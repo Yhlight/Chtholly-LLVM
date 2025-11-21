@@ -59,5 +59,5 @@
   - [ ] String manipulation utilities.
   - [ ] Math library.
 - [ ] **Type System:**
-  - [ ] Implement safe type casting (`type_cast`).
+  - [X] Implement safe type casting (`type_cast`).
   - [ ] Refine rules for references and ownership (`&`, `*`, `&&`).

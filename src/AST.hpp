@@ -25,6 +25,7 @@ struct LambdaExpr;
 struct GetExpr;
 struct SetExpr;
 struct ThisExpr;
+struct TypeCastExpr;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
@@ -60,6 +61,7 @@ struct ExprVisitor {
     virtual R visit(const std::shared_ptr<GetExpr>& expr) = 0;
     virtual R visit(const std::shared_ptr<SetExpr>& expr) = 0;
     virtual R visit(const std::shared_ptr<ThisExpr>& expr) = 0;
+    virtual R visit(const std::shared_ptr<TypeCastExpr>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -266,6 +268,18 @@ struct ThisExpr : Expr, public std::enable_shared_from_this<ThisExpr> {
     }
 
     const Token keyword;
+};
+
+struct TypeCastExpr : Expr, public std::enable_shared_from_this<TypeCastExpr> {
+    TypeCastExpr(std::shared_ptr<Type> type, std::shared_ptr<Expr> expression)
+        : type(std::move(type)), expression(std::move(expression)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Type> type;
+    const std::shared_ptr<Expr> expression;
 };
 
 

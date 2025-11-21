@@ -29,6 +29,7 @@ public:
     std::any visit(const std::shared_ptr<GetExpr>& expr) override;
     std::any visit(const std::shared_ptr<SetExpr>& expr) override;
     std::any visit(const std::shared_ptr<ThisExpr>& expr) override;
+    std::any visit(const std::shared_ptr<TypeCastExpr>& expr) override;
 
     // Statement visitors
     std::any visit(const std::shared_ptr<ExpressionStmt>& stmt) override;
