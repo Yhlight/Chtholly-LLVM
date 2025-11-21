@@ -57,7 +57,7 @@
 - [ ] **Standard Library:**
   - [X] Refactor stdlib into a modular system.
   - [X] Basic I/O (`iostream`).
-  - [ ] String manipulation utilities (`string`).
+  - [X] String manipulation utilities (`string`).
   - [ ] Math library (`math`).
 - [X] **Type System:**
   - [X] Implement safe type casting (`type_cast`).

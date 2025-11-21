@@ -14,6 +14,8 @@ add_library(chtholly_lib
     Stdlib.cpp
     stdlib/iostream.hpp
     stdlib/iostream.cpp
+    stdlib/string.hpp
+    stdlib/string.cpp
 )
 
 # The CLI executable links against the library

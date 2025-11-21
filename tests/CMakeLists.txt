@@ -7,6 +7,7 @@ add_executable(chtholly_tests
   test_module.cpp
   test_stdlib.cpp
   test_type_system.cpp
+  test_string.cpp
 )
 
 # Link against the core library and Google Test

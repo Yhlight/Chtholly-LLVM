@@ -1,5 +1,6 @@
 #include "Stdlib.hpp"
 #include "stdlib/iostream.hpp"
+#include "stdlib/string.hpp"
 
 namespace chtholly {
 
@@ -9,6 +10,7 @@ Stdlib::Stdlib() {
 
 void Stdlib::initialize_modules() {
     modules["iostream"] = stdlib::get_iostream_module;
+    modules["string"] = stdlib::get_string_module;
     // Add other standard library modules here in the future
 }
 
