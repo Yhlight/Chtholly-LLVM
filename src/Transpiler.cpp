@@ -451,23 +451,16 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
     if (stmt->is_stdlib) {
-        if (stmt->path.lexeme == "iostream") {
-            needs_iostream = true;
-            return std::string(R"(
-namespace iostream {
-    template<typename T>
-    void print(const T& msg) {
-        std::cout << msg;
-    }
-
-    template<typename T>
-    void println(const T& msg) {
-        std::cout << msg << std::endl;
-    }
-}
-)");
+        if (stdlib.has_module(stmt->path.lexeme)) {
+            if (stmt->path.lexeme == "iostream") {
+                needs_iostream = true;
+            }
+            auto source = stdlib.get_module_source(stmt->path.lexeme);
+            if (source) {
+                return *source;
+            }
         }
-        return std::string("");
+        throw std::runtime_error("Standard library module not found: " + stmt->path.lexeme);
     }
 
     std::string path = std::any_cast<std::string>(stmt->path.literal);

@@ -2,6 +2,7 @@
 #define CHTHOLLY_TRANSPILER_HPP
 
 #include "AST.hpp"
+#include "Stdlib.hpp"
 #include <string>
 #include <vector>
 #include <set>
@@ -57,6 +58,7 @@ private:
     std::string current_path;
     bool needs_functional = false;
     bool needs_iostream = false;
+    Stdlib stdlib;
 };
 
 } // namespace chtholly

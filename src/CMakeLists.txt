@@ -10,6 +10,10 @@ add_library(chtholly_lib
     Parser.cpp
     Transpiler.hpp
     Transpiler.cpp
+    Stdlib.hpp
+    Stdlib.cpp
+    stdlib/iostream.hpp
+    stdlib/iostream.cpp
 )
 
 # The CLI executable links against the library
