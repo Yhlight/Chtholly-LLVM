@@ -35,6 +35,65 @@ TEST(TranspilerTest, SimpleMain) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(TranspilerTest, LambdaExpression) {
+    std::string source = "fn main() { let add = [](a: int, b: int): int { return a + b; }; return add(1, 2); }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <iostream>
+        #include <string>
+        #include <vector>
+        #include <functional>
+
+        int main(int argc, char* argv[]) {
+            auto add = [](int a, int b) -> int {
+                return a + b;
+            };
+            return add(1, 2);
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(TranspilerTest, FunctionType) {
+    std::string source = R"(
+        fn add(a: int, b: int): int {
+            return a + b;
+        }
+
+        fn main() {
+            let my_func: (int, int): int = add;
+            return my_func(5, 10);
+        }
+    )";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <iostream>
+        #include <string>
+        #include <vector>
+        #include <functional>
+
+        int add(int a, int b) {
+            return a + b;
+        }
+
+        int main(int argc, char* argv[]) {
+            std::function<int(int, int)> my_func = add;
+            return my_func(5, 10);
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(TranspilerTest, EnumDeclaration) {
     std::string source = R"(
         enum Color {

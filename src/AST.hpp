@@ -21,6 +21,7 @@ struct Assign;
 struct ArrayLiteral;
 struct SubscriptExpr;
 struct ScopeExpr;
+struct LambdaExpr;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
@@ -49,6 +50,7 @@ struct ExprVisitor {
     virtual R visit(const std::shared_ptr<ArrayLiteral>& expr) = 0;
     virtual R visit(const std::shared_ptr<SubscriptExpr>& expr) = 0;
     virtual R visit(const std::shared_ptr<ScopeExpr>& expr) = 0;
+    virtual R visit(const std::shared_ptr<LambdaExpr>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -76,6 +78,11 @@ struct Expr {
 
 struct Stmt {
     virtual std::any accept(StmtVisitor<std::any>& visitor) = 0;
+};
+
+struct Parameter {
+    Token name;
+    std::shared_ptr<Type> type;
 };
 
 // Concrete expression classes
@@ -195,6 +202,19 @@ struct ScopeExpr : Expr, public std::enable_shared_from_this<ScopeExpr> {
     const Token name;
 };
 
+struct LambdaExpr : Expr, public std::enable_shared_from_this<LambdaExpr> {
+    LambdaExpr(std::vector<Parameter> params, std::shared_ptr<Type> return_type, std::shared_ptr<BlockStmt> body)
+        : params(std::move(params)), return_type(std::move(return_type)), body(std::move(body)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::vector<Parameter> params;
+    const std::shared_ptr<Type> return_type;
+    const std::shared_ptr<BlockStmt> body;
+};
+
 // Concrete statement classes
 struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt> {
     ExpressionStmt(std::shared_ptr<Expr> expression)
@@ -229,11 +249,6 @@ struct BlockStmt : Stmt, public std::enable_shared_from_this<BlockStmt> {
     }
 
     const std::vector<std::shared_ptr<Stmt>> statements;
-};
-
-struct Parameter {
-    Token name;
-    std::shared_ptr<Type> type;
 };
 
 struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {

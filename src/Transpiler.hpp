@@ -22,6 +22,7 @@ public:
     std::any visit(const std::shared_ptr<ArrayLiteral>& expr) override;
     std::any visit(const std::shared_ptr<SubscriptExpr>& expr) override;
     std::any visit(const std::shared_ptr<ScopeExpr>& expr) override;
+    std::any visit(const std::shared_ptr<LambdaExpr>& expr) override;
 
     // Statement visitors
     std::any visit(const std::shared_ptr<ExpressionStmt>& stmt) override;
@@ -40,6 +41,8 @@ public:
 private:
     std::string transpile(const std::shared_ptr<Stmt>& stmt);
     std::string transpile(const std::shared_ptr<Expr>& expr);
+    std::string transpileType(const std::shared_ptr<Type>& type);
+    bool needs_functional = false;
 };
 
 } // namespace chtholly

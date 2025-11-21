@@ -4,6 +4,32 @@
 
 namespace chtholly {
 
+std::string printType(const std::shared_ptr<Type>& type) {
+    if (!type) return "";
+    if (type->getKind() == TypeKind::PRIMITIVE) {
+        auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
+        return primitive->name;
+    }
+    if (type->getKind() == TypeKind::ARRAY) {
+        auto array = std::dynamic_pointer_cast<ArrayType>(type);
+        return printType(array->element_type) + "[]";
+    }
+    if (type->getKind() == TypeKind::FUNCTION) {
+        auto func = std::dynamic_pointer_cast<FunctionType>(type);
+        std::stringstream ss;
+        ss << "(";
+        for (size_t i = 0; i < func->param_types.size(); ++i) {
+            ss << printType(func->param_types[i]);
+            if (i < func->param_types.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << "): " << printType(func->return_type);
+        return ss.str();
+    }
+    return "unknown_type";
+}
+
 std::string ASTPrinter::print(const std::vector<std::shared_ptr<Stmt>>& statements) {
     std::stringstream ss;
     for (const auto& stmt : statements) {
@@ -91,23 +117,28 @@ std::any ASTPrinter::visit(const std::shared_ptr<ScopeExpr>& expr) {
     return parenthesize(":: " + print(expr->left), std::make_shared<Variable>(expr->name));
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<LambdaExpr>& expr) {
+    std::stringstream ss;
+    ss << "(lambda (";
+    for (size_t i = 0; i < expr->params.size(); ++i) {
+        ss << expr->params[i].name.lexeme << ": " << printType(expr->params[i].type);
+        if (i < expr->params.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << ")";
+    if (expr->return_type) {
+        ss << ": " << printType(expr->return_type);
+    }
+    ss << " " << print(expr->body);
+    ss << ")";
+    return ss.str();
+}
+
 
 // Statement visitors
 std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return parenthesize("expr_stmt", stmt->expression);
-}
-
-std::string printType(const std::shared_ptr<Type>& type) {
-    if (!type) return "";
-    if (type->getKind() == TypeKind::PRIMITIVE) {
-        auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
-        return primitive->name;
-    }
-    if (type->getKind() == TypeKind::ARRAY) {
-        auto array = std::dynamic_pointer_cast<ArrayType>(type);
-        return printType(array->element_type) + "[]";
-    }
-    return "unknown_type";
 }
 
 std::any ASTPrinter::visit(const std::shared_ptr<VarStmt>& stmt) {

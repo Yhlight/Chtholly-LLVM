@@ -36,9 +36,9 @@
 - [X] **Data Structures:**
   - [X] Arrays (static and dynamic).
   - [X] Enums.
-- [ ] **Functions:**
-  - [ ] Lambda functions.
-  - [ ] Function types.
+- [X] **Functions:**
+  - [X] Lambda functions.
+  - [X] Function types.
 - [ ] **Classes:**
   - [ ] Class definitions with members and methods.
   - [ ] Constructors and destructors.

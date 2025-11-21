@@ -184,3 +184,27 @@ TEST(ParserTest, EnumDeclaration) {
     std::string result = printer.print(stmts);
     EXPECT_EQ(result, "(enum Color RED GREEN BLUE)\n(var c : Color (:: Color RED))\n");
 }
+
+TEST(ParserTest, LambdaExpression) {
+    std::string source = "let add = [](a: int, b: int): int { return a + b; };";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(var add (lambda (a: int, b: int): int (block (return (+ a b)))))\n");
+}
+
+TEST(ParserTest, FunctionType) {
+    std::string source = "let my_func: (int, int): int = add;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(var my_func : (int, int): int add)\n");
+}

@@ -1,21 +1,27 @@
 #include "Transpiler.hpp"
 #include <sstream>
+#include <functional>
 
 namespace chtholly {
 
 std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& statements) {
-    std::stringstream ss;
-    ss << "#include <iostream>" << std::endl;
-    ss << "#include <string>" << std::endl;
-    ss << "#include <vector>" << std::endl;
-    ss << std::endl;
-
+    std::stringstream body;
     for (const auto& stmt : statements) {
         if (stmt) {
-            ss << transpile(stmt);
+            body << transpile(stmt);
         }
     }
-    return ss.str();
+
+    std::stringstream headers;
+    headers << "#include <iostream>" << std::endl;
+    headers << "#include <string>" << std::endl;
+    headers << "#include <vector>" << std::endl;
+    if (needs_functional) {
+        headers << "#include <functional>" << std::endl;
+    }
+    headers << std::endl;
+
+    return headers.str() + body.str();
 }
 
 std::string Transpiler::transpile(const std::shared_ptr<Stmt>& stmt) {
@@ -105,35 +111,54 @@ std::any Transpiler::visit(const std::shared_ptr<ScopeExpr>& expr) {
     return transpile(expr->left) + "::" + expr->name.lexeme;
 }
 
+std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
+    needs_functional = true;
+    std::stringstream ss;
+    ss << "[](";
+    for (size_t i = 0; i < expr->params.size(); ++i) {
+        ss << this->transpileType(expr->params[i].type) << " " << expr->params[i].name.lexeme;
+        if (i < expr->params.size() - 1) {
+            ss << ", ";
+        }
+    }
+    ss << ")";
+    if (expr->return_type) {
+        ss << " -> " << this->transpileType(expr->return_type);
+    }
+    ss << " " << transpile(expr->body);
+    return ss.str();
+}
+
 // Statement visitors
 std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return transpile(stmt->expression) + ";\n";
 }
 
-std::string transpileType(const std::shared_ptr<Type>& type) {
+std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
     if (type->getKind() == TypeKind::PRIMITIVE) {
         auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
         return primitive->name;
     }
     if (type->getKind() == TypeKind::ARRAY) {
         auto array = std::dynamic_pointer_cast<ArrayType>(type);
-        return "std::vector<" + transpileType(array->element_type) + ">";
+        return "std::vector<" + this->transpileType(array->element_type) + ">";
     }
     if (type->getKind() == TypeKind::ENUM) {
         auto enum_type = std::dynamic_pointer_cast<EnumType>(type);
         return enum_type->name;
     }
     if (type->getKind() == TypeKind::FUNCTION) {
+        needs_functional = true;
         auto func = std::dynamic_pointer_cast<FunctionType>(type);
         std::stringstream ss;
-        ss << transpileType(func->return_type) << "(*)(";
+        ss << "std::function<" << this->transpileType(func->return_type) << "(";
         for (size_t i = 0; i < func->param_types.size(); ++i) {
-            ss << transpileType(func->param_types[i]);
+            ss << this->transpileType(func->param_types[i]);
             if (i < func->param_types.size() - 1) {
                 ss << ", ";
             }
         }
-        ss << ")";
+        ss << ")>";
         return ss.str();
     }
     return "auto";
@@ -142,7 +167,7 @@ std::string transpileType(const std::shared_ptr<Type>& type) {
 std::any Transpiler::visit(const std::shared_ptr<VarStmt>& stmt) {
     std::stringstream ss;
     if (stmt->type) {
-        ss << transpileType(stmt->type) << " " << stmt->name.lexeme;
+        ss << this->transpileType(stmt->type) << " " << stmt->name.lexeme;
     } else {
         ss << "auto " << stmt->name.lexeme;
     }

@@ -201,6 +201,19 @@ std::shared_ptr<Stmt> Parser::enumDeclaration() {
 }
 
 std::shared_ptr<Type> Parser::type() {
+    if (match({TokenType::LEFT_PAREN})) {
+        std::vector<std::shared_ptr<Type>> param_types;
+        if (!check(TokenType::RIGHT_PAREN)) {
+            do {
+                param_types.push_back(type());
+            } while (match({TokenType::COMMA}));
+        }
+        consume(TokenType::RIGHT_PAREN, "Expect ')' after function type parameters.");
+        consume(TokenType::COLON, "Expect ':' after function type parameters.");
+        auto return_type = type();
+        return std::make_shared<FunctionType>(param_types, return_type);
+    }
+
     Token token = consume(TokenType::IDENTIFIER, "Expect type name.");
     auto primitive_type = std::make_shared<PrimitiveType>(token.lexeme);
 
@@ -324,7 +337,7 @@ std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
     return std::make_shared<Call>(callee, paren, arguments);
 }
 
-// primary -> NUMBER | STRING | "true" | "false" | IDENTIFIER | "(" expression ")" | "[" elements? "]"
+// primary -> NUMBER | STRING | "true" | "false" | IDENTIFIER | "(" expression ")" | "[" elements? "]" | lambda
 std::shared_ptr<Expr> Parser::primary() {
     if (match({TokenType::FALSE})) return std::make_shared<Literal>(false);
     if (match({TokenType::TRUE})) return std::make_shared<Literal>(true);
@@ -343,7 +356,35 @@ std::shared_ptr<Expr> Parser::primary() {
         return std::make_shared<Grouping>(expr);
     }
 
+    if (check(TokenType::LEFT_BRACKET) && (current + 1 < tokens.size() && tokens[current + 1].type == TokenType::RIGHT_BRACKET) && (current + 2 < tokens.size() && tokens[current + 2].type == TokenType::LEFT_PAREN)) {
+        // This is a lambda.
+        advance(); // consume '['
+        advance(); // consume ']'
+
+        consume(TokenType::LEFT_PAREN, "Expect '(' after lambda '[]'.");
+        std::vector<Parameter> parameters;
+        if (!check(TokenType::RIGHT_PAREN)) {
+            do {
+                Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
+                consume(TokenType::COLON, "Expect ':' after parameter name.");
+                auto param_type = type();
+                parameters.push_back({param_name, param_type});
+            } while (match({TokenType::COMMA}));
+        }
+        consume(TokenType::RIGHT_PAREN, "Expect ')' after lambda parameters.");
+
+        std::shared_ptr<Type> return_type = nullptr;
+        if (match({TokenType::COLON})) {
+            return_type = type();
+        }
+
+        consume(TokenType::LEFT_BRACE, "Expect '{' before lambda body.");
+        auto body = std::make_shared<BlockStmt>(block());
+        return std::make_shared<LambdaExpr>(parameters, return_type, body);
+    }
+
     if (match({TokenType::LEFT_BRACKET})) {
+        // This is an array literal.
         std::vector<std::shared_ptr<Expr>> elements;
         if (!check(TokenType::RIGHT_BRACKET)) {
             do {
