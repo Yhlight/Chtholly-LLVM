@@ -32,6 +32,37 @@ return a + b;
     ASSERT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(GenericsTest, BasicGenericClass) {
+    std::string source = R"(
+        class Point<T> {
+            public:
+            let x: T;
+            let y: T;
+        }
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(#include <iostream>
+#include <string>
+#include <vector>
+
+template <typename T>
+class Point {
+public:
+T x;
+T y;
+};
+)";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(GenericsTest, GenericFunctionCall) {
     std::string source = R"(
         fn add<T>(a: T, b: T): T {

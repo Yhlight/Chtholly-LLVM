@@ -210,6 +210,13 @@ std::shared_ptr<Stmt> Parser::enumDeclaration() {
 
 std::shared_ptr<Stmt> Parser::classDeclaration() {
     Token name = consume(TokenType::IDENTIFIER, "Expect class name.");
+    std::vector<Token> type_params;
+    if (match({TokenType::LESS})) {
+        do {
+            type_params.push_back(consume(TokenType::IDENTIFIER, "Expect type parameter name."));
+        } while (match({TokenType::COMMA}));
+        consume(TokenType::GREATER, "Expect '>' after type parameters.");
+    }
     consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
 
     std::vector<ClassStmt::ClassMember> members;
@@ -250,7 +257,7 @@ std::shared_ptr<Stmt> Parser::classDeclaration() {
     }
 
     consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
-    return std::make_shared<ClassStmt>(name, members);
+    return std::make_shared<ClassStmt>(name, type_params, members);
 }
 
 std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {

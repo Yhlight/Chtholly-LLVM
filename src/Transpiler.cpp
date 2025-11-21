@@ -338,6 +338,16 @@ std::any Transpiler::visit(const std::shared_ptr<EnumStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
     std::stringstream ss;
+    if (!stmt->type_params.empty()) {
+        ss << "template <";
+        for (size_t i = 0; i < stmt->type_params.size(); ++i) {
+            ss << "typename " << stmt->type_params[i].lexeme;
+            if (i < stmt->type_params.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ">\n";
+    }
     ss << "class " << stmt->name.lexeme << " {\n";
 
     AccessModifier current_access = AccessModifier::PRIVATE; // C++ default

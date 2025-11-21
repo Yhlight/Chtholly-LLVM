@@ -422,14 +422,15 @@ struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
         bool is_static;
     };
 
-    ClassStmt(Token name, std::vector<ClassMember> members)
-        : name(std::move(name)), members(std::move(members)) {}
+    ClassStmt(Token name, std::vector<Token> type_params, std::vector<ClassMember> members)
+        : name(std::move(name)), type_params(std::move(type_params)), members(std::move(members)) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
 
     const Token name;
+    const std::vector<Token> type_params;
     const std::vector<ClassMember> members;
 };
 

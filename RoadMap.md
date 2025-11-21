@@ -44,9 +44,9 @@
   - [X] Constructors and destructors.
   - [X] `public`/`private` access modifiers.
   - [X] `static` members and methods.
-- [ ] **Generics:**
+- [X] **Generics:**
   - [X] Generic functions.
-  - [ ] Generic classes.
+  - [X] Generic classes.
 
 ## Phase 3: Module System and Standard Library
 

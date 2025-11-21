@@ -185,6 +185,16 @@ std::any ASTPrinter::visit(const std::shared_ptr<VarStmt>& stmt) {
 std::any ASTPrinter::visit(const std::shared_ptr<ClassStmt>& stmt) {
     std::stringstream ss;
     ss << "(class " << stmt->name.lexeme;
+    if (!stmt->type_params.empty()) {
+        ss << "<";
+        for (size_t i = 0; i < stmt->type_params.size(); ++i) {
+            ss << stmt->type_params[i].lexeme;
+            if (i < stmt->type_params.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ">";
+    }
     for (const auto& member : stmt->members) {
         ss << " " << (member.access == AccessModifier::PUBLIC ? "public" : "private");
         ss << (member.is_static ? " static" : "");
