@@ -23,6 +23,7 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse() {
 
 std::shared_ptr<Stmt> Parser::declaration() {
     try {
+        if (match({TokenType::ENUM})) return enumDeclaration();
         if (match({TokenType::FN})) return function("function");
         if (match({TokenType::LET, TokenType::MUT})) return varDeclaration();
         return statement();
@@ -186,6 +187,19 @@ std::shared_ptr<Stmt> Parser::switchStatement() {
     return std::make_shared<SwitchStmt>(expression, cases);
 }
 
+std::shared_ptr<Stmt> Parser::enumDeclaration() {
+    Token name = consume(TokenType::IDENTIFIER, "Expect enum name.");
+    consume(TokenType::LEFT_BRACE, "Expect '{' before enum body.");
+    std::vector<Token> members;
+    if (!check(TokenType::RIGHT_BRACE)) {
+        do {
+            members.push_back(consume(TokenType::IDENTIFIER, "Expect enum member name."));
+        } while (match({TokenType::COMMA}));
+    }
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after enum body.");
+    return std::make_shared<EnumStmt>(name, members);
+}
+
 std::shared_ptr<Type> Parser::type() {
     Token token = consume(TokenType::IDENTIFIER, "Expect type name.");
     auto primitive_type = std::make_shared<PrimitiveType>(token.lexeme);
@@ -276,7 +290,7 @@ std::shared_ptr<Expr> Parser::unary() {
     return call();
 }
 
-// call -> primary ( "(" arguments? ")" | "[" expression "]" )*
+// call -> primary ( "(" arguments? ")" | "[" expression "]" | "::" IDENTIFIER )*
 std::shared_ptr<Expr> Parser::call() {
     auto expr = primary();
     while (true) {
@@ -286,6 +300,9 @@ std::shared_ptr<Expr> Parser::call() {
             auto index = expression();
             consume(TokenType::RIGHT_BRACKET, "Expect ']' after subscript index.");
             expr = std::make_shared<SubscriptExpr>(expr, index);
+        } else if (match({TokenType::COLON_COLON})) {
+            Token name = consume(TokenType::IDENTIFIER, "Expect identifier after '::'.");
+            expr = std::make_shared<ScopeExpr>(expr, name);
         } else {
             break;
         }

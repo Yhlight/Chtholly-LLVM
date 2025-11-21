@@ -35,7 +35,7 @@
   - [X] `switch` statements.
 - [X] **Data Structures:**
   - [X] Arrays (static and dynamic).
-  - [ ] Enums.
+  - [X] Enums.
 - [ ] **Functions:**
   - [ ] Lambda functions.
   - [ ] Function types.

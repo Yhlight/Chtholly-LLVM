@@ -172,3 +172,15 @@ TEST(ParserTest, ArrayDeclaration) {
     std::string result = printer.print(stmts);
     EXPECT_EQ(result, "(var a : int[] (array 1 2 3))\n(expr_stmt (= (subscript a 0) 10))\n");
 }
+
+TEST(ParserTest, EnumDeclaration) {
+    std::string source = "enum Color { RED, GREEN, BLUE } let c: Color = Color::RED;";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 2);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(enum Color RED GREEN BLUE)\n(var c : Color (:: Color RED))\n");
+}

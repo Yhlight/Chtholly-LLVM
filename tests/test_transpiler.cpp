@@ -35,6 +35,44 @@ TEST(TranspilerTest, SimpleMain) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(TranspilerTest, EnumDeclaration) {
+    std::string source = R"(
+        enum Color {
+            RED,
+            GREEN,
+            BLUE
+        }
+
+        fn main() {
+            let c: Color = Color::RED;
+            return 0;
+        }
+    )";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler;
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <iostream>
+        #include <string>
+        #include <vector>
+
+        enum class Color {
+            RED,
+            GREEN,
+            BLUE
+        };
+
+        int main(int argc, char* argv[]) {
+            Color c = Color::RED;
+            return 0;
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(TranspilerTest, ArrayDeclaration) {
     std::string source = "fn main() { let a: int[] = [1, 2, 3]; a[0] = 10; return a[0]; }";
     Lexer lexer(source);
