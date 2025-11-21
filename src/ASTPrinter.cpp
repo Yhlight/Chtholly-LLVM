@@ -135,6 +135,18 @@ std::any ASTPrinter::visit(const std::shared_ptr<LambdaExpr>& expr) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<GetExpr>& expr) {
+    return parenthesize("get " + expr->name.lexeme, expr->object);
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<SetExpr>& expr) {
+    return parenthesize("set " + expr->name.lexeme, expr->object, expr->value);
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<ThisExpr>& expr) {
+    return std::string("this");
+}
+
 
 // Statement visitors
 std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
@@ -149,6 +161,18 @@ std::any ASTPrinter::visit(const std::shared_ptr<VarStmt>& stmt) {
     }
     if (stmt->initializer) {
         ss << " " << print(stmt->initializer);
+    }
+    ss << ")";
+    return ss.str();
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<ClassStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(class " << stmt->name.lexeme;
+    for (const auto& member : stmt->members) {
+        ss << " " << (member.access == AccessModifier::PUBLIC ? "public" : "private");
+        ss << (member.is_static ? " static" : "");
+        ss << " " << print(member.declaration);
     }
     ss << ")";
     return ss.str();

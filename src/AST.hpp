@@ -22,6 +22,9 @@ struct ArrayLiteral;
 struct SubscriptExpr;
 struct ScopeExpr;
 struct LambdaExpr;
+struct GetExpr;
+struct SetExpr;
+struct ThisExpr;
 struct ExpressionStmt;
 struct VarStmt;
 struct BlockStmt;
@@ -34,6 +37,7 @@ struct SwitchStmt;
 struct BreakStmt;
 struct FallthroughStmt;
 struct EnumStmt;
+struct ClassStmt;
 struct Expr;
 struct Stmt;
 
@@ -51,6 +55,9 @@ struct ExprVisitor {
     virtual R visit(const std::shared_ptr<SubscriptExpr>& expr) = 0;
     virtual R visit(const std::shared_ptr<ScopeExpr>& expr) = 0;
     virtual R visit(const std::shared_ptr<LambdaExpr>& expr) = 0;
+    virtual R visit(const std::shared_ptr<GetExpr>& expr) = 0;
+    virtual R visit(const std::shared_ptr<SetExpr>& expr) = 0;
+    virtual R visit(const std::shared_ptr<ThisExpr>& expr) = 0;
     virtual ~ExprVisitor() = default;
 };
 
@@ -68,6 +75,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<BreakStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<FallthroughStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<EnumStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<ClassStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
 };
 
@@ -214,6 +222,47 @@ struct LambdaExpr : Expr, public std::enable_shared_from_this<LambdaExpr> {
     const std::shared_ptr<Type> return_type;
     const std::shared_ptr<BlockStmt> body;
 };
+
+enum class AccessModifier {
+    PUBLIC,
+    PRIVATE
+};
+
+struct GetExpr : Expr, public std::enable_shared_from_this<GetExpr> {
+    GetExpr(std::shared_ptr<Expr> object, Token name)
+        : object(std::move(object)), name(std::move(name)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> object;
+    const Token name;
+};
+
+struct SetExpr : Expr, public std::enable_shared_from_this<SetExpr> {
+    SetExpr(std::shared_ptr<Expr> object, Token name, std::shared_ptr<Expr> value)
+        : object(std::move(object)), name(std::move(name)), value(std::move(value)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Expr> object;
+    const Token name;
+    const std::shared_ptr<Expr> value;
+};
+
+struct ThisExpr : Expr, public std::enable_shared_from_this<ThisExpr> {
+    ThisExpr(Token keyword) : keyword(std::move(keyword)) {}
+
+    std::any accept(ExprVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token keyword;
+};
+
 
 // Concrete statement classes
 struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt> {
@@ -362,6 +411,24 @@ struct EnumStmt : Stmt, public std::enable_shared_from_this<EnumStmt> {
 
     const Token name;
     const std::vector<Token> members;
+};
+
+struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
+    struct ClassMember {
+        std::shared_ptr<Stmt> declaration;
+        AccessModifier access;
+        bool is_static;
+    };
+
+    ClassStmt(Token name, std::vector<ClassMember> members)
+        : name(std::move(name)), members(std::move(members)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token name;
+    const std::vector<ClassMember> members;
 };
 
 } // namespace chtholly

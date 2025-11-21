@@ -129,6 +129,18 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
     return ss.str();
 }
 
+std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
+    return transpile(expr->object) + "." + expr->name.lexeme;
+}
+
+std::any Transpiler::visit(const std::shared_ptr<SetExpr>& expr) {
+    return transpile(expr->object) + "." + expr->name.lexeme + " = " + transpile(expr->value);
+}
+
+std::any Transpiler::visit(const std::shared_ptr<ThisExpr>& expr) {
+    return std::string("this");
+}
+
 // Statement visitors
 std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return transpile(stmt->expression) + ";\n";
@@ -293,6 +305,62 @@ std::any Transpiler::visit(const std::shared_ptr<EnumStmt>& stmt) {
         }
     }
     ss << "\n};\n";
+    return ss.str();
+}
+
+std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
+    std::stringstream ss;
+    ss << "class " << stmt->name.lexeme << " {\n";
+
+    AccessModifier current_access = AccessModifier::PRIVATE; // C++ default
+    bool first_member = true;
+
+    for (const auto& member : stmt->members) {
+        if (first_member) {
+            current_access = member.access;
+            ss << (current_access == AccessModifier::PUBLIC ? "public:\n" : "private:\n");
+            first_member = false;
+        } else if (member.access != current_access) {
+            current_access = member.access;
+            ss << (current_access == AccessModifier::PUBLIC ? "public:\n" : "private:\n");
+        }
+
+        std::string static_keyword = member.is_static ? "static " : "";
+
+        if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
+            // Constructor
+            if (func_stmt->name.lexeme == stmt->name.lexeme) {
+                ss << static_keyword << func_stmt->name.lexeme << "(";
+                 for (size_t i = 0; i < func_stmt->params.size(); ++i) {
+                    ss << transpileType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
+                    if (i < func_stmt->params.size() - 1) ss << ", ";
+                }
+                ss << ") " << transpile(func_stmt->body);
+            }
+            // Destructor
+            else if (func_stmt->name.lexeme[0] == '~' && func_stmt->name.lexeme.substr(1) == stmt->name.lexeme) {
+                 ss << static_keyword << func_stmt->name.lexeme << "() " << transpile(func_stmt->body);
+            }
+            // Regular method
+            else {
+                 ss << static_keyword << transpile(member.declaration);
+            }
+        } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
+            ss << static_keyword;
+            if (var_stmt->type) {
+                ss << transpileType(var_stmt->type) << " " << var_stmt->name.lexeme;
+            } else {
+                ss << "auto " << var_stmt->name.lexeme;
+            }
+
+            if (var_stmt->initializer) {
+                ss << " = " << transpile(var_stmt->initializer);
+            }
+            ss << ";\n";
+        }
+    }
+
+    ss << "};\n";
     return ss.str();
 }
 

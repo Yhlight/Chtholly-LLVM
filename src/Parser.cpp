@@ -23,6 +23,7 @@ std::vector<std::shared_ptr<Stmt>> Parser::parse() {
 
 std::shared_ptr<Stmt> Parser::declaration() {
     try {
+        if (match({TokenType::CLASS})) return classDeclaration();
         if (match({TokenType::ENUM})) return enumDeclaration();
         if (match({TokenType::FN})) return function("function");
         if (match({TokenType::LET, TokenType::MUT})) return varDeclaration();
@@ -200,6 +201,79 @@ std::shared_ptr<Stmt> Parser::enumDeclaration() {
     return std::make_shared<EnumStmt>(name, members);
 }
 
+std::shared_ptr<Stmt> Parser::classDeclaration() {
+    Token name = consume(TokenType::IDENTIFIER, "Expect class name.");
+    consume(TokenType::LEFT_BRACE, "Expect '{' before class body.");
+
+    std::vector<ClassStmt::ClassMember> members;
+    AccessModifier current_access = AccessModifier::PUBLIC; // Default access
+    bool is_static = false;
+
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+        if (match({TokenType::PUBLIC})) {
+            consume(TokenType::COLON, "Expect ':' after 'public'.");
+            current_access = AccessModifier::PUBLIC;
+            continue;
+        }
+        if (match({TokenType::PRIVATE})) {
+            consume(TokenType::COLON, "Expect ':' after 'private'.");
+            current_access = AccessModifier::PRIVATE;
+            continue;
+        }
+
+        if (match({TokenType::STATIC})) {
+            is_static = true;
+        }
+
+        std::shared_ptr<Stmt> member_decl;
+        if (match({TokenType::FN})) {
+            member_decl = function("method");
+        } else if (check(TokenType::IDENTIFIER) && peek().lexeme == name.lexeme) {
+            member_decl = constructorOrDestructorDeclaration();
+        } else if (check(TokenType::TILDE)) {
+            member_decl = constructorOrDestructorDeclaration();
+        } else if (match({TokenType::LET, TokenType::MUT})) {
+            member_decl = varDeclaration();
+        } else {
+            throw ParseError("Expect method or field declaration in class.");
+        }
+
+        members.push_back({member_decl, current_access, is_static});
+        is_static = false; // Reset for the next member
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
+    return std::make_shared<ClassStmt>(name, members);
+}
+
+std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {
+    Token name;
+    if (peek().type == TokenType::TILDE) {
+        Token tilde = advance();
+        Token identifier = consume(TokenType::IDENTIFIER, "Expect class name after '~'.");
+        name = Token{TokenType::IDENTIFIER, tilde.lexeme + identifier.lexeme, {}, tilde.line};
+    } else {
+        name = advance(); // Consume the identifier for constructor
+    }
+
+    consume(TokenType::LEFT_PAREN, "Expect '(' after constructor/destructor name.");
+    std::vector<Parameter> parameters;
+    if (!check(TokenType::RIGHT_PAREN)) {
+        do {
+            Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
+            consume(TokenType::COLON, "Expect ':' after parameter name.");
+            auto param_type = type();
+            parameters.push_back({param_name, param_type});
+        } while (match({TokenType::COMMA}));
+    }
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after parameters.");
+
+    consume(TokenType::LEFT_BRACE, "Expect '{' before constructor/destructor body.");
+    auto body = std::make_shared<BlockStmt>(block());
+    return std::make_shared<FunctionStmt>(name, parameters, nullptr, body);
+}
+
+
 std::shared_ptr<Type> Parser::type() {
     if (match({TokenType::LEFT_PAREN})) {
         std::vector<std::shared_ptr<Type>> param_types;
@@ -239,8 +313,12 @@ std::shared_ptr<Expr> Parser::assignment() {
         Token equals = previous();
         auto value = assignment();
 
-        if (std::dynamic_pointer_cast<Variable>(expr) || std::dynamic_pointer_cast<SubscriptExpr>(expr)) {
+        if (auto var_expr = std::dynamic_pointer_cast<Variable>(expr)) {
             return std::make_shared<Assign>(expr, value);
+        } else if (auto get_expr = std::dynamic_pointer_cast<GetExpr>(expr)) {
+            return std::make_shared<SetExpr>(get_expr->object, get_expr->name, value);
+        } else if (auto subscript_expr = std::dynamic_pointer_cast<SubscriptExpr>(expr)) {
+             return std::make_shared<Assign>(expr, value);
         }
 
         // error(equals, "Invalid assignment target.");
@@ -303,7 +381,7 @@ std::shared_ptr<Expr> Parser::unary() {
     return call();
 }
 
-// call -> primary ( "(" arguments? ")" | "[" expression "]" | "::" IDENTIFIER )*
+// call -> primary ( "(" arguments? ")" | "[" expression "]" | "::" IDENTIFIER | "." IDENTIFIER )*
 std::shared_ptr<Expr> Parser::call() {
     auto expr = primary();
     while (true) {
@@ -316,6 +394,9 @@ std::shared_ptr<Expr> Parser::call() {
         } else if (match({TokenType::COLON_COLON})) {
             Token name = consume(TokenType::IDENTIFIER, "Expect identifier after '::'.");
             expr = std::make_shared<ScopeExpr>(expr, name);
+        } else if (match({TokenType::DOT})) {
+            Token name = consume(TokenType::IDENTIFIER, "Expect property name after '.'.");
+            expr = std::make_shared<GetExpr>(expr, name);
         } else {
             break;
         }
@@ -337,10 +418,11 @@ std::shared_ptr<Expr> Parser::finishCall(std::shared_ptr<Expr> callee) {
     return std::make_shared<Call>(callee, paren, arguments);
 }
 
-// primary -> NUMBER | STRING | "true" | "false" | IDENTIFIER | "(" expression ")" | "[" elements? "]" | lambda
+// primary -> NUMBER | STRING | "true" | "false" | "this" | IDENTIFIER | "(" expression ")" | "[" elements? "]" | lambda
 std::shared_ptr<Expr> Parser::primary() {
     if (match({TokenType::FALSE})) return std::make_shared<Literal>(false);
     if (match({TokenType::TRUE})) return std::make_shared<Literal>(true);
+    if (match({TokenType::THIS})) return std::make_shared<ThisExpr>(previous());
 
     if (match({TokenType::NUMBER_INT, TokenType::NUMBER_FLOAT, TokenType::STRING})) {
         return std::make_shared<Literal>(previous().literal);
