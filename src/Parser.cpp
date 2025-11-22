@@ -362,9 +362,9 @@ std::shared_ptr<Expr> Parser::expression() {
     return assignment();
 }
 
-// assignment -> ( call "." )? IDENTIFIER "=" assignment | equality
+// assignment -> logical_or ( "=" assignment )?
 std::shared_ptr<Expr> Parser::assignment() {
-    auto expr = equality();
+    auto expr = logical_or();
 
     if (match({TokenType::EQUAL})) {
         Token equals = previous();
@@ -384,6 +384,61 @@ std::shared_ptr<Expr> Parser::assignment() {
     return expr;
 }
 
+// logical_or -> logical_and ( "||" logical_and )*
+std::shared_ptr<Expr> Parser::logical_or() {
+    auto expr = logical_and();
+    while (match({TokenType::PIPE_PIPE})) {
+        Token op = previous();
+        auto right = logical_and();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+// logical_and -> bitwise_or ( "&&" bitwise_or )*
+std::shared_ptr<Expr> Parser::logical_and() {
+    auto expr = bitwise_or();
+    while (match({TokenType::AMPERSAND_AMPERSAND})) {
+        Token op = previous();
+        auto right = bitwise_or();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+// bitwise_or -> bitwise_xor ( "|" bitwise_xor )*
+std::shared_ptr<Expr> Parser::bitwise_or() {
+    auto expr = bitwise_xor();
+    while (match({TokenType::PIPE})) {
+        Token op = previous();
+        auto right = bitwise_xor();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+// bitwise_xor -> bitwise_and ( "^" bitwise_and )*
+std::shared_ptr<Expr> Parser::bitwise_xor() {
+    auto expr = bitwise_and();
+    while (match({TokenType::CARET})) {
+        Token op = previous();
+        auto right = bitwise_and();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+// bitwise_and -> equality ( "&" equality )*
+std::shared_ptr<Expr> Parser::bitwise_and() {
+    auto expr = equality();
+    while (match({TokenType::AMPERSAND})) {
+        Token op = previous();
+        auto right = equality();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
 // equality -> comparison ( ( "!=" | "==" ) comparison )*
 std::shared_ptr<Expr> Parser::equality() {
     auto expr = comparison();
@@ -395,10 +450,21 @@ std::shared_ptr<Expr> Parser::equality() {
     return expr;
 }
 
-// comparison -> term ( ( ">" | ">=" | "<" | "<=" ) term )*
+// comparison -> shift ( ( ">" | ">=" | "<" | "<=" ) shift )*
 std::shared_ptr<Expr> Parser::comparison() {
-    auto expr = term();
+    auto expr = shift();
     while (match({TokenType::GREATER, TokenType::GREATER_EQUAL, TokenType::LESS, TokenType::LESS_EQUAL})) {
+        Token op = previous();
+        auto right = shift();
+        expr = std::make_shared<Binary>(expr, op, right);
+    }
+    return expr;
+}
+
+// shift -> term ( ( "<<" | ">>" ) term )*
+std::shared_ptr<Expr> Parser::shift() {
+    auto expr = term();
+    while (match({TokenType::LESS_LESS, TokenType::GREATER_GREATER})) {
         Token op = previous();
         auto right = term();
         expr = std::make_shared<Binary>(expr, op, right);
@@ -428,9 +494,9 @@ std::shared_ptr<Expr> Parser::factor() {
     return expr;
 }
 
-// unary -> ( "!" | "-" ) unary | call
+// unary -> ( "!" | "-" | "~" ) unary | call
 std::shared_ptr<Expr> Parser::unary() {
-    if (match({TokenType::BANG, TokenType::MINUS})) {
+    if (match({TokenType::BANG, TokenType::MINUS, TokenType::TILDE})) {
         Token op = previous();
         auto right = unary();
         return std::make_shared<Unary>(op, right);

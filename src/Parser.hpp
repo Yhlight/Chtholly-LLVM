@@ -16,8 +16,14 @@ public:
 private:
     std::shared_ptr<Expr> expression();
     std::shared_ptr<Expr> assignment();
+    std::shared_ptr<Expr> logical_or();
+    std::shared_ptr<Expr> logical_and();
+    std::shared_ptr<Expr> bitwise_or();
+    std::shared_ptr<Expr> bitwise_xor();
+    std::shared_ptr<Expr> bitwise_and();
     std::shared_ptr<Expr> equality();
     std::shared_ptr<Expr> comparison();
+    std::shared_ptr<Expr> shift();
     std::shared_ptr<Expr> term();
     std::shared_ptr<Expr> factor();
     std::shared_ptr<Expr> unary();
