@@ -143,6 +143,21 @@ std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
     if (expr->name.lexeme == "at") {
         return std::string(transpile(expr->object) + ".at");
     }
+    if (is_in_static_method) {
+        if (auto var_expr = std::dynamic_pointer_cast<Variable>(expr->object)) {
+             // Accessing a member through class name (e.g., MyClass.staticMember)
+            if (member_static_status.count(expr->name.lexeme) && !member_static_status.at(expr->name.lexeme)) {
+                throw std::runtime_error("Cannot access instance member '" + expr->name.lexeme + "' from a static method.");
+            }
+        }
+    } else {
+         if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
+            if (member_static_status.count(expr->name.lexeme) && member_static_status.at(expr->name.lexeme)) {
+                // This is an instance method trying to access a static member via `this`
+                // This is allowed, but might be better to enforce access via class name
+            }
+        }
+    }
     if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
         return std::string(transpile(expr->object) + "->" + expr->name.lexeme);
     }
@@ -156,10 +171,21 @@ std::any Transpiler::visit(const std::shared_ptr<SetExpr>& expr) {
         }
         return std::string(transpile(expr->object) + "->" + expr->name.lexeme + " = " + transpile(expr->value));
     }
+    if (auto var_expr = std::dynamic_pointer_cast<Variable>(expr->object)) {
+        if (member_static_status.count(expr->name.lexeme) && member_static_status.at(expr->name.lexeme)) {
+            if (member_mutability.count(expr->name.lexeme) && !member_mutability.at(expr->name.lexeme)) {
+                throw std::runtime_error("Cannot assign to immutable static member '" + expr->name.lexeme + "'.");
+            }
+            return std::string(transpile(expr->object) + "::" + expr->name.lexeme + " = " + transpile(expr->value));
+        }
+    }
     return std::string(transpile(expr->object) + "." + expr->name.lexeme + " = " + transpile(expr->value));
 }
 
 std::any Transpiler::visit(const std::shared_ptr<ThisExpr>& expr) {
+    if (is_in_static_method) {
+        throw std::runtime_error("Cannot use 'this' in a static method.");
+    }
     return std::string("this");
 }
 
@@ -466,6 +492,7 @@ std::any Transpiler::visit(const std::shared_ptr<EnumStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
     member_mutability.clear();
+    member_static_status.clear();
     std::stringstream ss;
     if (!stmt->type_params.empty()) {
         ss << "template <";
@@ -522,6 +549,10 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
         std::string static_keyword = member.is_static ? "static " : "";
 
         if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
+            bool was_in_static_method = is_in_static_method;
+            is_in_static_method = member.is_static;
+            member_static_status[func_stmt->name.lexeme] = member.is_static;
+
             // Constructor
             if (func_stmt->name.lexeme == stmt->name.lexeme) {
                 ss << static_keyword << func_stmt->name.lexeme << "(";
@@ -584,8 +615,10 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
                 }
                 ss << ") " << transpile(func_stmt->body);
             }
+            is_in_static_method = was_in_static_method;
         } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
             member_mutability[var_stmt->name.lexeme] = var_stmt->is_mutable;
+            member_static_status[var_stmt->name.lexeme] = member.is_static;
             ss << (member.is_static ? "inline static " : "") ;
             const std::string qualifier = var_stmt->is_mutable ? "" : "const ";
             ss << qualifier;

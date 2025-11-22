@@ -37,3 +37,24 @@ return t.immutable_member;
 )";
     ASSERT_EQ(normalize(result), normalize(expected));
 }
+
+TEST(ClassMembersTest, InvalidLetReassignment) {
+    std::string source = R"(
+        class Test {
+        public:
+            let immutable_member: int = 1;
+
+            fn reassign() {
+                this.immutable_member = 50;
+            }
+        }
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("");
+    ASSERT_THROW(transpiler.transpile(stmts), std::runtime_error);
+}

@@ -66,6 +66,8 @@ private:
     std::set<std::string> required_headers;
     Stdlib stdlib;
     std::map<std::string, bool> member_mutability;
+    bool is_in_static_method = false;
+    std::map<std::string, bool> member_static_status;
 };
 
 } // namespace chtholly

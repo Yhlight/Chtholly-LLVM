@@ -429,6 +429,8 @@ std::shared_ptr<Expr> Parser::assignment() {
             return std::make_shared<Assign>(expr, value);
         } else if (auto get_expr = std::dynamic_pointer_cast<GetExpr>(expr)) {
             return std::make_shared<SetExpr>(get_expr->object, get_expr->name, value);
+        } else if (auto scope_expr = std::dynamic_pointer_cast<ScopeExpr>(expr)) {
+            return std::make_shared<SetExpr>(scope_expr->left, scope_expr->name, value);
         } else if (auto subscript_expr = std::dynamic_pointer_cast<SubscriptExpr>(expr)) {
              return std::make_shared<Assign>(expr, value);
         }
