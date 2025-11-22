@@ -560,6 +560,20 @@ The `math` module provides a collection of mathematical functions.
 - `log10(n: double): double`: Returns the base-10 logarithm of a number.
 - `exp(n: double): double`: Returns e raised to the power of a number.
 
+#### `console` Module
+The `console` module provides functions for manipulating the console.
+- `set_color(color: ConsoleColor)`: Sets the foreground text color.
+- `reset_color()`: Resets the text color to the default.
+- `clear()`: Clears the console screen.
+
+The `ConsoleColor` enum has the following values:
+- `Red`
+- `Green`
+- `Blue`
+- `Yellow`
+- `White`
+- `Black`
+
 ### 创建模块的最佳实践
 我们建议模块使用对象式而不是函数式  
 

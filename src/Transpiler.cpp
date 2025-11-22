@@ -768,10 +768,11 @@ std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
                 for (const auto& header : module->headers) {
                     required_headers.insert(header);
                 }
+
                 if (!stmt->symbol.lexeme.empty()) {
-                    return module->source + "using " + stmt->path.lexeme + "::" + stmt->symbol.lexeme + ";\n";
+                    return "namespace " + stmt->path.lexeme + " {\n" + module->source + "}\n" + "using " + stmt->path.lexeme + "::" + stmt->symbol.lexeme + ";\n";
                 }
-                return module->source;
+                return "namespace " + stmt->path.lexeme + " {\n" + module->source + "}\n";
             }
         }
         throw std::runtime_error("Standard library module not found: " + stmt->path.lexeme);

@@ -5,7 +5,6 @@ namespace chtholly::stdlib {
 StdlibModule get_math_module() {
     return {
         R"(
-namespace math {
     double sqrt(double n) {
         return std::sqrt(n);
     }
@@ -53,7 +52,6 @@ namespace math {
     double exp(double n) {
         return std::exp(n);
     }
-}
 )",
         {"cmath"}
     };

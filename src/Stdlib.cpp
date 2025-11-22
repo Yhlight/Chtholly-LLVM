@@ -1,7 +1,9 @@
 #include "Stdlib.hpp"
+#include "Stdlib.hpp"
 #include "stdlib/iostream.hpp"
 #include "stdlib/string.hpp"
 #include "stdlib/math.hpp"
+#include "stdlib/console.hpp"
 
 namespace chtholly {
 
@@ -13,6 +15,7 @@ void Stdlib::initialize_modules() {
     modules["iostream"] = stdlib::get_iostream_module;
     modules["string"] = stdlib::get_string_module;
     modules["math"] = stdlib::get_math_module;
+    modules["console"] = stdlib::get_console_module;
     // Add other standard library modules here in the future
 }
 

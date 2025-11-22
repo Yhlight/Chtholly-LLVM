@@ -82,3 +82,8 @@
 
 - [X] **Chtholly.md Implementation Complete:**
     - [X] All features specified in `Chtholly.md` are now implemented and tested.
+
+## Phase 6: Standard Library Expansion
+
+- [ ] **Console Module:**
+    - [ ] Implement `console` module for cross-platform terminal manipulation.

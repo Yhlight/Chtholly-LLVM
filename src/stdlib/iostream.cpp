@@ -5,7 +5,6 @@ namespace chtholly::stdlib {
 StdlibModule get_iostream_module() {
     return {
         R"(
-namespace iostream {
     template<typename T>
     void print(const T& msg) {
         std::cout << msg;
@@ -15,7 +14,6 @@ namespace iostream {
     void println(const T& msg) {
         std::cout << msg << std::endl;
     }
-}
 )",
         {"iostream"}
     };
