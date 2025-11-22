@@ -381,6 +381,16 @@ std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
 
     if (stmt->name.lexeme == "main") {
         ss << "int main(int argc, char* argv[]) ";
+        std::stringstream body_ss;
+        body_ss << "{\n";
+        if (!stmt->params.empty()) {
+            body_ss << "std::vector<std::string> " << stmt->params[0].name.lexeme << "(argv, argv + argc);\n";
+        }
+        for (const auto& statement : stmt->body->statements) {
+            body_ss << transpile(statement);
+        }
+        body_ss << "}\n";
+        ss << body_ss.str();
     } else {
         ss << transpileType(stmt->return_type) << " ";
         ss << stmt->name.lexeme << "(";
@@ -391,8 +401,8 @@ std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
             }
         }
         ss << ") ";
+        ss << transpile(stmt->body);
     }
-    ss << transpile(stmt->body);
     return ss.str();
 }
 
