@@ -331,6 +331,12 @@ std::any Transpiler::visit(const std::shared_ptr<WhileStmt>& stmt) {
     return ss.str();
 }
 
+std::any Transpiler::visit(const std::shared_ptr<DoWhileStmt>& stmt) {
+    std::stringstream ss;
+    ss << "do " << transpile(stmt->body) << " while (" << transpile(stmt->condition) << ");\n";
+    return ss.str();
+}
+
 std::any Transpiler::visit(const std::shared_ptr<ForStmt>& stmt) {
     std::stringstream ss;
     ss << "for (";

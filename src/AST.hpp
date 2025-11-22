@@ -34,6 +34,7 @@ struct ReturnStmt;
 struct IfStmt;
 struct WhileStmt;
 struct ForStmt;
+struct DoWhileStmt;
 struct SwitchStmt;
 struct BreakStmt;
 struct FallthroughStmt;
@@ -75,6 +76,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<IfStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<WhileStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ForStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<DoWhileStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<SwitchStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<BreakStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<FallthroughStmt>& stmt) = 0;
@@ -384,6 +386,18 @@ struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
     const std::shared_ptr<Expr> condition;
     const std::shared_ptr<Expr> increment;
     const std::shared_ptr<Stmt> body;
+};
+
+struct DoWhileStmt : Stmt, public std::enable_shared_from_this<DoWhileStmt> {
+    DoWhileStmt(std::shared_ptr<Stmt> body, std::shared_ptr<Expr> condition)
+        : body(std::move(body)), condition(std::move(condition)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Stmt> body;
+    const std::shared_ptr<Expr> condition;
 };
 
 struct Case {

@@ -280,6 +280,12 @@ std::any ASTPrinter::visit(const std::shared_ptr<WhileStmt>& stmt) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<DoWhileStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(do " << print(stmt->body) << " " << print(stmt->condition) << ")";
+    return ss.str();
+}
+
 std::any ASTPrinter::visit(const std::shared_ptr<ForStmt>& stmt) {
     std::stringstream ss;
     ss << "(for " << print(stmt->initializer) << " " << print(stmt->condition) << " " << print(stmt->increment) << " " << print(stmt->body) << ")";

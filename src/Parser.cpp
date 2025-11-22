@@ -40,6 +40,7 @@ std::shared_ptr<Stmt> Parser::statement() {
     if (match({TokenType::SWITCH})) return switchStatement();
     if (match({TokenType::FOR})) return forStatement();
     if (match({TokenType::WHILE})) return whileStatement();
+    if (match({TokenType::DO})) return doWhileStatement();
     if (match({TokenType::IF})) return ifStatement();
     if (match({TokenType::RETURN})) return returnStatement();
     if (match({TokenType::BREAK})) {
@@ -151,6 +152,16 @@ std::shared_ptr<Stmt> Parser::whileStatement() {
     consume(TokenType::RIGHT_PAREN, "Expect ')' after while condition.");
     auto body = statement();
     return std::make_shared<WhileStmt>(condition, body);
+}
+
+std::shared_ptr<Stmt> Parser::doWhileStatement() {
+    auto body = statement();
+    consume(TokenType::WHILE, "Expect 'while' after do-while body.");
+    consume(TokenType::LEFT_PAREN, "Expect '(' after 'while'.");
+    auto condition = expression();
+    consume(TokenType::RIGHT_PAREN, "Expect ')' after condition.");
+    consume(TokenType::SEMICOLON, "Expect ';' after do-while condition.");
+    return std::make_shared<DoWhileStmt>(body, condition);
 }
 
 std::shared_ptr<Stmt> Parser::forStatement() {

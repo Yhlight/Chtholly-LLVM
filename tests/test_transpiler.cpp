@@ -229,6 +229,28 @@ TEST(TranspilerTest, ForStatement) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(TranspilerTest, DoWhileStatement) {
+    std::string source = "fn main() { mut i = 0; do { i = i + 1; } while (i < 10); return i; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+        int main(int argc, char* argv[]) {
+            auto i = 0;
+            do {
+                i = i + 1;
+            } while (i < 10);
+            return i;
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(TranspilerTest, WhileStatement) {
     std::string source = "fn main() { mut i = 0; while (i < 10) { i = i + 1; } return i; }";
     Lexer lexer(source);

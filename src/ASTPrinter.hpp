@@ -39,6 +39,7 @@ public:
     std::any visit(const std::shared_ptr<ReturnStmt>& stmt) override;
     std::any visit(const std::shared_ptr<IfStmt>& stmt) override;
     std::any visit(const std::shared_ptr<WhileStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<DoWhileStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ForStmt>& stmt) override;
     std::any visit(const std::shared_ptr<SwitchStmt>& stmt) override;
     std::any visit(const std::shared_ptr<BreakStmt>& stmt) override;
