@@ -3,6 +3,7 @@ add_executable(chtholly_tests
   test_parser.cpp
   test_transpiler.cpp
   test_class.cpp
+  test_class_members.cpp
   test_generics.cpp
   test_module.cpp
   test_stdlib.cpp

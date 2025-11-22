@@ -56,8 +56,8 @@ TEST(GenericsTest, BasicGenericClass) {
 template <typename T>
 class Point {
 public:
-T x;
-T y;
+const T x;
+const T y;
 };
 )";
     ASSERT_EQ(normalize(result), normalize(expected));

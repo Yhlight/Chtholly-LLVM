@@ -150,8 +150,8 @@ let my_func: (int, int): int = add;
 class Test
 {
 private:
-    name: string = "yhlight";  // 可以赋予默认值
-    id: int;
+    let name: string = "yhlight";  // 可以赋予默认值
+    mut id: int;
 
 public:
     fn add(x, y): int
@@ -179,8 +179,8 @@ fn main(args: string[])
 class Test
 {
 private:
-    name: string = "yhlight";
-    id: int;
+    let name: string = "yhlight";
+    mut id: int;
 
 public:
     Test()
@@ -222,7 +222,7 @@ fn test()
 ```Chtholly
 class Test
 {
-    static name: string = "yhlight";
+    static let name: string = "yhlight";
 
     fn static test(name: string): int
     {
@@ -330,8 +330,8 @@ fn add<string>(a: string, b: string): string  // 特例化
 ```Chtholly
 class Point<T>
 {
-    x: T,
-    y: T,
+    let x: T,
+    let y: T,
 
     fn swap(other: &Point<T>)
     {

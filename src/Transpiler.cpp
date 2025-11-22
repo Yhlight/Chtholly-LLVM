@@ -151,6 +151,9 @@ std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
 
 std::any Transpiler::visit(const std::shared_ptr<SetExpr>& expr) {
     if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
+        if (member_mutability.count(expr->name.lexeme) && !member_mutability[expr->name.lexeme]) {
+            throw std::runtime_error("Cannot assign to immutable member '" + expr->name.lexeme + "'.");
+        }
         return std::string(transpile(expr->object) + "->" + expr->name.lexeme + " = " + transpile(expr->value));
     }
     return std::string(transpile(expr->object) + "." + expr->name.lexeme + " = " + transpile(expr->value));
@@ -462,6 +465,7 @@ std::any Transpiler::visit(const std::shared_ptr<EnumStmt>& stmt) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
+    member_mutability.clear();
     std::stringstream ss;
     if (!stmt->type_params.empty()) {
         ss << "template <";
@@ -477,6 +481,30 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
         ss << ">\n";
     }
     ss << "class " << stmt->name.lexeme << " {\n";
+
+    // Pre-scan for const members initialized in constructors
+    std::set<std::string> constructor_initialized_consts;
+    for (const auto& member : stmt->members) {
+        if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
+            if (func_stmt->name.lexeme == stmt->name.lexeme) { // It's a constructor
+                for (const auto& ctor_stmt : func_stmt->body->statements) {
+                    if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStmt>(ctor_stmt)) {
+                        if (auto set_expr = std::dynamic_pointer_cast<SetExpr>(expr_stmt->expression)) {
+                             if (std::dynamic_pointer_cast<ThisExpr>(set_expr->object)) {
+                                for (const auto& m : stmt->members) {
+                                    if (auto var_decl = std::dynamic_pointer_cast<VarStmt>(m.declaration)) {
+                                        if (var_decl->name.lexeme == set_expr->name.lexeme && !var_decl->is_mutable) {
+                                            constructor_initialized_consts.insert(set_expr->name.lexeme);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     AccessModifier current_access = AccessModifier::PRIVATE; // C++ default
     bool first_member = true;
@@ -497,11 +525,51 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
             // Constructor
             if (func_stmt->name.lexeme == stmt->name.lexeme) {
                 ss << static_keyword << func_stmt->name.lexeme << "(";
-                 for (size_t i = 0; i < func_stmt->params.size(); ++i) {
+                for (size_t i = 0; i < func_stmt->params.size(); ++i) {
                     ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
                     if (i < func_stmt->params.size() - 1) ss << ", ";
                 }
-                ss << ") " << transpile(func_stmt->body);
+                ss << ") ";
+
+                // Generate initializer list for const members
+                std::vector<std::string> initializers;
+                std::vector<std::shared_ptr<Stmt>> remaining_stmts;
+                std::set<std::string> const_members;
+
+                for (const auto& member_inner : stmt->members) {
+                    if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member_inner.declaration)) {
+                        if (!var_stmt->is_mutable) {
+                            const_members.insert(var_stmt->name.lexeme);
+                        }
+                    }
+                }
+
+                for (const auto& ctor_stmt : func_stmt->body->statements) {
+                    bool moved = false;
+                    if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStmt>(ctor_stmt)) {
+                        if (auto set_expr = std::dynamic_pointer_cast<SetExpr>(expr_stmt->expression)) {
+                             if (std::dynamic_pointer_cast<ThisExpr>(set_expr->object)) {
+                                if (const_members.count(set_expr->name.lexeme)) {
+                                    initializers.push_back(set_expr->name.lexeme + "(" + transpile(set_expr->value) + ")");
+                                    moved = true;
+                                }
+                            }
+                        }
+                    }
+                    if (!moved) {
+                        remaining_stmts.push_back(ctor_stmt);
+                    }
+                }
+
+                if (!initializers.empty()) {
+                    ss << ": ";
+                    for (size_t i = 0; i < initializers.size(); ++i) {
+                        ss << initializers[i];
+                        if (i < initializers.size() - 1) ss << ", ";
+                    }
+                }
+                auto new_body = std::make_shared<BlockStmt>(remaining_stmts);
+                ss << transpile(new_body);
             }
             // Destructor
             else if (func_stmt->name.lexeme[0] == '~' && func_stmt->name.lexeme.substr(1) == stmt->name.lexeme) {
@@ -517,7 +585,10 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
                 ss << ") " << transpile(func_stmt->body);
             }
         } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
+            member_mutability[var_stmt->name.lexeme] = var_stmt->is_mutable;
             ss << (member.is_static ? "inline static " : "") ;
+            const std::string qualifier = var_stmt->is_mutable ? "" : "const ";
+            ss << qualifier;
             if (var_stmt->type) {
                 ss << transpileType(var_stmt->type) << " " << var_stmt->name.lexeme;
             } else {
@@ -525,7 +596,10 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
             }
 
             if (var_stmt->initializer) {
-                ss << " = " << transpile(var_stmt->initializer);
+                bool is_const_in_ctor = !var_stmt->is_mutable && constructor_initialized_consts.count(var_stmt->name.lexeme);
+                if (!is_const_in_ctor) {
+                    ss << " = " << transpile(var_stmt->initializer);
+                }
             }
             ss << ";\n";
         }

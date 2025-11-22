@@ -1,0 +1,11 @@
+class Test {
+public:
+    let immutable_member: int = 10;
+    mut mutable_member: int = 20;
+}
+
+fn main(args: string[]): int {
+    mut t = Test();
+    t.mutable_member = 30;
+    return t.immutable_member;
+}

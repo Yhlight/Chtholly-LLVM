@@ -32,9 +32,9 @@ TEST(ClassTest, BasicClass) {
 
 class Test {
 public:
-int a = 1;
+const int a = 1;
 private:
-int b = 2;
+const int b = 2;
 auto hello() {
 }
 };
@@ -95,7 +95,7 @@ TEST(ClassTest, PrivateMember) {
 
 class Test {
 private:
-int a = 1;
+const int a = 1;
 };
 )";
     ASSERT_EQ(normalize(result), normalize(expected));
@@ -126,9 +126,8 @@ TEST(ClassTest, Constructor) {
 
 class Test {
 public:
-int a;
-Test(int val) {
-this->a = val;
+const int a;
+Test(int val) : a(val) {
 }
 };
 )";
@@ -157,7 +156,7 @@ TEST(ClassTest, StaticMember) {
 
 class Test {
 public:
-inline static int a = 1;
+inline static const int a = 1;
 };
 )";
     ASSERT_EQ(normalize(result), normalize(expected));

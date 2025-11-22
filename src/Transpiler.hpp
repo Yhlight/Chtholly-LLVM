@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <set>
+#include <map>
 
 namespace chtholly {
 
@@ -64,6 +65,7 @@ private:
     bool needs_functional = false;
     std::set<std::string> required_headers;
     Stdlib stdlib;
+    std::map<std::string, bool> member_mutability;
 };
 
 } // namespace chtholly
