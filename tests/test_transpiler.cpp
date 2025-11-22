@@ -94,6 +94,33 @@ TEST(TranspilerTest, DoWhileStatement) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(TranspilerTest, RangeForStatement) {
+    std::string source = R"(
+        fn main() {
+            let a = [1, 2, 3];
+            for (let i: a) {
+            }
+        }
+    )";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+
+        int main(int argc, char* argv[]) {
+            const auto a = {1, 2, 3};
+            for (const auto& i : a) {
+            }
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(TranspilerTest, StaticArrayDeclaration) {
     std::string source = "fn main() { let a: int[4] = [1, 2, 3, 4]; return a[0]; }";
     Lexer lexer(source);

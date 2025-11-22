@@ -323,6 +323,10 @@ std::any ASTPrinter::visit(const std::shared_ptr<BreakStmt>& stmt) {
     return std::string("(break)");
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<RangeForStmt>& stmt) {
+    return "(for-range)";
+}
+
 std::any ASTPrinter::visit(const std::shared_ptr<FallthroughStmt>& stmt) {
     return std::string("(fallthrough)");
 }

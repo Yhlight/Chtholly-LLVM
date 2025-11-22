@@ -169,6 +169,28 @@ std::shared_ptr<Stmt> Parser::doWhileStatement() {
 std::shared_ptr<Stmt> Parser::forStatement() {
     consume(TokenType::LEFT_PAREN, "Expect '(' after 'for'.");
 
+    int before_initializer = current;
+    // Try to parse a range-based for loop.
+    if ((peek().type == TokenType::LET || peek().type == TokenType::MUT) &&
+        tokens[current + 1].type == TokenType::IDENTIFIER &&
+        tokens[current + 2].type == TokenType::COLON) {
+        try {
+            match({TokenType::LET, TokenType::MUT});
+            bool is_mutable = previous().type == TokenType::MUT;
+            Token name = consume(TokenType::IDENTIFIER, "Expect variable name.");
+            consume(TokenType::COLON, "Expect ':' for range-based for.");
+            auto container = expression();
+            consume(TokenType::RIGHT_PAREN, "Expect ')' after container expression.");
+
+            auto initializer = std::make_shared<VarStmt>(name, nullptr, nullptr, is_mutable);
+            auto body = statement();
+            return std::make_shared<RangeForStmt>(initializer, container, body);
+        } catch (const ParseError& e) {
+            current = before_initializer;
+        }
+    }
+
+    // Fallback to C-style for loop
     std::shared_ptr<Stmt> initializer;
     if (match({TokenType::SEMICOLON})) {
         initializer = nullptr;
