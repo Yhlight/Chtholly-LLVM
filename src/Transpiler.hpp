@@ -53,7 +53,8 @@ private:
     std::string transpile(const std::vector<std::shared_ptr<Stmt>>& statements, bool is_main);
     std::string transpile(const std::shared_ptr<Stmt>& stmt);
     std::string transpile(const std::shared_ptr<Expr>& expr);
-    std::string transpileType(const std::shared_ptr<Type>& type, bool is_param = false);
+    std::string transpileType(const std::shared_ptr<Type>& type);
+    std::string transpileParamType(const std::shared_ptr<Type>& type);
 
     std::set<std::string> included_files;
     std::string current_path;

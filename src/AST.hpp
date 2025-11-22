@@ -101,6 +101,11 @@ struct Parameter {
     std::shared_ptr<Type> type;
 };
 
+struct TypeParameter {
+    Token name;
+    std::shared_ptr<Type> default_type;
+};
+
 // Concrete expression classes
 struct Binary : Expr, public std::enable_shared_from_this<Binary> {
     Binary(std::shared_ptr<Expr> left, Token op, std::shared_ptr<Expr> right)
@@ -323,7 +328,7 @@ struct BlockStmt : Stmt, public std::enable_shared_from_this<BlockStmt> {
 };
 
 struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
-    FunctionStmt(Token name, std::vector<Token> type_params, std::vector<Parameter> params, std::shared_ptr<Type> return_type, std::shared_ptr<BlockStmt> body)
+    FunctionStmt(Token name, std::vector<TypeParameter> type_params, std::vector<Parameter> params, std::shared_ptr<Type> return_type, std::shared_ptr<BlockStmt> body)
         : name(std::move(name)), type_params(std::move(type_params)), params(std::move(params)), return_type(std::move(return_type)), body(std::move(body)) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
@@ -331,7 +336,7 @@ struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
     }
 
     const Token name;
-    const std::vector<Token> type_params;
+    const std::vector<TypeParameter> type_params;
     const std::vector<Parameter> params;
     const std::shared_ptr<Type> return_type;
     const std::shared_ptr<BlockStmt> body;
@@ -455,7 +460,7 @@ struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
         bool is_static;
     };
 
-    ClassStmt(Token name, std::vector<Token> type_params, std::vector<ClassMember> members)
+    ClassStmt(Token name, std::vector<TypeParameter> type_params, std::vector<ClassMember> members)
         : name(std::move(name)), type_params(std::move(type_params)), members(std::move(members)) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
@@ -463,7 +468,7 @@ struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
     }
 
     const Token name;
-    const std::vector<Token> type_params;
+    const std::vector<TypeParameter> type_params;
     const std::vector<ClassMember> members;
 };
 

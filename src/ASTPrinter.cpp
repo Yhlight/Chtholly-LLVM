@@ -12,6 +12,9 @@ std::string printType(const std::shared_ptr<Type>& type) {
     }
     if (type->getKind() == TypeKind::ARRAY) {
         auto array = std::dynamic_pointer_cast<ArrayType>(type);
+        if (array->size.has_value()) {
+            return printType(array->element_type) + "[" + std::to_string(array->size.value()) + "]";
+        }
         return printType(array->element_type) + "[]";
     }
     if (type->getKind() == TypeKind::FUNCTION) {
@@ -207,9 +210,12 @@ std::any ASTPrinter::visit(const std::shared_ptr<ClassStmt>& stmt) {
     std::stringstream ss;
     ss << "(class " << stmt->name.lexeme;
     if (!stmt->type_params.empty()) {
-        ss << "<";
+        ss << " <";
         for (size_t i = 0; i < stmt->type_params.size(); ++i) {
-            ss << stmt->type_params[i].lexeme;
+            ss << stmt->type_params[i].name.lexeme;
+            if (stmt->type_params[i].default_type) {
+                ss << "=" << printType(stmt->type_params[i].default_type);
+            }
             if (i < stmt->type_params.size() - 1) {
                 ss << ", ";
             }
@@ -239,9 +245,12 @@ std::any ASTPrinter::visit(const std::shared_ptr<FunctionStmt>& stmt) {
     std::stringstream ss;
     ss << "(fun " << stmt->name.lexeme;
     if (!stmt->type_params.empty()) {
-        ss << "<";
+        ss << " <";
         for (size_t i = 0; i < stmt->type_params.size(); ++i) {
-            ss << stmt->type_params[i].lexeme;
+            ss << stmt->type_params[i].name.lexeme;
+            if (stmt->type_params[i].default_type) {
+                ss << "=" << printType(stmt->type_params[i].default_type);
+            }
             if (i < stmt->type_params.size() - 1) {
                 ss << ", ";
             }

@@ -208,3 +208,27 @@ TEST(ParserTest, FunctionType) {
     std::string result = printer.print(stmts);
     EXPECT_EQ(result, "(var my_func : (int, int): int add)\n");
 }
+
+TEST(ParserTest, GenericFunctionWithDefaultType) {
+    std::string source = "fn add<T = double>(a: T, b: T): T { return a + b; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(fun add <T=double> (a: T, b: T): T (block (return (+ a b))))\n");
+}
+
+TEST(ParserTest, StaticArrayDeclaration) {
+    std::string source = "let a: int[4] = [1, 2, 3, 4];";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(var a : int[4] (array 1 2 3 4))\n");
+}

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -29,10 +30,12 @@ struct PrimitiveType : public Type {
 };
 
 struct ArrayType : public Type {
-    explicit ArrayType(std::shared_ptr<Type> element_type) : element_type(std::move(element_type)) {}
+    explicit ArrayType(std::shared_ptr<Type> element_type, std::optional<int> size = std::nullopt)
+        : element_type(std::move(element_type)), size(size) {}
     TypeKind getKind() const override { return TypeKind::ARRAY; }
 
     const std::shared_ptr<Type> element_type;
+    const std::optional<int> size;
 };
 
 struct EnumType : public Type {

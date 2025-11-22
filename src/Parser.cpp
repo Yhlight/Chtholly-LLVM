@@ -89,10 +89,15 @@ std::vector<std::shared_ptr<Stmt>> Parser::block() {
 
 std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
     Token name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
-    std::vector<Token> type_params;
+    std::vector<TypeParameter> type_params;
     if (match({TokenType::LESS})) {
         do {
-            type_params.push_back(consume(TokenType::IDENTIFIER, "Expect type parameter name."));
+            Token type_name = consume(TokenType::IDENTIFIER, "Expect type parameter name.");
+            std::shared_ptr<Type> default_type = nullptr;
+            if (match({TokenType::EQUAL})) {
+                default_type = type();
+            }
+            type_params.push_back({type_name, default_type});
         } while (match({TokenType::COMMA}));
         consume(TokenType::GREATER, "Expect '>' after type parameters.");
     }
@@ -224,10 +229,15 @@ std::shared_ptr<Stmt> Parser::enumDeclaration() {
 
 std::shared_ptr<Stmt> Parser::classDeclaration() {
     Token name = consume(TokenType::IDENTIFIER, "Expect class name.");
-    std::vector<Token> type_params;
+    std::vector<TypeParameter> type_params;
     if (match({TokenType::LESS})) {
         do {
-            type_params.push_back(consume(TokenType::IDENTIFIER, "Expect type parameter name."));
+            Token type_name = consume(TokenType::IDENTIFIER, "Expect type parameter name.");
+            std::shared_ptr<Type> default_type = nullptr;
+            if (match({TokenType::EQUAL})) {
+                default_type = type();
+            }
+            type_params.push_back({type_name, default_type});
         } while (match({TokenType::COMMA}));
         consume(TokenType::GREATER, "Expect '>' after type parameters.");
     }
@@ -327,7 +337,7 @@ std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {
 
     consume(TokenType::LEFT_BRACE, "Expect '{' before constructor/destructor body.");
     auto body = std::make_shared<BlockStmt>(block());
-    return std::make_shared<FunctionStmt>(name, std::vector<Token>{}, parameters, nullptr, body);
+    return std::make_shared<FunctionStmt>(name, std::vector<TypeParameter>{}, parameters, nullptr, body);
 }
 
 
@@ -360,6 +370,11 @@ std::shared_ptr<Type> Parser::type() {
     auto primitive_type = std::make_shared<PrimitiveType>(token.lexeme);
 
     if (match({TokenType::LEFT_BRACKET})) {
+        if (match({TokenType::NUMBER_INT})) {
+            int size = std::stoi(previous().lexeme);
+            consume(TokenType::RIGHT_BRACKET, "Expect ']' after array size.");
+            return std::make_shared<ArrayType>(primitive_type, size);
+        }
         consume(TokenType::RIGHT_BRACKET, "Expect ']' after type.");
         return std::make_shared<ArrayType>(primitive_type);
     }

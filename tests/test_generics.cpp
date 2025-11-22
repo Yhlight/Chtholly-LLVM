@@ -25,7 +25,7 @@ TEST(GenericsTest, BasicGenericFunction) {
 #include <vector>
 
 template <typename T>
-T add(T a, T b) {
+T add(const T& a, const T& b) {
 return a + b;
 }
 )";
@@ -86,7 +86,7 @@ TEST(GenericsTest, GenericFunctionCall) {
 #include <vector>
 
 template <typename T>
-T add(T a, T b) {
+T add(const T& a, const T& b) {
 return a + b;
 }
 
