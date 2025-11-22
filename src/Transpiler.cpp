@@ -380,12 +380,17 @@ std::any Transpiler::visit(const std::shared_ptr<ForStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<SwitchStmt>& stmt) {
     std::stringstream ss;
-    ss << "switch (" << transpile(stmt->expression) << ") {\n";
-    for (const auto& case_ : stmt->cases) {
-        ss << "case " << transpile(case_.condition) << ":\n";
-        ss << transpile(case_.body);
+    std::string expr = transpile(stmt->expression);
+
+    for (size_t i = 0; i < stmt->cases.size(); ++i) {
+        if (i == 0) {
+            ss << "if (" << expr << " == " << transpile(stmt->cases[i].condition) << ") ";
+        } else {
+            ss << "else if (" << expr << " == " << transpile(stmt->cases[i].condition) << ") ";
+        }
+        ss << transpile(stmt->cases[i].body);
     }
-    ss << "}\n";
+
     return ss.str();
 }
 
