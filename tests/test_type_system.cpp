@@ -28,6 +28,62 @@ int main(int argc, char* argv[]) {
     const int a = static_cast<int>(10.5);
 }
 )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(TypeSystemTest, ThisCopy) {
+    std::string source = R"(
+        class A {
+            fn copy(): A {
+                return *this;
+            }
+        }
+    )";
+    chtholly::Lexer lexer(source);
+    std::vector<chtholly::Token> tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+    chtholly::Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+
+        class A {
+        public:
+            A copy() {
+                return *this;
+            }
+        };
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(TypeSystemTest, ThisMove) {
+    std::string source = R"(
+        class A {
+            fn move(): A {
+                return &&this;
+            }
+        }
+    )";
+    chtholly::Lexer lexer(source);
+    std::vector<chtholly::Token> tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+    chtholly::Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+
+        class A {
+        public:
+            A move() {
+                return std::move(*this);
+            }
+        };
+    )";
     ASSERT_EQ(normalize(result), normalize(expected));
 }
 

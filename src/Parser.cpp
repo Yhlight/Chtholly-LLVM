@@ -485,7 +485,7 @@ std::shared_ptr<Expr> Parser::factor() {
 
 // unary -> ( "!" | "-" ) unary | call
 std::shared_ptr<Expr> Parser::unary() {
-    if (match({TokenType::BANG, TokenType::MINUS})) {
+    if (match({TokenType::BANG, TokenType::MINUS, TokenType::STAR, TokenType::AMPERSAND_AMPERSAND})) {
         Token op = previous();
         auto right = unary();
         return std::make_shared<Unary>(op, right);

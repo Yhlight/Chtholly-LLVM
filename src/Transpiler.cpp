@@ -24,11 +24,11 @@ std::string Transpiler::transpile(const std::shared_ptr<Expr>& expr) {
 
 // Expression visitors
 std::any Transpiler::visit(const std::shared_ptr<Binary>& expr) {
-    return transpile(expr->left) + " " + expr->op.lexeme + " " + transpile(expr->right);
+    return std::string(transpile(expr->left) + " " + expr->op.lexeme + " " + transpile(expr->right));
 }
 
 std::any Transpiler::visit(const std::shared_ptr<Grouping>& expr) {
-    return "(" + transpile(expr->expression) + ")";
+    return std::string("(" + transpile(expr->expression) + ")");
 }
 
 std::any Transpiler::visit(const std::shared_ptr<Literal>& expr) {
@@ -38,7 +38,7 @@ std::any Transpiler::visit(const std::shared_ptr<Literal>& expr) {
 
     const auto& val = expr->value;
     if (val.type() == typeid(std::string)) {
-        return "\"" + std::any_cast<std::string>(val) + "\"";
+        return std::string("\"" + std::any_cast<std::string>(val) + "\"");
     }
     if (val.type() == typeid(int)) {
         return std::to_string(std::any_cast<int>(val));
@@ -59,7 +59,13 @@ std::any Transpiler::visit(const std::shared_ptr<Literal>& expr) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<Unary>& expr) {
-    return expr->op.lexeme + transpile(expr->right);
+    if (expr->op.type == TokenType::AMPERSAND_AMPERSAND) {
+        if (auto this_expr = std::dynamic_pointer_cast<ThisExpr>(expr->right)) {
+            return std::string("std::move(*this)");
+        }
+        return std::string("std::move(" + transpile(expr->right) + ")");
+    }
+    return std::string(expr->op.lexeme + transpile(expr->right));
 }
 
 std::any Transpiler::visit(const std::shared_ptr<Variable>& expr) {
@@ -91,7 +97,7 @@ std::any Transpiler::visit(const std::shared_ptr<Call>& expr) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<Assign>& expr) {
-    return transpile(expr->target) + " = " + transpile(expr->value);
+    return std::string(transpile(expr->target) + " = " + transpile(expr->value));
 }
 
 std::any Transpiler::visit(const std::shared_ptr<ArrayLiteral>& expr) {
@@ -108,11 +114,11 @@ std::any Transpiler::visit(const std::shared_ptr<ArrayLiteral>& expr) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<SubscriptExpr>& expr) {
-    return transpile(expr->name) + "[" + transpile(expr->index) + "]";
+    return std::string(transpile(expr->name) + "[" + transpile(expr->index) + "]");
 }
 
 std::any Transpiler::visit(const std::shared_ptr<ScopeExpr>& expr) {
-    return transpile(expr->left) + "::" + expr->name.lexeme;
+    return std::string(transpile(expr->left) + "::" + expr->name.lexeme);
 }
 
 std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
@@ -135,19 +141,19 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
 
 std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
     if (expr->name.lexeme == "at") {
-        return transpile(expr->object) + ".at";
+        return std::string(transpile(expr->object) + ".at");
     }
     if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
-        return transpile(expr->object) + "->" + expr->name.lexeme;
+        return std::string(transpile(expr->object) + "->" + expr->name.lexeme);
     }
-    return transpile(expr->object) + "." + expr->name.lexeme;
+    return std::string(transpile(expr->object) + "." + expr->name.lexeme);
 }
 
 std::any Transpiler::visit(const std::shared_ptr<SetExpr>& expr) {
     if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
-        return transpile(expr->object) + "->" + expr->name.lexeme + " = " + transpile(expr->value);
+        return std::string(transpile(expr->object) + "->" + expr->name.lexeme + " = " + transpile(expr->value));
     }
-    return transpile(expr->object) + "." + expr->name.lexeme + " = " + transpile(expr->value);
+    return std::string(transpile(expr->object) + "." + expr->name.lexeme + " = " + transpile(expr->value));
 }
 
 std::any Transpiler::visit(const std::shared_ptr<ThisExpr>& expr) {
@@ -156,22 +162,22 @@ std::any Transpiler::visit(const std::shared_ptr<ThisExpr>& expr) {
 
 std::any Transpiler::visit(const std::shared_ptr<TypeCastExpr>& expr) {
     if (auto grouping = std::dynamic_pointer_cast<Grouping>(expr->expression)) {
-        return "static_cast<" + transpileType(expr->type) + ">(" + transpile(grouping->expression) + ")";
+        return std::string("static_cast<" + transpileType(expr->type) + ">(" + transpile(grouping->expression) + ")");
     }
-    return "static_cast<" + transpileType(expr->type) + ">(" + transpile(expr->expression) + ")";
+    return std::string("static_cast<" + transpileType(expr->type) + ">(" + transpile(expr->expression) + ")");
 }
 
 std::any Transpiler::visit(const std::shared_ptr<PrefixExpr>& expr) {
-    return expr->op.lexeme + transpile(expr->right);
+    return std::string(expr->op.lexeme + transpile(expr->right));
 }
 
 std::any Transpiler::visit(const std::shared_ptr<PostfixExpr>& expr) {
-    return transpile(expr->left) + expr->op.lexeme;
+    return std::string(transpile(expr->left) + expr->op.lexeme);
 }
 
 // Statement visitors
 std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
-    return transpile(stmt->expression) + ";\n";
+    return std::string(transpile(stmt->expression) + ";\n");
 }
 
 std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
@@ -503,7 +509,12 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
             }
             // Regular method
             else {
-                 ss << static_keyword << transpile(member.declaration);
+                ss << static_keyword << transpileType(func_stmt->return_type) << " " << func_stmt->name.lexeme << "(";
+                for (size_t i = 0; i < func_stmt->params.size(); ++i) {
+                    ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
+                    if (i < func_stmt->params.size() - 1) ss << ", ";
+                }
+                ss << ") " << transpile(func_stmt->body);
             }
         } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
             ss << (member.is_static ? "inline static " : "") ;
@@ -521,7 +532,7 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
     }
 
     ss << "};\n";
-    return ss.str();
+    return std::any(ss.str());
 }
 
 std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
