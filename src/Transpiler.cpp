@@ -59,13 +59,20 @@ std::any Transpiler::visit(const std::shared_ptr<Literal>& expr) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<Unary>& expr) {
-    if (expr->op.type == TokenType::AMPERSAND_AMPERSAND) {
-        if (auto this_expr = std::dynamic_pointer_cast<ThisExpr>(expr->right)) {
-            return std::string("std::move(*this)");
-        }
-        return std::string("std::move(" + transpile(expr->right) + ")");
+    switch (expr->op.type) {
+        case TokenType::AMPERSAND_AMPERSAND:
+            if (auto this_expr = std::dynamic_pointer_cast<ThisExpr>(expr->right)) {
+                return std::string("std::move(*this)");
+            }
+            return std::string(transpile(expr->right) + ".move()");
+        case TokenType::STAR:
+            if (auto this_expr = std::dynamic_pointer_cast<ThisExpr>(expr->right)) {
+                return std::string("this->clone()");
+            }
+            return std::string(transpile(expr->right) + ".clone()");
+        default:
+            return std::string(expr->op.lexeme + transpile(expr->right));
     }
-    return std::string(expr->op.lexeme + transpile(expr->right));
 }
 
 std::any Transpiler::visit(const std::shared_ptr<Variable>& expr) {

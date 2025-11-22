@@ -216,6 +216,32 @@ fn test()
 }
 ```
 
+#### 对象拷贝与移动
+在Chtholly中，你可以通过`*`和`&&`运算符对对象进行拷贝和移动。这些运算符是语法糖，它们分别会调用对象上定义的`clone()`和`move()`方法。
+
+-   `*some_object` 会被转译为 `some_object.clone()`
+-   `&&some_object` 会被转译为 `some_object.move()`
+
+这种设计允许你为你的类和结构体自定义拷贝和移动行为。
+
+```Chtholly
+class MyObject {
+    fn clone(): MyObject {
+        // ... 实现拷贝逻辑 ...
+    }
+
+    fn move(): MyObject {
+        // ... 实现移动逻辑 ...
+    }
+}
+
+fn main() {
+    let a = MyObject();
+    let b = *a;      // 调用 a.clone()
+    let c = &&a;     // 调用 a.move()
+}
+```
+
 ### struct结构体
 Chtholly也支持struct，与class不同的是，struct是高性能的，但不支持构造函数 / 析构函数，也不支持RAII，你需要手动编写一个函数进行初始化 / 资源释放
 

@@ -52,7 +52,7 @@ TEST(TypeSystemTest, ThisCopy) {
         class A {
         public:
             A copy() {
-                return *this;
+                return this->clone();
             }
         };
     )";

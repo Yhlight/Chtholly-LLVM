@@ -11,6 +11,7 @@ add_executable(chtholly_tests
   test_switch.cpp
   test_struct.cpp
   test_main_args.cpp
+  test_object_management.cpp
 )
 
 # Link against the core library and Google Test
