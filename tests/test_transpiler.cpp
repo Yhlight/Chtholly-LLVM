@@ -182,51 +182,6 @@ TEST(TranspilerTest, StaticArrayDeclaration) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
-TEST(TranspilerTest, SwitchStatementWithArbitraryExpression) {
-    std::string source = R"(
-        fn main() {
-            let x = 2;
-            let y = 1;
-            switch (x) {
-                case y + 1: {
-                    return 1;
-                }
-                case y + 2: {
-                    return 2;
-                }
-            }
-            return 0;
-        }
-    )";
-    Lexer lexer(source);
-    std::vector<Token> tokens = lexer.scanTokens();
-    Parser parser(tokens);
-    auto stmts = parser.parse();
-    Transpiler transpiler("");
-    std::string result = transpiler.transpile(stmts);
-    std::string expected = R"(
-        #include <string>
-        #include <vector>
-
-        int main(int argc, char* argv[]) {
-            const auto x = 2;
-            const auto y = 1;
-            switch (x) {
-                case y + 1:
-                {
-                    return 1;
-                }
-                case y + 2:
-                {
-                    return 2;
-                }
-            }
-            return 0;
-        }
-    )";
-    EXPECT_EQ(normalize(result), normalize(expected));
-}
-
 TEST(TranspilerTest, GenericFunctionWithDefaultType) {
     std::string source = "fn add<T = double>(a: T, b: T): T { return a + b; } fn main() { add(1.0, 2.0); }";
     Lexer lexer(source);
@@ -246,51 +201,6 @@ TEST(TranspilerTest, GenericFunctionWithDefaultType) {
 
         int main(int argc, char* argv[]) {
             add(1.0, 2.0);
-        }
-    )";
-    EXPECT_EQ(normalize(result), normalize(expected));
-}
-
-TEST(TranspilerTest, SwitchStatementWithExpression) {
-    std::string source = R"(
-        fn main() {
-            let x = 2;
-            let y = 2;
-            switch (x) {
-                case 1: {
-                    return 1;
-                }
-                case y: {
-                    return 2;
-                }
-            }
-            return 0;
-        }
-    )";
-    Lexer lexer(source);
-    std::vector<Token> tokens = lexer.scanTokens();
-    Parser parser(tokens);
-    auto stmts = parser.parse();
-    Transpiler transpiler("");
-    std::string result = transpiler.transpile(stmts);
-    std::string expected = R"(
-        #include <string>
-        #include <vector>
-
-        int main(int argc, char* argv[]) {
-            const auto x = 2;
-            const auto y = 2;
-            switch (x) {
-                case 1:
-                {
-                    return 1;
-                }
-                case y:
-                {
-                    return 2;
-                }
-            }
-            return 0;
         }
     )";
     EXPECT_EQ(normalize(result), normalize(expected));

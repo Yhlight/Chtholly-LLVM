@@ -7,6 +7,7 @@
 #include <vector>
 #include <set>
 #include <map>
+#include <variant>
 
 namespace chtholly {
 
@@ -60,6 +61,8 @@ private:
     std::string transpile(const std::shared_ptr<Expr>& expr);
     std::string transpileType(const std::shared_ptr<Type>& type);
     std::string transpileParamType(const std::shared_ptr<Type>& type);
+    bool isConstantExpression(const std::shared_ptr<Expr>& expr);
+    std::string transpileClassOrStructBody(const Token& name, const std::vector<TypeParameter>& type_params, const std::vector<std::variant<ClassStmt::ClassMember, StructStmt::StructMember>>& members);
 
     std::set<std::string> included_files;
     std::string current_path;
@@ -68,6 +71,7 @@ private:
     Stdlib stdlib;
     std::map<std::string, bool> member_mutability;
     std::map<std::string, AccessModifier> member_access_status;
+    std::string current_class_name;
     bool is_in_class_body = false;
     bool is_in_static_method = false;
     std::map<std::string, bool> member_static_status;

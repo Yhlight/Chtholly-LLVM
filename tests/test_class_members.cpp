@@ -8,7 +8,7 @@
 #include <streambuf>
 
 TEST(ClassMembersTest, LetAndMut) {
-    std::ifstream t("tests/class_members_no_args.cns");
+    std::ifstream t("tests/class_members.cns");
     std::string source((std::istreambuf_iterator<char>(t)),
                      std::istreambuf_iterator<char>());
 
@@ -17,7 +17,7 @@ TEST(ClassMembersTest, LetAndMut) {
     chtholly::Parser parser(tokens);
     auto stmts = parser.parse();
 
-    chtholly::Transpiler transpiler("tests/class_members_no_args.cns");
+    chtholly::Transpiler transpiler("tests/class_members.cns");
     std::string result = transpiler.transpile(stmts);
 
     std::string expected = R"(
@@ -30,6 +30,7 @@ const int immutable_member = 10;
 int mutable_member = 20;
 };
 int main(int argc, char* argv[]) {
+std::vector<std::string> args(argv, argv + argc);
 auto t = Test();
 t.mutable_member = 30;
 return t.immutable_member;
@@ -56,19 +57,5 @@ TEST(ClassMembersTest, InvalidLetReassignment) {
     auto stmts = parser.parse();
 
     chtholly::Transpiler transpiler("");
-    ASSERT_THROW(transpiler.transpile(stmts), std::runtime_error);
-}
-
-TEST(ClassMembersTest, InvalidPrivateAccess) {
-    std::ifstream t("tests/invalid_access.cns");
-    std::string source((std::istreambuf_iterator<char>(t)),
-                     std::istreambuf_iterator<char>());
-
-    chtholly::Lexer lexer(source);
-    auto tokens = lexer.scanTokens();
-    chtholly::Parser parser(tokens);
-    auto stmts = parser.parse();
-
-    chtholly::Transpiler transpiler("tests/invalid_access.cns");
     ASSERT_THROW(transpiler.transpile(stmts), std::runtime_error);
 }

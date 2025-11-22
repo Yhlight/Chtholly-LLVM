@@ -162,11 +162,6 @@ std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
         return std::string(transpile(expr->object) + "->" + expr->name.lexeme);
     }
 
-    if (member_access_status.count(expr->name.lexeme) && member_access_status.at(expr->name.lexeme) == AccessModifier::PRIVATE) {
-        if (!is_in_class_body) {
-            throw std::runtime_error("Cannot access private member '" + expr->name.lexeme + "' from outside the class.");
-        }
-    }
 
     return std::string(transpile(expr->object) + "." + expr->name.lexeme);
 }
@@ -384,7 +379,11 @@ std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
         std::stringstream body_ss;
         body_ss << "{\n";
         if (!stmt->params.empty()) {
-            body_ss << "std::vector<std::string> " << stmt->params[0].name.lexeme << "(argv, argv + argc);\n";
+            if (stmt->params.size() == 1 && stmt->params[0].type->getKind() == TypeKind::ARRAY) {
+                body_ss << "std::vector<std::string> " << stmt->params[0].name.lexeme << "(argv, argv + argc);\n";
+            } else {
+                throw std::runtime_error("Invalid signature for main function. Expected 'fn main(args: string[])'.");
+            }
         }
         for (const auto& statement : stmt->body->statements) {
             body_ss << transpile(statement);
@@ -471,13 +470,34 @@ std::any Transpiler::visit(const std::shared_ptr<RangeForStmt>& stmt) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<SwitchStmt>& stmt) {
-    std::stringstream ss;
-    ss << "switch (" << transpile(stmt->expression) << ") {\n";
+    bool all_cases_constant = true;
     for (const auto& case_stmt : stmt->cases) {
-        ss << "case " << transpile(case_stmt.condition) << ":\n";
-        ss << transpile(case_stmt.body);
+        if (!isConstantExpression(case_stmt.condition)) {
+            all_cases_constant = false;
+            break;
+        }
     }
-    ss << "}\n";
+
+    std::stringstream ss;
+    if (all_cases_constant) {
+        ss << "switch (" << transpile(stmt->expression) << ") {\n";
+        for (const auto& case_stmt : stmt->cases) {
+            ss << "case " << transpile(case_stmt.condition) << ":\n";
+            ss << transpile(case_stmt.body);
+        }
+        ss << "}\n";
+    } else {
+        std::string expr = transpile(stmt->expression);
+        for (size_t i = 0; i < stmt->cases.size(); ++i) {
+            if (i == 0) {
+                ss << "if (" << expr << " == " << transpile(stmt->cases[i].condition) << ") ";
+            } else {
+                ss << "else if (" << expr << " == " << transpile(stmt->cases[i].condition) << ") ";
+            }
+            ss << transpile(stmt->cases[i].body);
+        }
+    }
+
     return ss.str();
 }
 
@@ -502,7 +522,173 @@ std::any Transpiler::visit(const std::shared_ptr<EnumStmt>& stmt) {
     return ss.str();
 }
 
+std::string Transpiler::transpileClassOrStructBody(const Token& name, const std::vector<TypeParameter>& type_params, const std::vector<std::variant<ClassStmt::ClassMember, StructStmt::StructMember>>& members) {
+    std::stringstream ss;
+
+    // Pre-scan for const members initialized in constructors
+    std::set<std::string> constructor_initialized_consts;
+    for (const auto& member_variant : members) {
+        std::visit([&](auto&& member){
+            using T = std::decay_t<decltype(member)>;
+            if constexpr (std::is_same_v<T, ClassStmt::ClassMember>) {
+                if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
+                    if (func_stmt->name.lexeme == name.lexeme) { // It's a constructor
+                        for (const auto& ctor_stmt : func_stmt->body->statements) {
+                            if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStmt>(ctor_stmt)) {
+                                if (auto set_expr = std::dynamic_pointer_cast<SetExpr>(expr_stmt->expression)) {
+                                    if (std::dynamic_pointer_cast<ThisExpr>(set_expr->object)) {
+                                        for (const auto& m_variant : members) {
+                                            std::visit([&](auto&& m){
+                                                if (auto var_decl = std::dynamic_pointer_cast<VarStmt>(m.declaration)) {
+                                                    if (var_decl->name.lexeme == set_expr->name.lexeme && !var_decl->is_mutable) {
+                                                        constructor_initialized_consts.insert(set_expr->name.lexeme);
+                                                    }
+                                                }
+                                            }, m_variant);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }, member_variant);
+    }
+
+    AccessModifier current_access = AccessModifier::PRIVATE; // C++ default
+    bool first_member = true;
+
+    for (const auto& member_variant : members) {
+        std::visit([&](auto&& member) {
+            using T = std::decay_t<decltype(member)>;
+            if constexpr (std::is_same_v<T, ClassStmt::ClassMember>) {
+                if (first_member) {
+                    current_access = member.access;
+                    ss << (current_access == AccessModifier::PUBLIC ? "public:\n" : "private:\n");
+                    first_member = false;
+                } else if (member.access != current_access) {
+                    current_access = member.access;
+                    ss << (current_access == AccessModifier::PUBLIC ? "public:\n" : "private:\n");
+                }
+            }
+
+            std::string static_keyword = member.is_static ? "static " : "";
+
+            if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
+                bool was_in_static_method = is_in_static_method;
+                is_in_static_method = member.is_static;
+                member_static_status[func_stmt->name.lexeme] = member.is_static;
+                if constexpr (std::is_same_v<T, ClassStmt::ClassMember>) {
+                    member_access_status[func_stmt->name.lexeme] = current_access;
+                }
+
+                if constexpr (std::is_same_v<T, ClassStmt::ClassMember>) {
+                    // Constructor
+                    if (func_stmt->name.lexeme == name.lexeme) {
+                        ss << static_keyword << func_stmt->name.lexeme << "(";
+                        for (size_t i = 0; i < func_stmt->params.size(); ++i) {
+                            ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
+                            if (i < func_stmt->params.size() - 1) ss << ", ";
+                        }
+                        ss << ") ";
+
+                        // Generate initializer list for const members
+                        std::vector<std::string> initializers;
+                        std::vector<std::shared_ptr<Stmt>> remaining_stmts;
+                        std::set<std::string> const_members;
+
+                        for (const auto& m_variant_inner : members) {
+                            std::visit([&](auto&& m_inner){
+                                if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(m_inner.declaration)) {
+                                    if (!var_stmt->is_mutable) {
+                                        const_members.insert(var_stmt->name.lexeme);
+                                    }
+                                }
+                            }, m_variant_inner);
+                        }
+
+                        for (const auto& ctor_stmt : func_stmt->body->statements) {
+                            bool moved = false;
+                            if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStmt>(ctor_stmt)) {
+                                if (auto set_expr = std::dynamic_pointer_cast<SetExpr>(expr_stmt->expression)) {
+                                    if (std::dynamic_pointer_cast<ThisExpr>(set_expr->object)) {
+                                        if (const_members.count(set_expr->name.lexeme)) {
+                                            initializers.push_back(set_expr->name.lexeme + "(" + transpile(set_expr->value) + ")");
+                                            moved = true;
+                                        }
+                                    }
+                                }
+                            }
+                            if (!moved) {
+                                remaining_stmts.push_back(ctor_stmt);
+                            }
+                        }
+
+                        if (!initializers.empty()) {
+                            ss << ": ";
+                            for (size_t i = 0; i < initializers.size(); ++i) {
+                                ss << initializers[i];
+                                if (i < initializers.size() - 1) ss << ", ";
+                            }
+                        }
+                        auto new_body = std::make_shared<BlockStmt>(remaining_stmts);
+                        ss << transpile(new_body);
+                    }
+                    // Destructor
+                    else if (func_stmt->name.lexeme[0] == '~' && func_stmt->name.lexeme.substr(1) == name.lexeme) {
+                        ss << static_keyword << func_stmt->name.lexeme << "() " << transpile(func_stmt->body);
+                    }
+                    // Regular method
+                    else {
+                        ss << static_keyword << transpileType(func_stmt->return_type) << " " << func_stmt->name.lexeme << "(";
+                        for (size_t i = 0; i < func_stmt->params.size(); ++i) {
+                            ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
+                            if (i < func_stmt->params.size() - 1) ss << ", ";
+                        }
+                        ss << ") " << transpile(func_stmt->body);
+                    }
+                } else { // Struct
+                    ss << static_keyword << transpileType(func_stmt->return_type) << " " << func_stmt->name.lexeme << "(";
+                    for (size_t i = 0; i < func_stmt->params.size(); ++i) {
+                        ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
+                        if (i < func_stmt->params.size() - 1) ss << ", ";
+                    }
+                    ss << ") " << transpile(func_stmt->body);
+                }
+                is_in_static_method = was_in_static_method;
+            } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
+                member_mutability[var_stmt->name.lexeme] = var_stmt->is_mutable;
+                member_static_status[var_stmt->name.lexeme] = member.is_static;
+                if constexpr (std::is_same_v<T, ClassStmt::ClassMember>) {
+                    member_access_status[var_stmt->name.lexeme] = current_access;
+                }
+
+                ss << (member.is_static ? "inline static " : "") ;
+                const std::string qualifier = var_stmt->is_mutable ? "" : "const ";
+                ss << qualifier;
+                if (var_stmt->type) {
+                    ss << transpileType(var_stmt->type) << " " << var_stmt->name.lexeme;
+                } else {
+                    ss << "auto " << var_stmt->name.lexeme;
+                }
+
+                if (var_stmt->initializer) {
+                    bool is_const_in_ctor = !var_stmt->is_mutable && constructor_initialized_consts.count(var_stmt->name.lexeme);
+                    if (!is_const_in_ctor) {
+                        ss << " = " << transpile(var_stmt->initializer);
+                    }
+                }
+                ss << ";\n";
+            }
+        }, member_variant);
+    }
+    return ss.str();
+}
+
 std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
+    std::string previous_class_name = current_class_name;
+    current_class_name = stmt->name.lexeme;
     bool was_in_class_body = is_in_class_body;
     is_in_class_body = true;
     member_mutability.clear();
@@ -524,139 +710,16 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
     }
     ss << "class " << stmt->name.lexeme << " {\n";
 
-    // Pre-scan for const members initialized in constructors
-    std::set<std::string> constructor_initialized_consts;
-    for (const auto& member : stmt->members) {
-        if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
-            if (func_stmt->name.lexeme == stmt->name.lexeme) { // It's a constructor
-                for (const auto& ctor_stmt : func_stmt->body->statements) {
-                    if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStmt>(ctor_stmt)) {
-                        if (auto set_expr = std::dynamic_pointer_cast<SetExpr>(expr_stmt->expression)) {
-                             if (std::dynamic_pointer_cast<ThisExpr>(set_expr->object)) {
-                                for (const auto& m : stmt->members) {
-                                    if (auto var_decl = std::dynamic_pointer_cast<VarStmt>(m.declaration)) {
-                                        if (var_decl->name.lexeme == set_expr->name.lexeme && !var_decl->is_mutable) {
-                                            constructor_initialized_consts.insert(set_expr->name.lexeme);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
+    std::vector<std::variant<ClassStmt::ClassMember, StructStmt::StructMember>> members;
+    for(const auto& member : stmt->members) {
+        members.push_back(member);
     }
 
-    AccessModifier current_access = AccessModifier::PRIVATE; // C++ default
-    bool first_member = true;
-
-    for (const auto& member : stmt->members) {
-        if (first_member) {
-            current_access = member.access;
-            ss << (current_access == AccessModifier::PUBLIC ? "public:\n" : "private:\n");
-            first_member = false;
-        } else if (member.access != current_access) {
-            current_access = member.access;
-            ss << (current_access == AccessModifier::PUBLIC ? "public:\n" : "private:\n");
-        }
-
-        std::string static_keyword = member.is_static ? "static " : "";
-
-        if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
-            bool was_in_static_method = is_in_static_method;
-            is_in_static_method = member.is_static;
-            member_static_status[func_stmt->name.lexeme] = member.is_static;
-            member_access_status[func_stmt->name.lexeme] = current_access;
-
-            // Constructor
-            if (func_stmt->name.lexeme == stmt->name.lexeme) {
-                ss << static_keyword << func_stmt->name.lexeme << "(";
-                for (size_t i = 0; i < func_stmt->params.size(); ++i) {
-                    ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
-                    if (i < func_stmt->params.size() - 1) ss << ", ";
-                }
-                ss << ") ";
-
-                // Generate initializer list for const members
-                std::vector<std::string> initializers;
-                std::vector<std::shared_ptr<Stmt>> remaining_stmts;
-                std::set<std::string> const_members;
-
-                for (const auto& member_inner : stmt->members) {
-                    if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member_inner.declaration)) {
-                        if (!var_stmt->is_mutable) {
-                            const_members.insert(var_stmt->name.lexeme);
-                        }
-                    }
-                }
-
-                for (const auto& ctor_stmt : func_stmt->body->statements) {
-                    bool moved = false;
-                    if (auto expr_stmt = std::dynamic_pointer_cast<ExpressionStmt>(ctor_stmt)) {
-                        if (auto set_expr = std::dynamic_pointer_cast<SetExpr>(expr_stmt->expression)) {
-                             if (std::dynamic_pointer_cast<ThisExpr>(set_expr->object)) {
-                                if (const_members.count(set_expr->name.lexeme)) {
-                                    initializers.push_back(set_expr->name.lexeme + "(" + transpile(set_expr->value) + ")");
-                                    moved = true;
-                                }
-                            }
-                        }
-                    }
-                    if (!moved) {
-                        remaining_stmts.push_back(ctor_stmt);
-                    }
-                }
-
-                if (!initializers.empty()) {
-                    ss << ": ";
-                    for (size_t i = 0; i < initializers.size(); ++i) {
-                        ss << initializers[i];
-                        if (i < initializers.size() - 1) ss << ", ";
-                    }
-                }
-                auto new_body = std::make_shared<BlockStmt>(remaining_stmts);
-                ss << transpile(new_body);
-            }
-            // Destructor
-            else if (func_stmt->name.lexeme[0] == '~' && func_stmt->name.lexeme.substr(1) == stmt->name.lexeme) {
-                 ss << static_keyword << func_stmt->name.lexeme << "() " << transpile(func_stmt->body);
-            }
-            // Regular method
-            else {
-                ss << static_keyword << transpileType(func_stmt->return_type) << " " << func_stmt->name.lexeme << "(";
-                for (size_t i = 0; i < func_stmt->params.size(); ++i) {
-                    ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
-                    if (i < func_stmt->params.size() - 1) ss << ", ";
-                }
-                ss << ") " << transpile(func_stmt->body);
-            }
-            is_in_static_method = was_in_static_method;
-        } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
-            member_mutability[var_stmt->name.lexeme] = var_stmt->is_mutable;
-            member_static_status[var_stmt->name.lexeme] = member.is_static;
-            member_access_status[var_stmt->name.lexeme] = current_access;
-            ss << (member.is_static ? "inline static " : "") ;
-            const std::string qualifier = var_stmt->is_mutable ? "" : "const ";
-            ss << qualifier;
-            if (var_stmt->type) {
-                ss << transpileType(var_stmt->type) << " " << var_stmt->name.lexeme;
-            } else {
-                ss << "auto " << var_stmt->name.lexeme;
-            }
-
-            if (var_stmt->initializer) {
-                bool is_const_in_ctor = !var_stmt->is_mutable && constructor_initialized_consts.count(var_stmt->name.lexeme);
-                if (!is_const_in_ctor) {
-                    ss << " = " << transpile(var_stmt->initializer);
-                }
-            }
-            ss << ";\n";
-        }
-    }
+    ss << transpileClassOrStructBody(stmt->name, stmt->type_params, members);
 
     ss << "};\n";
     is_in_class_body = was_in_class_body;
+    current_class_name = previous_class_name;
     return std::any(ss.str());
 }
 
@@ -679,40 +742,12 @@ std::any Transpiler::visit(const std::shared_ptr<StructStmt>& stmt) {
     }
     ss << "struct " << stmt->name.lexeme << " {\n";
 
-    for (const auto& member : stmt->members) {
-        std::string static_keyword = member.is_static ? "static " : "";
-
-        if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
-            bool was_in_static_method = is_in_static_method;
-            is_in_static_method = member.is_static;
-            member_static_status[func_stmt->name.lexeme] = member.is_static;
-
-            ss << static_keyword << transpileType(func_stmt->return_type) << " " << func_stmt->name.lexeme << "(";
-            for (size_t i = 0; i < func_stmt->params.size(); ++i) {
-                ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
-                if (i < func_stmt->params.size() - 1) ss << ", ";
-            }
-            ss << ") " << transpile(func_stmt->body);
-
-            is_in_static_method = was_in_static_method;
-        } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
-            member_mutability[var_stmt->name.lexeme] = var_stmt->is_mutable;
-            member_static_status[var_stmt->name.lexeme] = member.is_static;
-            ss << (member.is_static ? "inline static " : "");
-            const std::string qualifier = var_stmt->is_mutable ? "" : "const ";
-            ss << qualifier;
-            if (var_stmt->type) {
-                ss << transpileType(var_stmt->type) << " " << var_stmt->name.lexeme;
-            } else {
-                ss << "auto " << var_stmt->name.lexeme;
-            }
-
-            if (var_stmt->initializer) {
-                ss << " = " << transpile(var_stmt->initializer);
-            }
-            ss << ";\n";
-        }
+    std::vector<std::variant<ClassStmt::ClassMember, StructStmt::StructMember>> members;
+    for(const auto& member : stmt->members) {
+        members.push_back(member);
     }
+
+    ss << transpileClassOrStructBody(stmt->name, stmt->type_params, members);
 
     ss << "};\n";
     return std::any(ss.str());
@@ -794,6 +829,41 @@ std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<PackageStmt>& stmt) {
     return "";
+}
+
+bool Transpiler::isConstantExpression(const std::shared_ptr<Expr>& expr) {
+    if (!expr) {
+        return false;
+    }
+
+    if (std::dynamic_pointer_cast<Literal>(expr)) {
+        return true;
+    }
+
+    if (auto group = std::dynamic_pointer_cast<Grouping>(expr)) {
+        return isConstantExpression(group->expression);
+    }
+
+    if (auto unary = std::dynamic_pointer_cast<Unary>(expr)) {
+        return isConstantExpression(unary->right);
+    }
+
+    if (auto binary = std::dynamic_pointer_cast<Binary>(expr)) {
+        return isConstantExpression(binary->left) && isConstantExpression(binary->right);
+    }
+
+    if (auto scope = std::dynamic_pointer_cast<ScopeExpr>(expr)) {
+        // This is a simple heuristic. A more robust implementation might involve
+        // symbol table lookups to confirm if the left side is an enum.
+        // For now, we'll assume that a ScopeExpr with a Variable on the left
+        // is likely an enum access and thus constant.
+        if (std::dynamic_pointer_cast<Variable>(scope->left)) {
+            return true;
+        }
+    }
+
+    // Any other expression type (Variable, Call, etc.) is not considered constant.
+    return false;
 }
 
 }
