@@ -236,6 +236,9 @@ std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
 
     if (type->getKind() == TypeKind::PRIMITIVE) {
         auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
+        if (primitive->name == "string") {
+            return "std::string";
+        }
         return primitive->name;
     }
     if (type->getKind() == TypeKind::ARRAY) {
@@ -367,7 +370,9 @@ std::string Transpiler::transpile(const std::vector<std::shared_ptr<Stmt>>& stat
 
 std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
     std::stringstream ss;
-    if (!stmt->type_params.empty()) {
+    if (stmt->is_specialization()) {
+        ss << "template <>\n";
+    } else if (!stmt->type_params.empty()) {
         ss << "template <";
         for (size_t i = 0; i < stmt->type_params.size(); ++i) {
             ss << "typename " << stmt->type_params[i].name.lexeme;
@@ -399,7 +404,18 @@ std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
         ss << body_ss.str();
     } else {
         ss << transpileType(stmt->return_type) << " ";
-        ss << stmt->name.lexeme << "(";
+        ss << stmt->name.lexeme;
+        if (stmt->is_specialization()) {
+            ss << "<";
+            for (size_t i = 0; i < stmt->specialization_params.size(); ++i) {
+                ss << transpileType(stmt->specialization_params[i]);
+                if (i < stmt->specialization_params.size() - 1) {
+                    ss << ", ";
+                }
+            }
+            ss << ">";
+        }
+        ss << "(";
         for (size_t i = 0; i < stmt->params.size(); ++i) {
             ss << transpileParamType(stmt->params[i].type) << " " << stmt->params[i].name.lexeme;
             if (i < stmt->params.size() - 1) {

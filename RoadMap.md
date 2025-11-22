@@ -82,3 +82,12 @@
 
 - [X] **Chtholly.md Implementation Complete:**
     - [X] All features specified in `Chtholly.md` are now implemented and tested.
+
+## Phase 6: Standard Library Expansion
+
+- [ ] **File System Module:**
+    - [ ] Implement `fs` module for file I/O operations (read, write, append, etc.).
+- [ ] **Networking Module:**
+    - [ ] Implement `net` module for basic TCP/IP networking.
+- [ ] **Concurrency Module:**
+    - [ ] Implement `thread` module for multi-threading and synchronization primitives.

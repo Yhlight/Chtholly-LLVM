@@ -101,17 +101,43 @@ std::vector<std::shared_ptr<Stmt>> Parser::block() {
 std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
     Token name = consume(TokenType::IDENTIFIER, "Expect " + kind + " name.");
     std::vector<TypeParameter> type_params;
+    std::vector<std::shared_ptr<Type>> specialization_params;
+
     if (match({TokenType::LESS})) {
-        do {
-            Token type_name = consume(TokenType::IDENTIFIER, "Expect type parameter name.");
-            std::shared_ptr<Type> default_type = nullptr;
-            if (match({TokenType::EQUAL})) {
-                default_type = type();
+        int backtrack_point = current;
+        try {
+            // Attempt to parse as a specialization (a list of concrete types)
+            do {
+                specialization_params.push_back(type());
+            } while (match({TokenType::COMMA}));
+            consume(TokenType::GREATER, "Expect '>' after specialization types.");
+
+            // Heuristic: If we parsed a single identifier that is a single capital letter,
+            // assume it's a generic type parameter like 'T' and not a specialization type.
+            if (specialization_params.size() == 1) {
+                if (auto prim = std::dynamic_pointer_cast<PrimitiveType>(specialization_params[0])) {
+                    const std::string& name = prim->name;
+                    if (name.length() == 1 && std::isupper(name[0])) {
+                        throw ParseError("Ambiguous single-identifier generic, assuming generic parameter declaration.");
+                    }
+                }
             }
-            type_params.push_back({type_name, default_type});
-        } while (match({TokenType::COMMA}));
-        consume(TokenType::GREATER, "Expect '>' after type parameters.");
+        } catch (const ParseError& e) {
+            // If parsing as concrete types fails, backtrack and parse as generic parameters
+            current = backtrack_point;
+            specialization_params.clear();
+            do {
+                Token type_name = consume(TokenType::IDENTIFIER, "Expect type parameter name.");
+                std::shared_ptr<Type> default_type = nullptr;
+                if (match({TokenType::EQUAL})) {
+                    default_type = type();
+                }
+                type_params.push_back({type_name, default_type});
+            } while (match({TokenType::COMMA}));
+            consume(TokenType::GREATER, "Expect '>' after type parameters.");
+        }
     }
+
     consume(TokenType::LEFT_PAREN, "Expect '(' after " + kind + " name.");
     std::vector<Parameter> parameters;
     if (!check(TokenType::RIGHT_PAREN)) {
@@ -134,7 +160,7 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
 
     consume(TokenType::LEFT_BRACE, "Expect '{' before " + kind + " body.");
     auto body = std::make_shared<BlockStmt>(block());
-    return std::make_shared<FunctionStmt>(name, type_params, parameters, return_type, body);
+    return std::make_shared<FunctionStmt>(name, type_params, specialization_params, parameters, return_type, body);
 }
 
 std::shared_ptr<Stmt> Parser::returnStatement() {
@@ -408,7 +434,7 @@ std::shared_ptr<Stmt> Parser::constructorOrDestructorDeclaration() {
 
     consume(TokenType::LEFT_BRACE, "Expect '{' before constructor/destructor body.");
     auto body = std::make_shared<BlockStmt>(block());
-    return std::make_shared<FunctionStmt>(name, std::vector<TypeParameter>{}, parameters, nullptr, body);
+    return std::make_shared<FunctionStmt>(name, std::vector<TypeParameter>{}, std::vector<std::shared_ptr<Type>>{}, parameters, nullptr, body);
 }
 
 

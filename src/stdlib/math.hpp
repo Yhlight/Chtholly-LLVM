@@ -1,20 +1,30 @@
-#ifndef CHTHOLLY_STDLIB_MATH_HPP
-#define CHTHOLLY_STDLIB_MATH_HPP
+#pragma once
 
-#include "../Stdlib.hpp"
 #include <string>
+#include <cmath>
+#include "../Stdlib.hpp"
 
-namespace chtholly::stdlib {
+namespace chtholly {
+namespace stdlib {
 
-/**
- * @brief Returns the C++ source code for the Chtholly 'math' module.
- *
- * This function provides the necessary C++ implementation for the standard
- * math functions.
- * @return A StdlibModule struct containing the module's source and headers.
- */
 StdlibModule get_math_module();
 
-} // namespace chtholly::stdlib
+const std::string math_module = R"(
+namespace math {
+    double sqrt(double n) { return std::sqrt(n); }
+    double pow(double base, double exp) { return std::pow(base, exp); }
+    double sin(double n) { return std::sin(n); }
+    double cos(double n) { return std::cos(n); }
+    double tan(double n) { return std::tan(n); }
+    double abs(double n) { return std::abs(n); }
+    double floor(double n) { return std::floor(n); }
+    double ceil(double n) { return std::ceil(n); }
+    double round(double n) { return std::round(n); }
+    double log(double n) { return std::log(n); }
+    double log10(double n) { return std::log10(n); }
+    double exp(double n) { return std::exp(n); }
+}
+)";
 
-#endif // CHTHOLLY_STDLIB_MATH_HPP
+} // namespace stdlib
+} // namespace chtholly

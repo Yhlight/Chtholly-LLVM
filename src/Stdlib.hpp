@@ -6,6 +6,7 @@
 #include <functional>
 #include <optional>
 #include <vector>
+#include <stdexcept>
 
 namespace chtholly {
 

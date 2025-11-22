@@ -360,15 +360,20 @@ struct BlockStmt : Stmt, public std::enable_shared_from_this<BlockStmt> {
 };
 
 struct FunctionStmt : Stmt, public std::enable_shared_from_this<FunctionStmt> {
-    FunctionStmt(Token name, std::vector<TypeParameter> type_params, std::vector<Parameter> params, std::shared_ptr<Type> return_type, std::shared_ptr<BlockStmt> body)
-        : name(std::move(name)), type_params(std::move(type_params)), params(std::move(params)), return_type(std::move(return_type)), body(std::move(body)) {}
+    FunctionStmt(Token name, std::vector<TypeParameter> type_params, std::vector<std::shared_ptr<Type>> specialization_params, std::vector<Parameter> params, std::shared_ptr<Type> return_type, std::shared_ptr<BlockStmt> body)
+        : name(std::move(name)), type_params(std::move(type_params)), specialization_params(std::move(specialization_params)), params(std::move(params)), return_type(std::move(return_type)), body(std::move(body)) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
 
+    bool is_specialization() const {
+        return !specialization_params.empty();
+    }
+
     const Token name;
     const std::vector<TypeParameter> type_params;
+    const std::vector<std::shared_ptr<Type>> specialization_params;
     const std::vector<Parameter> params;
     const std::shared_ptr<Type> return_type;
     const std::shared_ptr<BlockStmt> body;
