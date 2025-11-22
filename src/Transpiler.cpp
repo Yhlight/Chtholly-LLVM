@@ -161,6 +161,9 @@ std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
     if (!type) return "auto";
     if (type->getKind() == TypeKind::PRIMITIVE) {
         auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
+        if (primitive->name == "string") {
+            return "std::string";
+        }
         return primitive->name;
     }
     if (type->getKind() == TypeKind::ARRAY) {

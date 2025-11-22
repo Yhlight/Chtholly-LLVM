@@ -105,6 +105,9 @@ std::shared_ptr<Stmt> Parser::function(const std::string& kind) {
             Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
             consume(TokenType::COLON, "Expect ':' after parameter name.");
             auto param_type = type();
+            if (param_type->getKind() != TypeKind::REFERENCE && isComplexType(param_type)) {
+                param_type = std::make_shared<ReferenceType>(param_type, ReferenceKind::IMMUTABLE);
+            }
             parameters.push_back({param_name, param_type});
         } while (match({TokenType::COMMA}));
     }

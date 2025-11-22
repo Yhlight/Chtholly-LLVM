@@ -58,6 +58,16 @@ private:
     int current = 0;
 };
 
+inline bool isComplexType(const std::shared_ptr<Type>& type) {
+    if (!type) return false;
+    auto kind = type->getKind();
+    if (kind == TypeKind::PRIMITIVE) {
+        auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
+        return primitive->name == "string";
+    }
+    return kind == TypeKind::ARRAY || kind == TypeKind::FUNCTION || kind == TypeKind::ENUM;
+}
+
 } // namespace chtholly
 
 #endif // CHTHOLLY_PARSER_HPP
