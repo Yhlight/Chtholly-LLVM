@@ -408,14 +408,15 @@ struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
 };
 
 struct RangeForStmt : Stmt, public std::enable_shared_from_this<RangeForStmt> {
-    RangeForStmt(std::shared_ptr<Stmt> initializer, std::shared_ptr<Expr> container, std::shared_ptr<Stmt> body)
-        : initializer(std::move(initializer)), container(std::move(container)), body(std::move(body)) {}
+    RangeForStmt(Token variable, bool is_mutable, std::shared_ptr<Expr> container, std::shared_ptr<Stmt> body)
+        : variable(std::move(variable)), is_mutable(is_mutable), container(std::move(container)), body(std::move(body)) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
 
-    const std::shared_ptr<Stmt> initializer;
+    const Token variable;
+    const bool is_mutable;
     const std::shared_ptr<Expr> container;
     const std::shared_ptr<Stmt> body;
 };

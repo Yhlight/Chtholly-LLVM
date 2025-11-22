@@ -133,6 +133,30 @@ TEST(ParserTest, ForStatement) {
     EXPECT_EQ(result, "(for (var i 0) (< i 10) (= i (+ i 1)) (block))\n");
 }
 
+TEST(ParserTest, ForStatementWithEmptyInitializer) {
+    std::string source = "for (; i < 10; i = i + 1) {}";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(for nil (< i 10) (= i (+ i 1)) (block))\n");
+}
+
+TEST(ParserTest, RangeForStatement) {
+    std::string source = "for (let i: a) {}";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    ASSERT_EQ(stmts.size(), 1);
+    ASTPrinter printer;
+    std::string result = printer.print(stmts);
+    EXPECT_EQ(result, "(for-range i in a (block))\n");
+}
+
 TEST(ParserTest, SwitchStatement) {
     std::string source = R"(
         switch (x) {

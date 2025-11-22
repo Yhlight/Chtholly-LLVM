@@ -406,12 +406,7 @@ std::any Transpiler::visit(const std::shared_ptr<ForStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<RangeForStmt>& stmt) {
     std::stringstream ss;
-    ss << "for (";
-    if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(stmt->initializer)) {
-        ss << (var_stmt->is_mutable ? "" : "const ");
-        ss << "auto& " << var_stmt->name.lexeme << " : " << transpile(stmt->container);
-    }
-    ss << ") " << transpile(stmt->body);
+    ss << "for (" << (stmt->is_mutable ? "auto& " : "const auto& ") << stmt->variable.lexeme << " : " << transpile(stmt->container) << ") " << transpile(stmt->body);
     return ss.str();
 }
 

@@ -305,7 +305,13 @@ std::string ASTPrinter::parenthesize(const std::string& name, const std::vector<
 
 std::any ASTPrinter::visit(const std::shared_ptr<ForStmt>& stmt) {
     std::stringstream ss;
-    ss << "(for " << print(stmt->initializer) << " " << print(stmt->condition) << " " << print(stmt->increment) << " " << print(stmt->body) << ")";
+    ss << "(for ";
+    if (stmt->initializer) {
+        ss << print(stmt->initializer);
+    } else {
+        ss << "nil";
+    }
+    ss << " " << print(stmt->condition) << " " << print(stmt->increment) << " " << print(stmt->body) << ")";
     return ss.str();
 }
 
@@ -324,7 +330,9 @@ std::any ASTPrinter::visit(const std::shared_ptr<BreakStmt>& stmt) {
 }
 
 std::any ASTPrinter::visit(const std::shared_ptr<RangeForStmt>& stmt) {
-    return "(for-range)";
+    std::stringstream ss;
+    ss << "(for-range " << stmt->variable.lexeme << " in " << print(stmt->container) << " " << print(stmt->body) << ")";
+    return ss.str();
 }
 
 std::any ASTPrinter::visit(const std::shared_ptr<FallthroughStmt>& stmt) {

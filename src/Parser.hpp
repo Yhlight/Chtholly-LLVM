@@ -28,7 +28,9 @@ private:
     std::shared_ptr<Stmt> declaration();
     std::shared_ptr<Stmt> statement();
     std::shared_ptr<Stmt> varDeclaration();
+    std::shared_ptr<Stmt> varDeclarationShared();
     std::shared_ptr<Stmt> expressionStatement();
+    std::shared_ptr<Stmt> expressionStatementShared();
     std::vector<std::shared_ptr<Stmt>> block();
     std::shared_ptr<Stmt> function(const std::string& kind);
     std::shared_ptr<Stmt> returnStatement();
@@ -51,6 +53,7 @@ private:
     Token advance();
     bool isAtEnd() const;
     Token peek() const;
+    Token peek(int n) const;
     Token previous() const;
     void synchronize();
 
