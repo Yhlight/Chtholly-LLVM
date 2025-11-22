@@ -161,6 +161,14 @@ std::any Transpiler::visit(const std::shared_ptr<TypeCastExpr>& expr) {
     return "static_cast<" + transpileType(expr->type) + ">(" + transpile(expr->expression) + ")";
 }
 
+std::any Transpiler::visit(const std::shared_ptr<PrefixExpr>& expr) {
+    return expr->op.lexeme + transpile(expr->right);
+}
+
+std::any Transpiler::visit(const std::shared_ptr<PostfixExpr>& expr) {
+    return transpile(expr->left) + expr->op.lexeme;
+}
+
 // Statement visitors
 std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return transpile(stmt->expression) + ";\n";

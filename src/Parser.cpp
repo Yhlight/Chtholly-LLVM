@@ -490,6 +490,11 @@ std::shared_ptr<Expr> Parser::unary() {
         auto right = unary();
         return std::make_shared<Unary>(op, right);
     }
+    if (match({TokenType::PLUS_PLUS, TokenType::MINUS_MINUS})) {
+        Token op = previous();
+        auto right = unary();
+        return std::make_shared<PrefixExpr>(op, right);
+    }
     return call();
 }
 
@@ -523,7 +528,11 @@ std::shared_ptr<Expr> Parser::call() {
         } else if (match({TokenType::DOT})) {
             Token name = consume(TokenType::IDENTIFIER, "Expect property name after '.'.");
             expr = std::make_shared<GetExpr>(expr, name);
-        } else {
+        } else if (match({TokenType::PLUS_PLUS, TokenType::MINUS_MINUS})) {
+            Token op = previous();
+            expr = std::make_shared<PostfixExpr>(expr, op);
+        }
+        else {
             break;
         }
     }

@@ -183,6 +183,14 @@ std::any ASTPrinter::visit(const std::shared_ptr<TypeCastExpr>& expr) {
     return parenthesize("type_cast<" + printType(expr->type) + ">", expr->expression);
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<PrefixExpr>& expr) {
+    return parenthesize(expr->op.lexeme, expr->right);
+}
+
+std::any ASTPrinter::visit(const std::shared_ptr<PostfixExpr>& expr) {
+    return parenthesize(expr->op.lexeme, expr->left);
+}
+
 
 // Statement visitors
 std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {

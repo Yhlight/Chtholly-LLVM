@@ -94,6 +94,46 @@ TEST(TranspilerTest, DoWhileStatement) {
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(TranspilerTest, PrefixIncrement) {
+    std::string source = "fn main() { mut a = 1; ++a; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+
+        int main(int argc, char* argv[]) {
+            auto a = 1;
+            ++a;
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(TranspilerTest, PostfixIncrement) {
+    std::string source = "fn main() { mut a = 1; a++; }";
+    Lexer lexer(source);
+    std::vector<Token> tokens = lexer.scanTokens();
+    Parser parser(tokens);
+    auto stmts = parser.parse();
+    Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+
+        int main(int argc, char* argv[]) {
+            auto a = 1;
+            a++;
+        }
+    )";
+    EXPECT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(TranspilerTest, RangeForStatement) {
     std::string source = R"(
         fn main() {
