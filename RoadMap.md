@@ -55,10 +55,20 @@
   - [X] Support for module aliasing (`as`).
   - [X] Package and namespace system (`package`).
 - [ ] **Standard Library:**
-  - [X] Refactor stdlib into a modular system.
   - [X] Basic I/O (`iostream`).
-  - [X] String manipulation utilities (`string`).
-  - [X] Math library (`math`).
+  - [ ] String manipulation utilities.
+  - [ ] Math library.
 - [X] **Type System:**
   - [X] Implement safe type casting (`type_cast`).
   - [X] Refine rules for references and ownership (`&`, `*`, `&&`).
+
+## Phase 4: Hardening and Refinement
+
+- [X] **Control Flow:**
+    - [X] Implement `do-while` loops.
+- [X] **Type System:**
+    - [X] Implement C-style type casting.
+- [X] **Data Structures:**
+    - [X] Implement safe array access (`.at()`).
+- [X] **Module System:**
+    - [X] Implement partial imports (e.g., `import module::symbol;`).

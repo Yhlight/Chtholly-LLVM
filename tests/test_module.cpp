@@ -37,6 +37,47 @@ math::add(1, 2);
     ASSERT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(ModuleTest, PartialImport) {
+    std::string source = R"(
+        import iostream::println;
+        fn main() {
+            println("Hello, World!");
+        }
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/main.cns");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+        #include <iostream>
+
+        namespace iostream {
+            template<typename T>
+            void print(const T& msg) {
+                std::cout << msg;
+            }
+
+            template<typename T>
+            void println(const T& msg) {
+                std::cout << msg << std::endl;
+            }
+        }
+        using iostream::println;
+
+        int main(int argc, char* argv[]) {
+            println("Hello, World!");
+        }
+    )";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(ModuleTest, ModuleAlias) {
     std::string source = R"(
         import "math.cns" as m;

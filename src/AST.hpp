@@ -33,6 +33,7 @@ struct FunctionStmt;
 struct ReturnStmt;
 struct IfStmt;
 struct WhileStmt;
+struct DoWhileStmt;
 struct ForStmt;
 struct SwitchStmt;
 struct BreakStmt;
@@ -74,6 +75,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<ReturnStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<IfStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<WhileStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<DoWhileStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ForStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<SwitchStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<BreakStmt>& stmt) = 0;
@@ -371,6 +373,18 @@ struct WhileStmt : Stmt, public std::enable_shared_from_this<WhileStmt> {
     const std::shared_ptr<Stmt> body;
 };
 
+struct DoWhileStmt : Stmt, public std::enable_shared_from_this<DoWhileStmt> {
+    DoWhileStmt(std::shared_ptr<Stmt> body, std::shared_ptr<Expr> condition)
+        : body(std::move(body)), condition(std::move(condition)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const std::shared_ptr<Stmt> body;
+    const std::shared_ptr<Expr> condition;
+};
+
 struct ForStmt : Stmt, public std::enable_shared_from_this<ForStmt> {
     ForStmt(std::shared_ptr<Stmt> initializer, std::shared_ptr<Expr> condition, std::shared_ptr<Expr> increment, std::shared_ptr<Stmt> body)
         : initializer(std::move(initializer)), condition(std::move(condition)), increment(std::move(increment)), body(std::move(body)) {}
@@ -453,7 +467,7 @@ struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
 };
 
 struct ImportStmt : Stmt, public std::enable_shared_from_this<ImportStmt> {
-    ImportStmt(Token path, Token alias, bool is_stdlib) : path(std::move(path)), alias(std::move(alias)), is_stdlib(is_stdlib) {}
+    ImportStmt(Token path, Token alias, Token symbol, bool is_stdlib) : path(std::move(path)), alias(std::move(alias)), symbol(std::move(symbol)), is_stdlib(is_stdlib) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
@@ -461,6 +475,7 @@ struct ImportStmt : Stmt, public std::enable_shared_from_this<ImportStmt> {
 
     const Token path;
     const Token alias;
+    const Token symbol;
     const bool is_stdlib;
 };
 

@@ -131,6 +131,9 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
+    if (expr->name.lexeme == "at") {
+        return transpile(expr->object) + ".at";
+    }
     if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
         return transpile(expr->object) + "->" + expr->name.lexeme;
     }
@@ -149,6 +152,9 @@ std::any Transpiler::visit(const std::shared_ptr<ThisExpr>& expr) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<TypeCastExpr>& expr) {
+    if (auto grouping = std::dynamic_pointer_cast<Grouping>(expr->expression)) {
+        return "static_cast<" + transpileType(expr->type) + ">(" + transpile(grouping->expression) + ")";
+    }
     return "static_cast<" + transpileType(expr->type) + ">(" + transpile(expr->expression) + ")";
 }
 
@@ -324,6 +330,12 @@ std::any Transpiler::visit(const std::shared_ptr<WhileStmt>& stmt) {
     return ss.str();
 }
 
+std::any Transpiler::visit(const std::shared_ptr<DoWhileStmt>& stmt) {
+    std::stringstream ss;
+    ss << "do " << transpile(stmt->body) << " while (" << transpile(stmt->condition) << ");\n";
+    return ss.str();
+}
+
 std::any Transpiler::visit(const std::shared_ptr<ForStmt>& stmt) {
     std::stringstream ss;
     ss << "for (";
@@ -457,6 +469,9 @@ std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
                 for (const auto& header : module->headers) {
                     required_headers.insert(header);
                 }
+                if (!stmt->symbol.lexeme.empty()) {
+                    return module->source + "using " + stmt->path.lexeme + "::" + stmt->symbol.lexeme + ";\n";
+                }
                 return module->source;
             }
         }
@@ -511,6 +526,10 @@ std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
         } else {
             module_name = path.substr(start, end - start);
         }
+    }
+
+    if (!stmt->symbol.lexeme.empty()) {
+        return "using " + module_name + "::" + stmt->symbol.lexeme + ";\n";
     }
 
     return "namespace " + module_name + " {\n" + transpiled_code + "}\n";

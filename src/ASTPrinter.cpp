@@ -186,6 +186,10 @@ std::any ASTPrinter::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return parenthesize("expr_stmt", stmt->expression);
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<DoWhileStmt>& stmt) {
+    return parenthesize("do-while " + print(stmt->condition), {stmt->body});
+}
+
 std::any ASTPrinter::visit(const std::shared_ptr<VarStmt>& stmt) {
     std::stringstream ss;
     ss << "(var " << stmt->name.lexeme;
@@ -277,6 +281,16 @@ std::any ASTPrinter::visit(const std::shared_ptr<IfStmt>& stmt) {
 std::any ASTPrinter::visit(const std::shared_ptr<WhileStmt>& stmt) {
     std::stringstream ss;
     ss << "(while " << print(stmt->condition) << " " << print(stmt->body) << ")";
+    return ss.str();
+}
+
+std::string ASTPrinter::parenthesize(const std::string& name, const std::vector<std::shared_ptr<Stmt>>& stmts) {
+    std::stringstream ss;
+    ss << "(" << name;
+    for (const auto& stmt : stmts) {
+        ss << " " << print(stmt);
+    }
+    ss << ")";
     return ss.str();
 }
 

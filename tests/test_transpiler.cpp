@@ -31,6 +31,66 @@ TEST(TranspilerTest, SimpleMain) {
             return 0;
         }
     )";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(TranspilerTest, ArrayAt) {
+    std::string source = R"(
+        fn main() {
+            let a: int[] = [1, 2, 3];
+            a.at(0);
+        }
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/main.cns");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+
+        int main(int argc, char* argv[]) {
+            std::vector<int> a = {1, 2, 3};
+            a.at(0);
+        }
+    )";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(TranspilerTest, DoWhileStatement) {
+    std::string source = R"(
+        fn main() {
+            mut i = 0;
+            do {
+                i = i + 1;
+            } while (i < 10);
+        }
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/main.cns");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+        #include <string>
+        #include <vector>
+
+        int main(int argc, char* argv[]) {
+            auto i = 0;
+            do {
+                i = i + 1;
+            } while (i < 10);
+        }
+    )";
     EXPECT_EQ(normalize(result), normalize(expected));
 }
 

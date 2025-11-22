@@ -39,6 +39,7 @@ public:
     std::any visit(const std::shared_ptr<ReturnStmt>& stmt) override;
     std::any visit(const std::shared_ptr<IfStmt>& stmt) override;
     std::any visit(const std::shared_ptr<WhileStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<DoWhileStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ForStmt>& stmt) override;
     std::any visit(const std::shared_ptr<SwitchStmt>& stmt) override;
     std::any visit(const std::shared_ptr<BreakStmt>& stmt) override;
@@ -52,6 +53,7 @@ public:
 private:
     std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr);
     std::string parenthesize(const std::string& name, const std::shared_ptr<Expr>& expr1, const std::shared_ptr<Expr>& expr2);
+    std::string parenthesize(const std::string& name, const std::vector<std::shared_ptr<Stmt>>& stmts);
 };
 
 } // namespace chtholly
