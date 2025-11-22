@@ -298,8 +298,8 @@ struct ExpressionStmt : Stmt, public std::enable_shared_from_this<ExpressionStmt
 };
 
 struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
-    VarStmt(Token name, std::shared_ptr<Type> type, std::shared_ptr<Expr> initializer)
-        : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)) {}
+    VarStmt(Token name, std::shared_ptr<Type> type, std::shared_ptr<Expr> initializer, bool is_mutable)
+        : name(std::move(name)), type(std::move(type)), initializer(std::move(initializer)), is_mutable(is_mutable) {}
 
     std::any accept(StmtVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
@@ -308,6 +308,7 @@ struct VarStmt : Stmt, public std::enable_shared_from_this<VarStmt> {
     const Token name;
     const std::shared_ptr<Type> type;
     const std::shared_ptr<Expr> initializer;
+    const bool is_mutable;
 };
 
 struct BlockStmt : Stmt, public std::enable_shared_from_this<BlockStmt> {

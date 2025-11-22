@@ -117,14 +117,14 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
     std::stringstream ss;
     ss << "[](";
     for (size_t i = 0; i < expr->params.size(); ++i) {
-        ss << this->transpileType(expr->params[i].type) << " " << expr->params[i].name.lexeme;
+        ss << this->transpileType(expr->params[i].type, true) << " " << expr->params[i].name.lexeme;
         if (i < expr->params.size() - 1) {
             ss << ", ";
         }
     }
     ss << ")";
     if (expr->return_type) {
-        ss << " -> " << this->transpileType(expr->return_type);
+        ss << " -> " << this->transpileType(expr->return_type, false);
     }
     ss << " " << transpile(expr->body);
     return ss.str();
@@ -163,56 +163,71 @@ std::any Transpiler::visit(const std::shared_ptr<ExpressionStmt>& stmt) {
     return transpile(stmt->expression) + ";\n";
 }
 
-std::string Transpiler::transpileType(const std::shared_ptr<Type>& type) {
+std::string Transpiler::transpileType(const std::shared_ptr<Type>& type, bool is_param) {
     if (!type) return "auto";
+
+    if (auto ref = std::dynamic_pointer_cast<ReferenceType>(type)) {
+        switch (ref->kind) {
+            case ReferenceKind::MUTABLE:
+                return transpileType(ref->referenced_type, false) + "&";
+            case ReferenceKind::IMMUTABLE:
+                return "const " + transpileType(ref->referenced_type, false) + "&";
+            case ReferenceKind::MOVE:
+                return transpileType(ref->referenced_type, false) + "&&";
+            case ReferenceKind::COPY:
+                return transpileType(ref->referenced_type, false);
+        }
+    }
+
+    std::string base_type;
+    bool is_complex = false;
+
     if (type->getKind() == TypeKind::PRIMITIVE) {
         auto primitive = std::dynamic_pointer_cast<PrimitiveType>(type);
-        return primitive->name;
-    }
-    if (type->getKind() == TypeKind::ARRAY) {
+        base_type = primitive->name;
+        if (base_type == "string") {
+            is_complex = true;
+        }
+    } else if (type->getKind() == TypeKind::ARRAY) {
         auto array = std::dynamic_pointer_cast<ArrayType>(type);
-        return "std::vector<" + this->transpileType(array->element_type) + ">";
-    }
-    if (type->getKind() == TypeKind::ENUM) {
+        base_type = "std::vector<" + this->transpileType(array->element_type, false) + ">";
+        is_complex = true;
+    } else if (type->getKind() == TypeKind::ENUM) {
         auto enum_type = std::dynamic_pointer_cast<EnumType>(type);
-        return enum_type->name;
-    }
-    if (type->getKind() == TypeKind::FUNCTION) {
+        base_type = enum_type->name;
+    } else if (type->getKind() == TypeKind::FUNCTION) {
         needs_functional = true;
         auto func = std::dynamic_pointer_cast<FunctionType>(type);
         std::stringstream ss;
-        ss << "std::function<" << this->transpileType(func->return_type) << "(";
+        ss << "std::function<" << this->transpileType(func->return_type, false) << "(";
         for (size_t i = 0; i < func->param_types.size(); ++i) {
-            ss << this->transpileType(func->param_types[i]);
+            ss << this->transpileType(func->param_types[i], true);
             if (i < func->param_types.size() - 1) {
                 ss << ", ";
             }
         }
         ss << ")>";
-        return ss.str();
+        base_type = ss.str();
+        is_complex = true;
+    } else {
+        base_type = "auto";
     }
-    if (type->getKind() == TypeKind::REFERENCE) {
-        auto ref = std::dynamic_pointer_cast<ReferenceType>(type);
-        switch (ref->kind) {
-            case ReferenceKind::MUTABLE:
-                return transpileType(ref->referenced_type) + "&";
-            case ReferenceKind::IMMUTABLE:
-                return "const " + transpileType(ref->referenced_type) + "&";
-            case ReferenceKind::MOVE:
-                return transpileType(ref->referenced_type) + "&&";
-            case ReferenceKind::COPY:
-                return transpileType(ref->referenced_type);
-        }
+
+    if (is_param && is_complex) {
+        return "const " + base_type + "&";
     }
-    return "auto";
+
+    return base_type;
 }
 
 std::any Transpiler::visit(const std::shared_ptr<VarStmt>& stmt) {
     std::stringstream ss;
+    const std::string qualifier = stmt->is_mutable ? "" : "const ";
+
     if (stmt->type) {
-        ss << this->transpileType(stmt->type) << " " << stmt->name.lexeme;
+        ss << qualifier << this->transpileType(stmt->type) << " " << stmt->name.lexeme;
     } else {
-        ss << "auto " << stmt->name.lexeme;
+        ss << qualifier << "auto " << stmt->name.lexeme;
     }
 
     if (stmt->initializer) {
@@ -291,10 +306,10 @@ std::any Transpiler::visit(const std::shared_ptr<FunctionStmt>& stmt) {
     if (stmt->name.lexeme == "main") {
         ss << "int main(int argc, char* argv[]) ";
     } else {
-        ss << transpileType(stmt->return_type) << " ";
+        ss << transpileType(stmt->return_type, false) << " ";
         ss << stmt->name.lexeme << "(";
         for (size_t i = 0; i < stmt->params.size(); ++i) {
-            ss << transpileType(stmt->params[i].type) << " " << stmt->params[i].name.lexeme;
+            ss << transpileType(stmt->params[i].type, true) << " " << stmt->params[i].name.lexeme;
             if (i < stmt->params.size() - 1) {
                 ss << ", ";
             }

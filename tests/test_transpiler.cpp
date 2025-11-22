@@ -55,7 +55,7 @@ TEST(TranspilerTest, ArrayAt) {
         #include <vector>
 
         int main(int argc, char* argv[]) {
-            std::vector<int> a = {1, 2, 3};
+            const std::vector<int> a = {1, 2, 3};
             a.at(0);
         }
     )";
@@ -108,7 +108,7 @@ TEST(TranspilerTest, LambdaExpression) {
         #include <functional>
 
         int main(int argc, char* argv[]) {
-            auto add = [](int a, int b) -> int {
+            const auto add = [](int a, int b) -> int {
                 return a + b;
             };
             return add(1, 2);
@@ -144,7 +144,7 @@ TEST(TranspilerTest, FunctionType) {
         }
 
         int main(int argc, char* argv[]) {
-            std::function<int(int, int)> my_func = add;
+            const std::function<int(int, int)> my_func = add;
             return my_func(5, 10);
         }
     )";
@@ -181,7 +181,7 @@ TEST(TranspilerTest, EnumDeclaration) {
         };
 
         int main(int argc, char* argv[]) {
-            Color c = Color::RED;
+            const Color c = Color::RED;
             return 0;
         }
     )";
@@ -189,7 +189,7 @@ TEST(TranspilerTest, EnumDeclaration) {
 }
 
 TEST(TranspilerTest, ArrayDeclaration) {
-    std::string source = "fn main() { let a: int[] = [1, 2, 3]; a[0] = 10; return a[0]; }";
+    std::string source = "fn main() { mut a: int[] = [1, 2, 3]; a[0] = 10; return a[0]; }";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
@@ -242,7 +242,7 @@ TEST(TranspilerTest, SwitchStatement) {
         #include <vector>
 
         int main(int argc, char* argv[]) {
-            auto x = 2;
+            const auto x = 2;
             switch (x) {
                 case 1:
                     {
@@ -290,7 +290,7 @@ TEST(TranspilerTest, ForStatement) {
 }
 
 TEST(TranspilerTest, WhileStatement) {
-    std::string source = "fn main() { let i = 0; while (i < 10) { i = i + 1; } return i; }";
+    std::string source = "fn main() { mut i = 0; while (i < 10) { i = i + 1; } return i; }";
     Lexer lexer(source);
     std::vector<Token> tokens = lexer.scanTokens();
     Parser parser(tokens);
@@ -348,7 +348,7 @@ TEST(TranspilerTest, VariableDeclaration) {
         #include <vector>
 
         int main(int argc, char* argv[]) {
-            auto x = 10;
+            const auto x = 10;
             return x;
         }
     )";
@@ -381,7 +381,7 @@ TEST(TranspilerTest, FunctionCall) {
         }
 
         int main(int argc, char* argv[]) {
-            auto result = add(5, 10);
+            const auto result = add(5, 10);
             return result;
         }
     )";

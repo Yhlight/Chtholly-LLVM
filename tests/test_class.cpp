@@ -217,7 +217,7 @@ TEST(ClassTest, ClassInstantiation) {
 class Test {
 };
 int main(int argc, char* argv[]) {
-auto t = Test();
+const auto t = Test();
 }
 )";
     ASSERT_EQ(normalize(result), normalize(expected));
@@ -227,10 +227,10 @@ TEST(ClassTest, MemberAccess) {
     std::string source = R"(
         class Test {
             public:
-            let a: int = 1;
+            mut a: int = 1;
         }
         fn main() {
-            let t = Test();
+            mut t = Test();
             t.a = 2;
         }
     )";
