@@ -489,6 +489,35 @@ import "math.cns" as math;
 import "math.cns" as math2;
 ```
 
+### Standard Library
+Chtholly provides a standard library with essential modules for common tasks.
+
+#### `string` Module
+The `string` module offers a comprehensive set of functions for string manipulation.
+- `concat(s1: string, s2: string): string`: Concatenates two strings.
+- `len(s: string): int`: Returns the length of a string.
+- `substr(s: string, start: int, length: int): string`: Returns a substring.
+- `to_upper(s: string): string`: Converts a string to uppercase.
+- `to_lower(s: string): string`: Converts a string to lowercase.
+- `trim(s: string): string`: Removes leading and trailing whitespace.
+- `split(s: string, delimiter: string): string[]`: Splits a string by a delimiter.
+- `join(parts: string[], delimiter: string): string`: Joins an array of strings with a delimiter.
+
+#### `math` Module
+The `math` module provides a collection of mathematical functions.
+- `sqrt(n: double): double`: Returns the square root of a number.
+- `pow(base: double, exp: double): double`: Returns the base to the exponent power.
+- `sin(n: double): double`: Returns the sine of a number.
+- `cos(n: double): double`: Returns the cosine of a number.
+- `tan(n: double): double`: Returns the tangent of a number.
+- `abs(n: double): double`: Returns the absolute value of a number.
+- `floor(n: double): double`: Returns the largest integer less than or equal to a number.
+- `ceil(n: double): double`: Returns the smallest integer greater than or equal to a number.
+- `round(n: double): double`: Returns the nearest integer to a number.
+- `log(n: double): double`: Returns the natural logarithm of a number.
+- `log10(n: double): double`: Returns the base-10 logarithm of a number.
+- `exp(n: double): double`: Returns e raised to the power of a number.
+
 ### 创建模块的最佳实践
 我们建议模块使用对象式而不是函数式  
 
