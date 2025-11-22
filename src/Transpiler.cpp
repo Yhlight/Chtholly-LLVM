@@ -805,8 +805,6 @@ std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
 
     std::string old_path = current_path;
     current_path = full_path;
-    std::string transpiled_code = transpile(stmts, false);
-    current_path = old_path;
 
     std::string module_name;
     if (!stmt->alias.lexeme.empty()) {
@@ -827,8 +825,29 @@ std::any Transpiler::visit(const std::shared_ptr<ImportStmt>& stmt) {
         }
     }
 
+    std::string package_name;
+    if (!stmts.empty()) {
+        if (auto package_stmt = std::dynamic_pointer_cast<PackageStmt>(stmts[0])) {
+            package_name = package_stmt->name.lexeme;
+        }
+    }
+
+    std::string transpiled_code;
+    if (!package_name.empty()) {
+        std::vector<std::shared_ptr<Stmt>> stmts_without_package(stmts.begin() + 1, stmts.end());
+        transpiled_code = transpile(stmts_without_package, false);
+    } else {
+        transpiled_code = transpile(stmts, false);
+    }
+    current_path = old_path;
+
+
     if (!stmt->symbol.lexeme.empty()) {
         return "using " + module_name + "::" + stmt->symbol.lexeme + ";\n";
+    }
+
+    if (!package_name.empty()) {
+        return "namespace " + package_name + " {\nnamespace " + module_name + " {\n" + transpiled_code + "}\n}\n";
     }
 
     return "namespace " + module_name + " {\n" + transpiled_code + "}\n";
