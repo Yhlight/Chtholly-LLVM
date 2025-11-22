@@ -50,6 +50,7 @@ public:
     std::any visit(const std::shared_ptr<FallthroughStmt>& stmt) override;
     std::any visit(const std::shared_ptr<EnumStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ClassStmt>& stmt) override;
+    std::any visit(const std::shared_ptr<StructStmt>& stmt) override;
     std::any visit(const std::shared_ptr<ImportStmt>& stmt) override;
     std::any visit(const std::shared_ptr<PackageStmt>& stmt) override;
 
@@ -66,6 +67,8 @@ private:
     std::set<std::string> required_headers;
     Stdlib stdlib;
     std::map<std::string, bool> member_mutability;
+    std::map<std::string, AccessModifier> member_access_status;
+    bool is_in_class_body = false;
     bool is_in_static_method = false;
     std::map<std::string, bool> member_static_status;
 };

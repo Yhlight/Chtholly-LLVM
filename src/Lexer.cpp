@@ -27,6 +27,7 @@ const std::unordered_map<std::string, TokenType> Lexer::keywords = {
     {"public", TokenType::PUBLIC},
     {"static", TokenType::STATIC},
     {"enum", TokenType::ENUM},
+    {"struct", TokenType::STRUCT},
     {"import", TokenType::IMPORT},
     {"as", TokenType::AS},
     {"package", TokenType::PACKAGE},

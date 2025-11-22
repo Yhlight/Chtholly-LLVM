@@ -8,6 +8,8 @@ add_executable(chtholly_tests
   test_module.cpp
   test_stdlib.cpp
   test_type_system.cpp
+  test_switch.cpp
+  test_struct.cpp
 )
 
 # Link against the core library and Google Test

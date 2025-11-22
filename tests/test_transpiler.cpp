@@ -211,10 +211,15 @@ TEST(TranspilerTest, SwitchStatementWithArbitraryExpression) {
         int main(int argc, char* argv[]) {
             const auto x = 2;
             const auto y = 1;
-            if (x == y + 1) {
-                return 1;
-            } else if (x == y + 2) {
-                return 2;
+            switch (x) {
+                case y + 1:
+                {
+                    return 1;
+                }
+                case y + 2:
+                {
+                    return 2;
+                }
             }
             return 0;
         }
@@ -275,10 +280,15 @@ TEST(TranspilerTest, SwitchStatementWithExpression) {
         int main(int argc, char* argv[]) {
             const auto x = 2;
             const auto y = 2;
-            if (x == 1) {
-                return 1;
-            } else if (x == y) {
-                return 2;
+            switch (x) {
+                case 1:
+                {
+                    return 1;
+                }
+                case y:
+                {
+                    return 2;
+                }
             }
             return 0;
         }
@@ -435,15 +445,24 @@ TEST(TranspilerTest, SwitchStatement) {
 
         int main(int argc, char* argv[]) {
             const auto x = 2;
-            if (x == 1) {
-                return 1;
-            } else if (x == 2) {
-                return 2;
-                break;
-            } else if (x == 3) {
-                [[fallthrough]];
-            } else if (x == 4) {
-                return 4;
+            switch (x) {
+                case 1:
+                {
+                    return 1;
+                }
+                case 2:
+                {
+                    return 2;
+                    break;
+                }
+                case 3:
+                {
+                    [[fallthrough]];
+                }
+                case 4:
+                {
+                    return 4;
+                }
             }
             return 0;
         }

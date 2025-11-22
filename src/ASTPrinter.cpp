@@ -127,6 +127,30 @@ std::any ASTPrinter::visit(const std::shared_ptr<Call>& expr) {
     return ss.str();
 }
 
+std::any ASTPrinter::visit(const std::shared_ptr<StructStmt>& stmt) {
+    std::stringstream ss;
+    ss << "(struct " << stmt->name.lexeme;
+    if (!stmt->type_params.empty()) {
+        ss << " <";
+        for (size_t i = 0; i < stmt->type_params.size(); ++i) {
+            ss << stmt->type_params[i].name.lexeme;
+            if (stmt->type_params[i].default_type) {
+                ss << "=" << printType(stmt->type_params[i].default_type);
+            }
+            if (i < stmt->type_params.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ">";
+    }
+    for (const auto& member : stmt->members) {
+        ss << (member.is_static ? " static" : "");
+        ss << " " << print(member.declaration);
+    }
+    ss << ")";
+    return ss.str();
+}
+
 std::any ASTPrinter::visit(const std::shared_ptr<Assign>& expr) {
     return parenthesize("= " + print(expr->target), expr->value);
 }

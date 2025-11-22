@@ -58,3 +58,17 @@ TEST(ClassMembersTest, InvalidLetReassignment) {
     chtholly::Transpiler transpiler("");
     ASSERT_THROW(transpiler.transpile(stmts), std::runtime_error);
 }
+
+TEST(ClassMembersTest, InvalidPrivateAccess) {
+    std::ifstream t("tests/invalid_access.cns");
+    std::string source((std::istreambuf_iterator<char>(t)),
+                     std::istreambuf_iterator<char>());
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("tests/invalid_access.cns");
+    ASSERT_THROW(transpiler.transpile(stmts), std::runtime_error);
+}

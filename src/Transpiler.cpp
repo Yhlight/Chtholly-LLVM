@@ -161,6 +161,13 @@ std::any Transpiler::visit(const std::shared_ptr<GetExpr>& expr) {
     if (std::dynamic_pointer_cast<ThisExpr>(expr->object)) {
         return std::string(transpile(expr->object) + "->" + expr->name.lexeme);
     }
+
+    if (member_access_status.count(expr->name.lexeme) && member_access_status.at(expr->name.lexeme) == AccessModifier::PRIVATE) {
+        if (!is_in_class_body) {
+            throw std::runtime_error("Cannot access private member '" + expr->name.lexeme + "' from outside the class.");
+        }
+    }
+
     return std::string(transpile(expr->object) + "." + expr->name.lexeme);
 }
 
@@ -455,17 +462,12 @@ std::any Transpiler::visit(const std::shared_ptr<RangeForStmt>& stmt) {
 
 std::any Transpiler::visit(const std::shared_ptr<SwitchStmt>& stmt) {
     std::stringstream ss;
-    std::string expr = transpile(stmt->expression);
-
-    for (size_t i = 0; i < stmt->cases.size(); ++i) {
-        if (i == 0) {
-            ss << "if (" << expr << " == " << transpile(stmt->cases[i].condition) << ") ";
-        } else {
-            ss << "else if (" << expr << " == " << transpile(stmt->cases[i].condition) << ") ";
-        }
-        ss << transpile(stmt->cases[i].body);
+    ss << "switch (" << transpile(stmt->expression) << ") {\n";
+    for (const auto& case_stmt : stmt->cases) {
+        ss << "case " << transpile(case_stmt.condition) << ":\n";
+        ss << transpile(case_stmt.body);
     }
-
+    ss << "}\n";
     return ss.str();
 }
 
@@ -491,8 +493,11 @@ std::any Transpiler::visit(const std::shared_ptr<EnumStmt>& stmt) {
 }
 
 std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
+    bool was_in_class_body = is_in_class_body;
+    is_in_class_body = true;
     member_mutability.clear();
     member_static_status.clear();
+    member_access_status.clear();
     std::stringstream ss;
     if (!stmt->type_params.empty()) {
         ss << "template <";
@@ -552,6 +557,7 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
             bool was_in_static_method = is_in_static_method;
             is_in_static_method = member.is_static;
             member_static_status[func_stmt->name.lexeme] = member.is_static;
+            member_access_status[func_stmt->name.lexeme] = current_access;
 
             // Constructor
             if (func_stmt->name.lexeme == stmt->name.lexeme) {
@@ -619,6 +625,7 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
         } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
             member_mutability[var_stmt->name.lexeme] = var_stmt->is_mutable;
             member_static_status[var_stmt->name.lexeme] = member.is_static;
+            member_access_status[var_stmt->name.lexeme] = current_access;
             ss << (member.is_static ? "inline static " : "") ;
             const std::string qualifier = var_stmt->is_mutable ? "" : "const ";
             ss << qualifier;
@@ -633,6 +640,65 @@ std::any Transpiler::visit(const std::shared_ptr<ClassStmt>& stmt) {
                 if (!is_const_in_ctor) {
                     ss << " = " << transpile(var_stmt->initializer);
                 }
+            }
+            ss << ";\n";
+        }
+    }
+
+    ss << "};\n";
+    is_in_class_body = was_in_class_body;
+    return std::any(ss.str());
+}
+
+std::any Transpiler::visit(const std::shared_ptr<StructStmt>& stmt) {
+    member_mutability.clear();
+    member_static_status.clear();
+    std::stringstream ss;
+    if (!stmt->type_params.empty()) {
+        ss << "template <";
+        for (size_t i = 0; i < stmt->type_params.size(); ++i) {
+            ss << "typename " << stmt->type_params[i].name.lexeme;
+            if (stmt->type_params[i].default_type) {
+                ss << " = " << transpileType(stmt->type_params[i].default_type);
+            }
+            if (i < stmt->type_params.size() - 1) {
+                ss << ", ";
+            }
+        }
+        ss << ">\n";
+    }
+    ss << "struct " << stmt->name.lexeme << " {\n";
+
+    for (const auto& member : stmt->members) {
+        std::string static_keyword = member.is_static ? "static " : "";
+
+        if (auto func_stmt = std::dynamic_pointer_cast<FunctionStmt>(member.declaration)) {
+            bool was_in_static_method = is_in_static_method;
+            is_in_static_method = member.is_static;
+            member_static_status[func_stmt->name.lexeme] = member.is_static;
+
+            ss << static_keyword << transpileType(func_stmt->return_type) << " " << func_stmt->name.lexeme << "(";
+            for (size_t i = 0; i < func_stmt->params.size(); ++i) {
+                ss << transpileParamType(func_stmt->params[i].type) << " " << func_stmt->params[i].name.lexeme;
+                if (i < func_stmt->params.size() - 1) ss << ", ";
+            }
+            ss << ") " << transpile(func_stmt->body);
+
+            is_in_static_method = was_in_static_method;
+        } else if (auto var_stmt = std::dynamic_pointer_cast<VarStmt>(member.declaration)) {
+            member_mutability[var_stmt->name.lexeme] = var_stmt->is_mutable;
+            member_static_status[var_stmt->name.lexeme] = member.is_static;
+            ss << (member.is_static ? "inline static " : "");
+            const std::string qualifier = var_stmt->is_mutable ? "" : "const ";
+            ss << qualifier;
+            if (var_stmt->type) {
+                ss << transpileType(var_stmt->type) << " " << var_stmt->name.lexeme;
+            } else {
+                ss << "auto " << var_stmt->name.lexeme;
+            }
+
+            if (var_stmt->initializer) {
+                ss << " = " << transpile(var_stmt->initializer);
             }
             ss << ";\n";
         }

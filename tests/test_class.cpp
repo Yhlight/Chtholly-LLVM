@@ -42,6 +42,77 @@ auto hello() {
     ASSERT_EQ(normalize(result), normalize(expected));
 }
 
+TEST(ClassTest, ConstructorWithMixedMembers) {
+    std::string source = R"(
+        class Test {
+            public:
+            let a: int;
+            mut b: int;
+            Test(val_a: int, val_b: int) {
+                this.a = val_a;
+                this.b = val_b;
+            }
+        }
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+#include <string>
+#include <vector>
+
+class Test {
+public:
+const int a;
+int b;
+Test(int val_a, int val_b) : a(val_a) {
+this->b = val_b;
+}
+};
+)";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
+TEST(ClassTest, StaticMemberAccess) {
+    std::string source = R"(
+        class Test {
+            public:
+            static let a: int = 1;
+        }
+        fn main() {
+            return Test::a;
+        }
+    )";
+
+    chtholly::Lexer lexer(source);
+    auto tokens = lexer.scanTokens();
+    chtholly::Parser parser(tokens);
+    auto stmts = parser.parse();
+
+    chtholly::Transpiler transpiler("");
+    std::string result = transpiler.transpile(stmts);
+
+    std::string expected = R"(
+#include <string>
+#include <vector>
+
+class Test {
+public:
+inline static const int a = 1;
+};
+int main(int argc, char* argv[]) {
+return Test::a;
+}
+)";
+    ASSERT_EQ(normalize(result), normalize(expected));
+}
+
 TEST(ClassTest, StaticMethod) {
     std::string source = R"(
         class Test {

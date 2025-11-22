@@ -216,6 +216,22 @@ fn test()
 }
 ```
 
+### struct结构体
+Chtholly也支持struct，与class不同的是，struct是高性能的，但不支持构造函数 / 析构函数，也不支持RAII，你需要手动编写一个函数进行初始化 / 资源释放
+
+```Chtholly
+struct Test
+{
+    let name: string = "yhlight";
+    mut id: int;
+
+    fn add(x, y): int
+    {
+        return x + y;
+    }
+}
+```
+
 #### 对象关联
 使用static创建静态函数，使用static创建静态变量  
 

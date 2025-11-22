@@ -26,6 +26,7 @@ std::shared_ptr<Stmt> Parser::declaration() {
         if (match({TokenType::PACKAGE})) return packageStatement();
         if (match({TokenType::IMPORT})) return importStatement();
         if (match({TokenType::CLASS})) return classDeclaration();
+        if (match({TokenType::STRUCT})) return structDeclaration();
         if (match({TokenType::ENUM})) return enumDeclaration();
         if (match({TokenType::FN})) return function("function");
         if (match({TokenType::LET, TokenType::MUT})) return varDeclaration();
@@ -311,6 +312,47 @@ std::shared_ptr<Stmt> Parser::classDeclaration() {
 
     consume(TokenType::RIGHT_BRACE, "Expect '}' after class body.");
     return std::make_shared<ClassStmt>(name, type_params, members);
+}
+
+std::shared_ptr<Stmt> Parser::structDeclaration() {
+    Token name = consume(TokenType::IDENTIFIER, "Expect struct name.");
+    std::vector<TypeParameter> type_params;
+    if (match({TokenType::LESS})) {
+        do {
+            Token type_name = consume(TokenType::IDENTIFIER, "Expect type parameter name.");
+            std::shared_ptr<Type> default_type = nullptr;
+            if (match({TokenType::EQUAL})) {
+                default_type = type();
+            }
+            type_params.push_back({type_name, default_type});
+        } while (match({TokenType::COMMA}));
+        consume(TokenType::GREATER, "Expect '>' after type parameters.");
+    }
+    consume(TokenType::LEFT_BRACE, "Expect '{' before struct body.");
+
+    std::vector<StructStmt::StructMember> members;
+    bool is_static = false;
+
+    while (!check(TokenType::RIGHT_BRACE) && !isAtEnd()) {
+        if (match({TokenType::STATIC})) {
+            is_static = true;
+        }
+
+        std::shared_ptr<Stmt> member_decl;
+        if (match({TokenType::FN})) {
+            member_decl = function("method");
+        } else if (match({TokenType::LET, TokenType::MUT})) {
+            member_decl = varDeclaration();
+        } else {
+            throw ParseError("Expect method or field declaration in struct.");
+        }
+
+        members.push_back({member_decl, is_static});
+        is_static = false; // Reset for the next member
+    }
+
+    consume(TokenType::RIGHT_BRACE, "Expect '}' after struct body.");
+    return std::make_shared<StructStmt>(name, type_params, members);
 }
 
 std::shared_ptr<Stmt> Parser::importStatement() {

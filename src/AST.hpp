@@ -43,6 +43,7 @@ struct BreakStmt;
 struct FallthroughStmt;
 struct EnumStmt;
 struct ClassStmt;
+struct StructStmt;
 struct ImportStmt;
 struct PackageStmt;
 struct Expr;
@@ -88,6 +89,7 @@ struct StmtVisitor {
     virtual R visit(const std::shared_ptr<FallthroughStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<EnumStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ClassStmt>& stmt) = 0;
+    virtual R visit(const std::shared_ptr<StructStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<ImportStmt>& stmt) = 0;
     virtual R visit(const std::shared_ptr<PackageStmt>& stmt) = 0;
     virtual ~StmtVisitor() = default;
@@ -514,6 +516,24 @@ struct ClassStmt : Stmt, public std::enable_shared_from_this<ClassStmt> {
     const Token name;
     const std::vector<TypeParameter> type_params;
     const std::vector<ClassMember> members;
+};
+
+struct StructStmt : Stmt, public std::enable_shared_from_this<StructStmt> {
+    struct StructMember {
+        std::shared_ptr<Stmt> declaration;
+        bool is_static;
+    };
+
+    StructStmt(Token name, std::vector<TypeParameter> type_params, std::vector<StructMember> members)
+        : name(std::move(name)), type_params(std::move(type_params)), members(std::move(members)) {}
+
+    std::any accept(StmtVisitor<std::any>& visitor) override {
+        return visitor.visit(shared_from_this());
+    }
+
+    const Token name;
+    const std::vector<TypeParameter> type_params;
+    const std::vector<StructMember> members;
 };
 
 struct ImportStmt : Stmt, public std::enable_shared_from_this<ImportStmt> {

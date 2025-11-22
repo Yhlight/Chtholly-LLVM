@@ -32,10 +32,11 @@
   - [X] `if`/`else if`/`else` statements.
   - [X] `while` loops.
   - [X] `for` loops (C-style and range-based).
-  - [X] `switch` statements.
+  - [X] `switch` statements (now transpiles to C++ `switch`).
 - [X] **Data Structures:**
   - [X] Arrays (static and dynamic).
   - [X] Enums.
+  - [X] Structs.
 - [X] **Functions:**
   - [X] Lambda functions.
   - [X] Function types.
@@ -72,3 +73,5 @@
     - [X] Implement safe array access (`.at()`).
 - [X] **Module System:**
     - [X] Implement partial imports (e.g., `import module::symbol;`).
+- [X] **Classes:**
+    - [X] Strengthened class feature testing.
