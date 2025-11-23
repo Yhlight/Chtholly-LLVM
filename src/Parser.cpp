@@ -635,42 +635,44 @@ std::shared_ptr<Expr> Parser::primary() {
         return std::make_shared<Grouping>(expr);
     }
 
-    if (check(TokenType::LEFT_BRACKET)) {
-        int next_token = 1;
-        if (peek(1).type == TokenType::EQUAL || peek(1).type == TokenType::AMPERSAND) {
-            next_token++;
+    if (check(TokenType::LEFT_BRACKET) && nextTokenIsLambda()) {
+        advance();
+
+        std::vector<Capture> captures;
+        if (!check(TokenType::RIGHT_BRACKET)) {
+            do {
+                CaptureMode mode = CaptureMode::IMMUTABLE_REFERENCE;
+                if (match({TokenType::AMPERSAND})) {
+                    mode = CaptureMode::MUTABLE_REFERENCE;
+                } else if (match({TokenType::STAR})) {
+                    mode = CaptureMode::COPY;
+                }
+                Token name = consume(TokenType::IDENTIFIER, "Expect variable name in capture list.");
+                captures.push_back({name, mode});
+            } while (match({TokenType::COMMA}));
+        }
+        consume(TokenType::RIGHT_BRACKET, "Expect ']' after lambda captures.");
+
+        consume(TokenType::LEFT_PAREN, "Expect '(' after lambda captures.");
+        std::vector<Parameter> parameters;
+        if (!check(TokenType::RIGHT_PAREN)) {
+            do {
+                Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
+                consume(TokenType::COLON, "Expect ':' after parameter name.");
+                auto param_type = type();
+                parameters.push_back({param_name, param_type});
+            } while (match({TokenType::COMMA}));
+        }
+        consume(TokenType::RIGHT_PAREN, "Expect ')' after lambda parameters.");
+
+        std::shared_ptr<Type> return_type = nullptr;
+        if (match({TokenType::COLON})) {
+            return_type = type();
         }
 
-        if (current + next_token < tokens.size() && tokens[current + next_token].type == TokenType::RIGHT_BRACKET &&
-            current + next_token + 1 < tokens.size() && tokens[current + next_token + 1].type == TokenType::LEFT_PAREN) {
-
-            advance();
-
-            std::vector<Token> captures;
-            if (match({TokenType::EQUAL, TokenType::AMPERSAND})) {
-                captures.push_back(previous());
-            }
-
-            consume(TokenType::RIGHT_BRACKET, "Expect ']' after lambda captures.");
-            consume(TokenType::LEFT_PAREN, "Expect '(' after lambda '[]'.");
-            std::vector<Parameter> parameters;
-            if (!check(TokenType::RIGHT_PAREN)) {
-                do {
-                    Token param_name = consume(TokenType::IDENTIFIER, "Expect parameter name.");
-                    consume(TokenType::COLON, "Expect ':' after parameter name.");
-                    auto param_type = type();
-                    parameters.push_back({param_name, param_type});
-                } while (match({TokenType::COMMA}));
-            }
-            consume(TokenType::RIGHT_PAREN, "Expect ')' after lambda parameters.");
-            std::shared_ptr<Type> return_type = nullptr;
-            if (match({TokenType::COLON})) {
-                return_type = type();
-            }
-            consume(TokenType::LEFT_BRACE, "Expect '{' before lambda body.");
-            auto body = std::make_shared<BlockStmt>(block());
-            return std::make_shared<LambdaExpr>(captures, parameters, return_type, body);
-        }
+        consume(TokenType::LEFT_BRACE, "Expect '{' before lambda body.");
+        auto body = std::make_shared<BlockStmt>(block());
+        return std::make_shared<LambdaExpr>(captures, parameters, return_type, body);
     }
 
     if (match({TokenType::LEFT_BRACKET})) {
@@ -687,6 +689,20 @@ std::shared_ptr<Expr> Parser::primary() {
 
     throw ParseError("Expect expression.");
 }
+
+bool Parser::nextTokenIsLambda() {
+    int lookahead_index = 1;
+    while (current + lookahead_index < tokens.size() && tokens[current + lookahead_index].type != TokenType::RIGHT_BRACKET) {
+        lookahead_index++;
+    }
+
+    if (current + lookahead_index + 1 >= tokens.size()) {
+        return false;
+    }
+
+    return tokens[current + lookahead_index + 1].type == TokenType::LEFT_PAREN;
+}
+
 
 // --- Helper methods ---
 

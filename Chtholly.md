@@ -127,11 +127,14 @@ fn main(args: string[]): int
 #### lambda函数
 Chtholly支持lambda函数  
 `[]`表示无捕获
-`[=]`表示值捕获
-`[&]`表示引用捕获
+`[a]`表示不可变引用捕获
+`[&b]`表示可变引用捕获
+`[*c]`表示值捕获(拷贝)
 
 ```Chtholly
+let x = 1, mut y = 2, let z = 3;
 let add = [](a: int, b: int): int { return a + b; };
+let add2 = [x, &y, *z](a: int, b: int): int { return a + b + x + y + z; };
 ```
 
 #### 函数类型

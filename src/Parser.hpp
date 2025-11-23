@@ -58,6 +58,8 @@ private:
     Token previous() const;
     void synchronize();
 
+    bool nextTokenIsLambda();
+
 
     const std::vector<Token>& tokens;
     int current = 0;

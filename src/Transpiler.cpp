@@ -132,8 +132,22 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
     needs_functional = true;
     std::stringstream ss;
     ss << "[";
-    if (!expr->captures.empty()) {
-        ss << expr->captures[0].lexeme;
+    for (size_t i = 0; i < expr->captures.size(); ++i) {
+        const auto& capture = expr->captures[i];
+        switch (capture.mode) {
+            case CaptureMode::IMMUTABLE_REFERENCE:
+                ss << capture.name.lexeme << " = static_cast<const auto&>(" << capture.name.lexeme << ")";
+                break;
+            case CaptureMode::MUTABLE_REFERENCE:
+                ss << "&" << capture.name.lexeme;
+                break;
+            case CaptureMode::COPY:
+                ss << capture.name.lexeme;
+                break;
+        }
+        if (i < expr->captures.size() - 1) {
+            ss << ", ";
+        }
     }
     ss << "](";
     for (size_t i = 0; i < expr->params.size(); ++i) {
@@ -142,7 +156,19 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
             ss << ", ";
         }
     }
-    ss << ")";
+    ss << ") ";
+
+    bool is_mutable = false;
+    for (const auto& capture : expr->captures) {
+        if (capture.mode == CaptureMode::MUTABLE_REFERENCE) {
+            is_mutable = true;
+            break;
+        }
+    }
+    if (is_mutable) {
+        ss << "mutable ";
+    }
+
     if (expr->return_type) {
         ss << " -> " << this->transpileType(expr->return_type);
     }

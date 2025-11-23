@@ -232,15 +232,26 @@ struct ScopeExpr : Expr, public std::enable_shared_from_this<ScopeExpr> {
     const Token name;
 };
 
+enum class CaptureMode {
+    IMMUTABLE_REFERENCE, // [a]
+    MUTABLE_REFERENCE,   // [&b]
+    COPY                 // [*c]
+};
+
+struct Capture {
+    Token name;
+    CaptureMode mode;
+};
+
 struct LambdaExpr : Expr, public std::enable_shared_from_this<LambdaExpr> {
-    LambdaExpr(std::vector<Token> captures, std::vector<Parameter> params, std::shared_ptr<Type> return_type, std::shared_ptr<BlockStmt> body)
+    LambdaExpr(std::vector<Capture> captures, std::vector<Parameter> params, std::shared_ptr<Type> return_type, std::shared_ptr<BlockStmt> body)
         : captures(std::move(captures)), params(std::move(params)), return_type(std::move(return_type)), body(std::move(body)) {}
 
     std::any accept(ExprVisitor<std::any>& visitor) override {
         return visitor.visit(shared_from_this());
     }
 
-    const std::vector<Token> captures;
+    const std::vector<Capture> captures;
     const std::vector<Parameter> params;
     const std::shared_ptr<Type> return_type;
     const std::shared_ptr<BlockStmt> body;
