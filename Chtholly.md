@@ -126,7 +126,9 @@ fn main(args: string[]): int
 
 #### lambda函数
 Chtholly支持lambda函数  
-默认情况下，捕获属于不可变引用  
+`[]`表示无捕获
+`[=]`表示值捕获
+`[&]`表示引用捕获
 
 ```Chtholly
 let add = [](a: int, b: int): int { return a + b; };

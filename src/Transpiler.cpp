@@ -131,7 +131,11 @@ std::any Transpiler::visit(const std::shared_ptr<ScopeExpr>& expr) {
 std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
     needs_functional = true;
     std::stringstream ss;
-    ss << "[](";
+    ss << "[";
+    if (!expr->captures.empty()) {
+        ss << expr->captures[0].lexeme;
+    }
+    ss << "](";
     for (size_t i = 0; i < expr->params.size(); ++i) {
         ss << this->transpileParamType(expr->params[i].type) << " " << expr->params[i].name.lexeme;
         if (i < expr->params.size() - 1) {

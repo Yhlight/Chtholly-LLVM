@@ -175,7 +175,11 @@ std::any ASTPrinter::visit(const std::shared_ptr<ScopeExpr>& expr) {
 
 std::any ASTPrinter::visit(const std::shared_ptr<LambdaExpr>& expr) {
     std::stringstream ss;
-    ss << "(lambda (";
+    ss << "(lambda ";
+    if (!expr->captures.empty()) {
+        ss << "[" << expr->captures[0].lexeme << "] ";
+    }
+    ss << "(";
     for (size_t i = 0; i < expr->params.size(); ++i) {
         ss << expr->params[i].name.lexeme << ": " << printType(expr->params[i].type);
         if (i < expr->params.size() - 1) {
