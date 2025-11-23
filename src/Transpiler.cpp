@@ -156,19 +156,7 @@ std::any Transpiler::visit(const std::shared_ptr<LambdaExpr>& expr) {
             ss << ", ";
         }
     }
-    ss << ") ";
-
-    bool is_mutable = false;
-    for (const auto& capture : expr->captures) {
-        if (capture.mode == CaptureMode::MUTABLE_REFERENCE) {
-            is_mutable = true;
-            break;
-        }
-    }
-    if (is_mutable) {
-        ss << "mutable ";
-    }
-
+    ss << ")";
     if (expr->return_type) {
         ss << " -> " << this->transpileType(expr->return_type);
     }

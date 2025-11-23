@@ -271,7 +271,7 @@ class Test
 {
     static let name: string = "yhlight";
 
-    fn static test(name: string): int
+    static fn test(name: string): int
     {
         
     }
